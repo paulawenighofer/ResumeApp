@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="API/API.csproj" />
+  <Project Path="ResumeApp/ResumeApp.csproj">
+    <Deploy Solution="Debug|*" />
+  </Project>
+  <Project Path="Test/Test.csproj" />
+</Solution>
