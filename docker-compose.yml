@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: resumebuilder-db
+    environment:
+      POSTGRES_USER: devuser
+      POSTGRES_PASSWORD: devpassword123
+      POSTGRES_DB: resumebuilder
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+ 
+volumes:
+  pgdata:
+ 
