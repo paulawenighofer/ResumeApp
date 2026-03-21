@@ -4,7 +4,14 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:ResumeApp"
+    xmlns:views="clr-namespace:ResumeApp.Views"
+    FlyoutBehavior="Disabled"
     Title="ResumeApp">
+
+    <ShellContent
+        Title="Login"
+        ContentTemplate="{DataTemplate views:LoginPage}"
+        Route="LoginPage" />
 
     <ShellContent
         Title="Home"
