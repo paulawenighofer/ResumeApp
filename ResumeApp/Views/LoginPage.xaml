@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="ResumeApp.Views.LoginPage"
+             x:Class="YourApp.Mobile.Views.LoginPage"
              Shell.NavBarIsVisible="False"
              BackgroundColor="#F8F9FA">
 
@@ -12,7 +12,7 @@
             VerticalOptions="Center">
 
             <!-- App Logo / Title Area -->
-            <Image Source="dotnet_bot.png"
+            <Image Source="app_logo.png"
                    HeightRequest="80"
                    HorizontalOptions="Center"
                    Margin="0,0,0,8" />
@@ -99,31 +99,46 @@
             </Grid>
 
             <!-- Social Login Buttons -->
-            <Grid ColumnDefinitions="*,*"
-                  ColumnSpacing="12">
+            <VerticalStackLayout Spacing="10">
 
-                <!-- LinkedIn Button -->
-                <Button Grid.Column="0"
-                        Text="LinkedIn"
-                        Command="{Binding LinkedInLoginCommand}"
-                        BackgroundColor="#0A66C2"
-                        TextColor="White"
+                <!-- Google Button -->
+                <Button Text="Continue with Google"
+                        Command="{Binding GoogleLoginCommand}"
+                        BackgroundColor="#FFFFFF"
+                        TextColor="#3C4043"
                         FontSize="14"
                         FontAttributes="Bold"
+                        BorderColor="#DADCE0"
+                        BorderWidth="1"
                         CornerRadius="8"
                         HeightRequest="48" />
 
-                <!-- GitHub Button -->
-                <Button Grid.Column="1"
-                        Text="GitHub"
-                        Command="{Binding GitHubLoginCommand}"
-                        BackgroundColor="#24292F"
-                        TextColor="White"
-                        FontSize="14"
-                        FontAttributes="Bold"
-                        CornerRadius="8"
-                        HeightRequest="48" />
-            </Grid>
+                <Grid ColumnDefinitions="*,*"
+                      ColumnSpacing="10">
+
+                    <!-- LinkedIn Button -->
+                    <Button Grid.Column="0"
+                            Text="LinkedIn"
+                            Command="{Binding LinkedInLoginCommand}"
+                            BackgroundColor="#0A66C2"
+                            TextColor="White"
+                            FontSize="14"
+                            FontAttributes="Bold"
+                            CornerRadius="8"
+                            HeightRequest="48" />
+
+                    <!-- GitHub Button -->
+                    <Button Grid.Column="1"
+                            Text="GitHub"
+                            Command="{Binding GitHubLoginCommand}"
+                            BackgroundColor="#24292F"
+                            TextColor="White"
+                            FontSize="14"
+                            FontAttributes="Bold"
+                            CornerRadius="8"
+                            HeightRequest="48" />
+                </Grid>
+            </VerticalStackLayout>
 
             <!-- Sign Up Link -->
             <HorizontalStackLayout HorizontalOptions="Center"
