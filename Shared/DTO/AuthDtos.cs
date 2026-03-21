@@ -32,17 +32,6 @@ namespace Shared.DTO
         public string Password { get; set; } = string.Empty;
     }
 
-    // What the mobile app sends for Google login
-    // The mobile app gets an ID token from Google's sign-in SDK,
-    // then sends it to our backend for verification
-    public class ExternalAuthDto
-    {
-        [Required]
-        public string Provider { get; set; } = string.Empty; // "Google"
-
-        [Required]
-        public string IdToken { get; set; } = string.Empty;  // The token from Google
-    }
 
     // What the backend sends back after any successful login/register
     public class AuthResponseDto

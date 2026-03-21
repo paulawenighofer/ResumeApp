@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<Shell
-    x:Class="ResumeApp.AppShell"
-    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:local="clr-namespace:ResumeApp"
-    xmlns:views="clr-namespace:ResumeApp.Views"
-    FlyoutBehavior="Disabled"
-    Title="ResumeApp">
+<Shell xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+       xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+       xmlns:views="clr-namespace:ResumeApp.Views"
+       x:Class="ResumeApp.AppShell">
 
-    <ShellContent
-        Title="Login"
-        ContentTemplate="{DataTemplate views:LoginPage}"
-        Route="LoginPage" />
+    <ShellContent Route="login"
+                  ContentTemplate="{DataTemplate views:LoginPage}"
+                  Shell.NavBarIsVisible="False"
+                  Shell.TabBarIsVisible="False" />
 
-    <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+    <ShellContent Route="register"
+                  ContentTemplate="{DataTemplate views:RegisterPage}"
+                  Shell.NavBarIsVisible="False"
+                  Shell.TabBarIsVisible="False" />
 
+    <TabBar Route="main">
+        <ShellContent Title="Home"
+                      ContentTemplate="{DataTemplate views:MainPage}" />
+    </TabBar>
 </Shell>

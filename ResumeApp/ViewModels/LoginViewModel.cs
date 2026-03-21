@@ -15,12 +15,16 @@ public partial class LoginViewModel : ObservableObject
 
     [ObservableProperty]
     private string email = "";
+
     [ObservableProperty]
     private string password = "";
+
     [ObservableProperty]
     private string errorMessage = "";
+
     [ObservableProperty]
     private bool hasError;
+
     [ObservableProperty]
     private bool isBusy;
 
@@ -84,6 +88,13 @@ public partial class LoginViewModel : ObservableObject
     /// </summary>
     private async Task SocialLoginAsync(string provider)
     {
+        if (DeviceInfo.Current.Platform == DevicePlatform.WinUI)
+        {
+            ErrorMessage = "Social login is not supported on Windows in .NET MAUI. Please test social login on Android or iOS.";
+            HasError = true;
+            return;
+        }
+
         try
         {
             IsBusy = true;
@@ -107,10 +118,25 @@ public partial class LoginViewModel : ObservableObject
                 ErrorMessage = $"Login failed: {error}";
                 HasError = true;
             }
+            else
+            {
+                ErrorMessage = "Social login did not return a token.";
+                HasError = true;
+            }
         }
         catch (TaskCanceledException)
         {
             // User closed the browser / cancelled — do nothing
+        }
+        catch (FeatureNotSupportedException)
+        {
+            ErrorMessage = "Social login is not supported on this platform. Use Android or iOS for OAuth testing.";
+            HasError = true;
+        }
+        catch (NotImplementedException)
+        {
+            ErrorMessage = "Social login is not available on this platform target. Use Android or iOS.";
+            HasError = true;
         }
         catch (Exception)
         {
@@ -128,3 +154,4 @@ public partial class LoginViewModel : ObservableObject
     {
         await Shell.Current.GoToAsync("//register");
     }
+}

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ResumeApp.Views.MainPage"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="#F8F9FA">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="24,60,24,24" Spacing="12">
+            <Label Text="{Binding AppHeading}"
+                   FontSize="30"
+                   FontAttributes="Bold"
+                   TextColor="#1A1A2E" />
+
+            <Label Text="{Binding UserName, StringFormat='Welcome {0}'}"
+                   FontSize="18"
+                   TextColor="#495057" />
+
+            <Label Text="Build tailored resumes faster with AI-powered suggestions and export-ready formatting."
+                   FontSize="14"
+                   TextColor="#6C757D" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

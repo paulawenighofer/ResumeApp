@@ -15,10 +15,26 @@ public static class MauiProgram
             fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
             fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
         }).UseMauiCommunityToolkit();
+
+        builder.Services.AddSingleton(sp =>
+        {
+            var client = new HttpClient();
+#if ANDROID
+            // Android emulator uses 10.0.2.2 to reach host machine's localhost
+            client.BaseAddress = new Uri("https://10.0.2.2:7082/");
+#else
+    client.BaseAddress = new Uri("https://localhost:7082/");
+#endif
+            return client;
+        });
+
         builder.Services.AddSingleton<AuthService>();
         builder.Services.AddTransient<LoginViewModel>();
         builder.Services.AddTransient<LoginPage>();
-        builder.Services.AddSingleton<MainPage>();
+        builder.Services.AddTransient<RegisterViewModel>();
+        builder.Services.AddTransient<RegisterPage>();
+        builder.Services.AddTransient<MainPageViewModel>();
+        builder.Services.AddTransient<MainPage>();
         builder.Services.AddSingleton<AppShell>();
 #if DEBUG
         builder.Logging.AddDebug();
