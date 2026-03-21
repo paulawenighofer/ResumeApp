@@ -72,22 +72,16 @@ var authBuilder = builder.Services.AddAuthentication(options =>
     };
 });
 
-// Add Google as an external login provider (only if credentials are configured).
-if (!string.IsNullOrEmpty(builder.Configuration["Google:ClientId"]))
-{
-    authBuilder.AddGoogle(options =>
-    {
-        options.ClientId = builder.Configuration["Google:ClientId"]!;
-        options.ClientSecret = builder.Configuration["Google:ClientSecret"]!;
-    });
-}
-
 
 // =============================================
 // SECTION 4: OTHER SERVICES
 // =============================================
+// creating new HttpClient instances manually (for better performance in http requests)
+builder.Services.AddHttpClient();
 // Register our custom TokenService so we can inject it into controllers
 builder.Services.AddScoped<TokenService>();
+// Register our social auth service
+builder.Services.AddScoped<SocialAuthService>();
 
 builder.Services.AddControllers();
 
