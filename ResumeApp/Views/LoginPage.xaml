@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="YourApp.Mobile.Views.LoginPage"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="#F8F9FA">
+
+    <ScrollView>
+        <VerticalStackLayout
+            Spacing="16"
+            Padding="24,60,24,24"
+            VerticalOptions="Center">
+
+            <!-- App Logo / Title Area -->
+            <Image Source="app_logo.png"
+                   HeightRequest="80"
+                   HorizontalOptions="Center"
+                   Margin="0,0,0,8" />
+
+            <Label Text="Resume Builder"
+                   FontSize="28"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center"
+                   TextColor="#1A1A2E" />
+
+            <Label Text="Build tailored resumes with AI"
+                   FontSize="14"
+                   HorizontalOptions="Center"
+                   TextColor="#6C757D"
+                   Margin="0,0,0,24" />
+
+            <!-- Email Field -->
+            <Frame BorderColor="#DEE2E6"
+                   BackgroundColor="White"
+                   CornerRadius="8"
+                   Padding="4,0"
+                   HasShadow="False">
+                <Entry Placeholder="Email address"
+                       Keyboard="Email"
+                       Text="{Binding Email}"
+                       FontSize="15"
+                       TextColor="#1A1A2E"
+                       PlaceholderColor="#ADB5BD" />
+            </Frame>
+
+            <!-- Password Field -->
+            <Frame BorderColor="#DEE2E6"
+                   BackgroundColor="White"
+                   CornerRadius="8"
+                   Padding="4,0"
+                   HasShadow="False">
+                <Entry Placeholder="Password"
+                       IsPassword="True"
+                       Text="{Binding Password}"
+                       FontSize="15"
+                       TextColor="#1A1A2E"
+                       PlaceholderColor="#ADB5BD" />
+            </Frame>
+
+            <!-- Error Message -->
+            <Label Text="{Binding ErrorMessage}"
+                   TextColor="#DC3545"
+                   FontSize="13"
+                   HorizontalOptions="Center"
+                   IsVisible="{Binding HasError}" />
+
+            <!-- Login Button -->
+            <Button Text="Sign In"
+                    Command="{Binding LoginCommand}"
+                    BackgroundColor="#1A1A2E"
+                    TextColor="White"
+                    FontAttributes="Bold"
+                    FontSize="16"
+                    CornerRadius="8"
+                    HeightRequest="50"
+                    Margin="0,8,0,0" />
+
+            <!-- Loading Indicator -->
+            <ActivityIndicator IsRunning="{Binding IsBusy}"
+                               IsVisible="{Binding IsBusy}"
+                               Color="#1A1A2E"
+                               HorizontalOptions="Center" />
+
+            <!-- Divider -->
+            <Grid ColumnDefinitions="*,Auto,*"
+                  Margin="0,8">
+                <BoxView Grid.Column="0"
+                         HeightRequest="1"
+                         Color="#DEE2E6"
+                         VerticalOptions="Center" />
+                <Label Grid.Column="1"
+                       Text="  or continue with  "
+                       FontSize="13"
+                       TextColor="#6C757D" />
+                <BoxView Grid.Column="2"
+                         HeightRequest="1"
+                         Color="#DEE2E6"
+                         VerticalOptions="Center" />
+            </Grid>
+
+            <!-- Social Login Buttons -->
+            <VerticalStackLayout Spacing="10">
+
+                <!-- Google Button -->
+                <Button Text="Continue with Google"
+                        Command="{Binding GoogleLoginCommand}"
+                        BackgroundColor="#FFFFFF"
+                        TextColor="#3C4043"
+                        FontSize="14"
+                        FontAttributes="Bold"
+                        BorderColor="#DADCE0"
+                        BorderWidth="1"
+                        CornerRadius="8"
+                        HeightRequest="48" />
+
+                <Grid ColumnDefinitions="*,*"
+                      ColumnSpacing="10">
+
+                    <!-- LinkedIn Button -->
+                    <Button Grid.Column="0"
+                            Text="LinkedIn"
+                            Command="{Binding LinkedInLoginCommand}"
+                            BackgroundColor="#0A66C2"
+                            TextColor="White"
+                            FontSize="14"
+                            FontAttributes="Bold"
+                            CornerRadius="8"
+                            HeightRequest="48" />
+
+                    <!-- GitHub Button -->
+                    <Button Grid.Column="1"
+                            Text="GitHub"
+                            Command="{Binding GitHubLoginCommand}"
+                            BackgroundColor="#24292F"
+                            TextColor="White"
+                            FontSize="14"
+                            FontAttributes="Bold"
+                            CornerRadius="8"
+                            HeightRequest="48" />
+                </Grid>
+            </VerticalStackLayout>
+
+            <!-- Sign Up Link -->
+            <HorizontalStackLayout HorizontalOptions="Center"
+                                   Margin="0,16,0,0">
+                <Label Text="Don't have an account? "
+                       FontSize="14"
+                       TextColor="#6C757D"
+                       VerticalOptions="Center" />
+                <Label Text="Sign Up"
+                       FontSize="14"
+                       FontAttributes="Bold"
+                       TextColor="#1A1A2E"
+                       VerticalOptions="Center">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding GoToRegisterCommand}" />
+                    </Label.GestureRecognizers>
+                </Label>
+            </HorizontalStackLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
