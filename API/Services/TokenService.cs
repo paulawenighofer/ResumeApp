@@ -33,7 +33,12 @@ namespace API.Services
             new Claim(ClaimTypes.Email, user.Email!),
             new Claim(ClaimTypes.Name, user.UserName!),
             new Claim("firstName", user.FirstName ?? ""),
-            new Claim("lastName", user.LastName ?? "")
+            new Claim("lastName", user.LastName ?? ""),
+            // SecurityStamp is regenerated whenever the user changes their password
+            // or explicitly calls UpdateSecurityStampAsync (our "logout from all devices").
+            // We embed it here so the server can verify it on each request and
+            // immediately reject tokens that were issued before the last stamp rotation.
+            new Claim("security_stamp", user.SecurityStamp ?? "")
         };
 
             // Create the signing key from our secret.

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Shared.Models;
+using System.Security.Claims;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -69,6 +70,30 @@ var authBuilder = builder.Services.AddAuthentication(options =>
         // It must match the key used to CREATE tokens (in TokenService).
         IssuerSigningKey = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+    };
+    // Validate SecurityStamp on every authenticated request.
+    // When logout-all is called, UpdateSecurityStampAsync rotates the stamp,
+    // so all tokens issued before that moment fail this check immediately.
+    options.Events = new JwtBearerEvents
+    {
+        OnTokenValidated = async context =>
+        {
+            var userManager = context.HttpContext.RequestServices
+                .GetRequiredService<UserManager<ApplicationUser>>();
+
+            var userId = context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
+            var stampClaim = context.Principal?.FindFirstValue("security_stamp");
+
+            if (string.IsNullOrEmpty(userId) || stampClaim == null)
+            {
+                context.Fail("Invalid token claims.");
+                return;
+            }
+
+            var user = await userManager.FindByIdAsync(userId);
+            if (user == null || user.SecurityStamp != stampClaim)
+                context.Fail("Token has been revoked.");
+        }
     };
 });
 

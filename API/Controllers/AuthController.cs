@@ -1,9 +1,11 @@
 ﻿using API.Services;
 using Google.Apis.Auth;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Shared.DTO;
 using Shared.Models;
+using System.Security.Claims;
 
 
 namespace API.Controllers
@@ -150,5 +152,64 @@ namespace API.Controllers
         }
 
 
+        // ==========================================
+        // ME — GET /api/auth/me
+        // ==========================================
+        // Returns the current user's profile from the database.
+        // Used by the MAUI app to populate the main page after social login,
+        // where only a token is returned (not full user info).
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<IActionResult> Me()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var user = await _userManager.FindByIdAsync(userId!);
+            if (user == null) return Unauthorized();
+
+            return Ok(new AuthResponseDto
+            {
+                Token = "",   // Not returning a new token — caller already has one
+                Email = user.Email!,
+                FirstName = user.FirstName ?? "",
+                LastName = user.LastName ?? ""
+            });
+        }
+
+
+        // ==========================================
+        // LOGOUT — POST /api/auth/logout
+        // ==========================================
+        // Logs out from the current device.
+        // JWTs are stateless so the server doesn't store sessions — the actual
+        // logout is handled by the client deleting its local token.
+        // This endpoint exists as a clean contract and for any future
+        // server-side cleanup (audit logs, token blocklists, etc.).
+        [HttpPost("logout")]
+        [Authorize]
+        public IActionResult Logout()
+        {
+            return Ok(new { message = "Logged out successfully." });
+        }
+
+
+        // ==========================================
+        // LOGOUT ALL — POST /api/auth/logout-all
+        // ==========================================
+        // Logs out from ALL devices by rotating the SecurityStamp.
+        // Every JWT we issue embeds the SecurityStamp as a claim.
+        // Program.cs validates that claim against the database on each request.
+        // Once the stamp changes, every token issued before this call is instantly
+        // rejected — even if it hasn't expired yet.
+        [HttpPost("logout-all")]
+        [Authorize]
+        public async Task<IActionResult> LogoutAll()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var user = await _userManager.FindByIdAsync(userId!);
+            if (user == null) return Unauthorized();
+
+            await _userManager.UpdateSecurityStampAsync(user);
+            return Ok(new { message = "Logged out from all devices." });
+        }
     }
 }
