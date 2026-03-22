@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ResumeApp.Views.RegisterPage"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="#F8F9FA">
+
+    <ScrollView>
+        <VerticalStackLayout
+            Spacing="16"
+            Padding="24,60,24,24"
+            VerticalOptions="Center">
+
+            <Label Text="Create Account"
+                   FontSize="28"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center"
+                   TextColor="#1A1A2E" />
+
+            <Label Text="Start building tailored resumes"
+                   FontSize="14"
+                   HorizontalOptions="Center"
+                   TextColor="#6C757D"
+                   Margin="0,0,0,24" />
+
+            <Frame BorderColor="#DEE2E6" BackgroundColor="White"
+                   CornerRadius="8" Padding="4,0" HasShadow="False">
+                <Entry Placeholder="First name"
+                       Text="{Binding FirstName}"
+                       FontSize="15" TextColor="#1A1A2E"
+                       PlaceholderColor="#ADB5BD" />
+            </Frame>
+
+            <Frame BorderColor="#DEE2E6" BackgroundColor="White"
+                   CornerRadius="8" Padding="4,0" HasShadow="False">
+                <Entry Placeholder="Last name"
+                       Text="{Binding LastName}"
+                       FontSize="15" TextColor="#1A1A2E"
+                       PlaceholderColor="#ADB5BD" />
+            </Frame>
+
+            <Frame BorderColor="#DEE2E6" BackgroundColor="White"
+                   CornerRadius="8" Padding="4,0" HasShadow="False">
+                <Entry Placeholder="Email address"
+                       Keyboard="Email"
+                       Text="{Binding Email}"
+                       FontSize="15" TextColor="#1A1A2E"
+                       PlaceholderColor="#ADB5BD" />
+            </Frame>
+
+            <Frame BorderColor="#DEE2E6" BackgroundColor="White"
+                   CornerRadius="8" Padding="4,0" HasShadow="False">
+                <Entry Placeholder="Password"
+                       IsPassword="True"
+                       Text="{Binding Password}"
+                       FontSize="15" TextColor="#1A1A2E"
+                       PlaceholderColor="#ADB5BD" />
+            </Frame>
+
+            <Frame BorderColor="#DEE2E6" BackgroundColor="White"
+                   CornerRadius="8" Padding="4,0" HasShadow="False">
+                <Entry Placeholder="Confirm password"
+                       IsPassword="True"
+                       Text="{Binding ConfirmPassword}"
+                       FontSize="15" TextColor="#1A1A2E"
+                       PlaceholderColor="#ADB5BD" />
+            </Frame>
+
+            <Label Text="{Binding ErrorMessage}"
+                   TextColor="#DC3545"
+                   FontSize="13"
+                   HorizontalOptions="Center"
+                   IsVisible="{Binding HasError}" />
+
+            <Button Text="Create Account"
+                    Command="{Binding RegisterCommand}"
+                    BackgroundColor="#1A1A2E"
+                    TextColor="White"
+                    FontAttributes="Bold"
+                    FontSize="16"
+                    CornerRadius="8"
+                    HeightRequest="50"
+                    Margin="0,8,0,0" />
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}"
+                               IsVisible="{Binding IsBusy}"
+                               Color="#1A1A2E"
+                               HorizontalOptions="Center" />
+
+            <HorizontalStackLayout HorizontalOptions="Center"
+                                   Margin="0,16,0,0">
+                <Label Text="Already have an account? "
+                       FontSize="14"
+                       TextColor="#6C757D"
+                       VerticalOptions="Center" />
+                <Label Text="Sign In"
+                       FontSize="14"
+                       FontAttributes="Bold"
+                       TextColor="#1A1A2E"
+                       VerticalOptions="Center">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding GoToLoginCommand}" />
+                    </Label.GestureRecognizers>
+                </Label>
+            </HorizontalStackLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

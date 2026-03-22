@@ -3,8 +3,12 @@
 ##
 ## Get latest from `dotnet new gitignore`
 
+.claude
 # dotenv files
 .env
+
+.dotnet/
+
 
 # User-specific files
 *.rsuser
@@ -480,3 +484,4 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+/.claude

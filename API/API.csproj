@@ -4,9 +4,20 @@
 		<TargetFramework>net9.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
+		<UserSecretsId>667fc04e-0654-427e-a066-7f14524f943f</UserSecretsId>
 	</PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Google.Apis.Auth" Version="1.73.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="9.0.14" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.14" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OAuth" Version="2.3.9" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.14" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.14">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.5" />
   </ItemGroup>
 
@@ -15,10 +26,6 @@
   </ItemGroup>
 
 	<!-- Auto-start PostgreSQL Docker container on build (dev only) -->
-	<Target Name="StartDocker" BeforeTargets="Build"
-			Condition="'$(ASPNETCORE_ENVIRONMENT)' != 'Production'">
-		<Exec Command="cd $(SolutionDir)" />
-		<Exec Command="docker compose up  -d" />
-	</Target>
+	
 
 </Project>
