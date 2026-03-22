@@ -76,10 +76,13 @@ public partial class LoginViewModel : ObservableObject
     private async Task GitHubLogin() => await SocialLoginAsync("github");
 
     /// <summary>
-    /// One method handles ALL social logins. The provider string maps to
-    /// the backend endpoint: /api/auth/{provider}-challenge
-    /// 
-    /// WebAuthenticator.AuthenticateAsync:
+    /// Handles social login for all providers on all platforms.
+    ///
+    /// Uses compile-time #if WINDOWS to pick the right approach:
+    /// - Windows: DesktopAuthHelper (local HTTP listener)
+    /// - Mobile: WebAuthenticator (OS-level URL scheme handling)
+    ///
+    /// WebAuthenticator.AuthenticateAsync (mobile):
     /// 1. Opens a browser to the challengeUrl (your backend)
     /// 2. Your backend redirects to the provider's login page
     /// 3. User signs in → provider redirects back to your backend
@@ -88,18 +91,19 @@ public partial class LoginViewModel : ObservableObject
     /// </summary>
     private async Task SocialLoginAsync(string provider)
     {
-        if (DeviceInfo.Current.Platform == DevicePlatform.WinUI)
-        {
-            ErrorMessage = "Social login is not supported on Windows in .NET MAUI. Please test social login on Android or iOS.";
-            HasError = true;
-            return;
-        }
-
         try
         {
             IsBusy = true;
             HasError = false;
 
+            string? token = null;
+
+#if WINDOWS
+            // Windows: spin up a local HTTP listener as the callback
+            token = await DesktopAuthHelper.AuthenticateAsync(
+                _authService.BaseUrl, provider);
+#else
+            // Android/iOS: use WebAuthenticator
             var apiBaseUrl = _authService.BaseUrl;
             var challengeUrl = new Uri($"{apiBaseUrl}/api/auth/{provider}-challenge");
             var callbackUrl = new Uri("myresumebuilder://auth");
@@ -107,36 +111,30 @@ public partial class LoginViewModel : ObservableObject
             var authResult = await WebAuthenticator.Default.AuthenticateAsync(
                 challengeUrl, callbackUrl);
 
-            if (authResult.Properties.TryGetValue("token", out var token)
-                && !string.IsNullOrEmpty(token))
-            {
-                await SecureStorage.SetAsync("auth_token", token);
-                await Shell.Current.GoToAsync("//main");
-            }
+            if (authResult.Properties.TryGetValue("token", out var t))
+                token = t;
             else if (authResult.Properties.TryGetValue("error", out var error))
             {
                 ErrorMessage = $"Login failed: {error}";
                 HasError = true;
+                return;
+            }
+#endif
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                await SecureStorage.SetAsync("auth_token", token);
+                await Shell.Current.GoToAsync("//main");
             }
             else
             {
-                ErrorMessage = "Social login did not return a token.";
+                ErrorMessage = "Login was cancelled or failed.";
                 HasError = true;
             }
         }
         catch (TaskCanceledException)
         {
-            // User closed the browser / cancelled — do nothing
-        }
-        catch (FeatureNotSupportedException)
-        {
-            ErrorMessage = "Social login is not supported on this platform. Use Android or iOS for OAuth testing.";
-            HasError = true;
-        }
-        catch (NotImplementedException)
-        {
-            ErrorMessage = "Social login is not available on this platform target. Use Android or iOS.";
-            HasError = true;
+            // User cancelled — do nothing
         }
         catch (Exception)
         {
