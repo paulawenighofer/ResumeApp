@@ -350,6 +350,14 @@ public class SocialAuthService
             if (!result.Succeeded)
                 return null;
         }
+        else if (!user.EmailConfirmed)
+        {
+            // User existed before social login was added, or signed up with
+            // email/password and never confirmed — the provider has now verified
+            // this email, so mark it confirmed
+            user.EmailConfirmed = true;
+            await _userManager.UpdateAsync(user);
+        }
 
         // Link the social login if not already linked
         // This is stored in the AspNetUserLogins table:
