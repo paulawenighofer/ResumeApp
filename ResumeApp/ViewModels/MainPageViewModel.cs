@@ -1,28 +1,42 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using ResumeApp.Services;
 
 namespace ResumeApp.ViewModels;
 
-public class MainPageViewModel : ObservableObject
+public partial class MainPageViewModel : ObservableObject
 {
-    private string _userName = "User";
-    public string UserName
-    {
-        get => _userName;
-        set => SetProperty(ref _userName, value);
-    }
+    private readonly AuthService _authService;
+
+    [ObservableProperty]
+    private string userName = "User";
+
+    [ObservableProperty]
+    private string userEmail = "";
 
     public string AppHeading { get; } = "AI Resume Builder";
 
-    public MainPageViewModel()
+    public MainPageViewModel(AuthService authService)
     {
-        _ = LoadUserNameAsync();
+        _authService = authService;
+        _ = LoadUserInfoAsync();
     }
 
-    private async Task LoadUserNameAsync()
+    private async Task LoadUserInfoAsync()
     {
         var savedName = await SecureStorage.GetAsync("user_name");
-
         if (!string.IsNullOrWhiteSpace(savedName))
             UserName = savedName;
+
+        var savedEmail = await SecureStorage.GetAsync("user_email");
+        if (!string.IsNullOrWhiteSpace(savedEmail))
+            UserEmail = savedEmail;
+    }
+
+    [RelayCommand]
+    private async Task Logout()
+    {
+        await _authService.LogoutAsync();
+        await Shell.Current.GoToAsync("//login");
     }
 }

@@ -124,6 +124,9 @@ public partial class LoginViewModel : ObservableObject
             if (!string.IsNullOrEmpty(token))
             {
                 await SecureStorage.SetAsync("auth_token", token);
+                // Social login only returns a token — fetch profile separately
+                // so name and email are available on the main page
+                await _authService.FetchAndSaveUserInfoAsync();
                 await Shell.Current.GoToAsync("//main");
             }
             else
