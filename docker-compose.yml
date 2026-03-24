@@ -17,21 +17,21 @@ services:
       timeout: 5s
       retries: 5
 
-    api:
-      image: mcr.microsoft.com/dotnet/sdk:9.0
-      container_name: resumebuilder-api
-      working_dir: /src/API
-      command: ["dotnet", "run", "--project", "/src/API/API.csproj", "--urls", "http://0.0.0.0:5003"]
-      environment:
-        ASPNETCORE_ENVIRONMENT: Development
-      ports:
-        - "5003:5003"
-      volumes:
-        - ./:/src
-      depends_on:
-        postgres:
-          condition: service_healthy
-      restart: unless-stopped
+  api:
+    image: mcr.microsoft.com/dotnet/sdk:9.0
+    container_name: resumebuilder-api
+    working_dir: /src/API
+    command: ["dotnet", "run", "--project", "/src/API/API.csproj", "--urls", "http://0.0.0.0:5003"]
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+    ports:
+      - "5003:5003"
+    volumes:
+      - ./:/src
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
  
 volumes:
   pgdata:
