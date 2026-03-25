@@ -13,7 +13,7 @@ public partial class RegisterViewModel : ObservableObject
         _authService = authService;
     }
 
-    [ObservableProperty] 
+    [ObservableProperty]
     private string firstName = "";
 
     [ObservableProperty]

@@ -5,6 +5,7 @@ using ResumeApp.Views;
 using CommunityToolkit.Maui;
 
 namespace ResumeApp;
+
 public static class MauiProgram
 {
     public static MauiApp CreateMauiApp()
