@@ -16,7 +16,7 @@
 
 	<!-- Auto-start PostgreSQL Docker container on build (dev only) -->
 	<Target Name="StartDocker" BeforeTargets="Build"
-			Condition="'$(ASPNETCORE_ENVIRONMENT)' != 'Production'">
+			Condition="'$(ASPNETCORE_ENVIRONMENT)' != 'Production' and '$(DOTNET_RUNNING_IN_CONTAINER)' != 'true' and '$(SolutionDir)' != ''">
 		<Exec Command="cd $(SolutionDir)" />
 		<Exec Command="docker compose up  -d" />
 	</Target>

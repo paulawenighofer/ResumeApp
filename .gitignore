@@ -6,6 +6,9 @@
 # dotenv files
 .env
 
+# Claude fiel
+.claude/
+
 # User-specific files
 *.rsuser
 *.suo
