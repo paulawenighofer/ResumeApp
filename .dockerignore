@@ -1,0 +1,9 @@
+**/.git
+**/.vs
+**/bin
+**/obj
+**/*.user
+**/*.suo
+**/*.cache
+**/node_modules
+kubernetes

@@ -3,10 +3,11 @@
 ##
 ## Get latest from `dotnet new gitignore`
 
-.claude
 # dotenv files
 .env
 
+# Claude fiel
+.claude/
 .dotnet/
 
 

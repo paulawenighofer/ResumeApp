@@ -25,7 +25,4 @@
     <ProjectReference Include="..\Shared\Shared.csproj" />
   </ItemGroup>
 
-	<!-- Auto-start PostgreSQL Docker container on build (dev only) -->
-	
-
 </Project>
