@@ -18,16 +18,16 @@ services:
       retries: 5
 
   api:
-    build:
-      context: .
-      dockerfile: API/Dockerfile
-    image: resumebuilder-api:local
+    image: mcr.microsoft.com/dotnet/sdk:9.0
     container_name: resumebuilder-api
+    working_dir: /src/API
+    command: ["dotnet", "run", "--project", "/src/API/API.csproj", "--urls", "http://0.0.0.0:5003"]
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ASPNETCORE_URLS: http://+:8080
     ports:
-      - "5003:8080"
+      - "5003:5003"
+    volumes:
+      - ./:/src
     depends_on:
       postgres:
         condition: service_healthy

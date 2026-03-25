@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ResumeApp.Views.MainPage"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="#F8F9FA">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="24,60,24,24" Spacing="20">
+
+            <!-- App title -->
+            <Label Text="{Binding AppHeading}"
+                   FontSize="30"
+                   FontAttributes="Bold"
+                   TextColor="#1A1A2E" />
+
+            <!-- Profile card -->
+            <Border BackgroundColor="White"
+                    StrokeShape="RoundRectangle 12"
+                    Stroke="#E9ECEF"
+                    Padding="20">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Signed in as"
+                           FontSize="12"
+                           TextColor="#6C757D" />
+                    <Label Text="{Binding UserName}"
+                           FontSize="20"
+                           FontAttributes="Bold"
+                           TextColor="#1A1A2E" />
+                    <Label Text="{Binding UserEmail}"
+                           FontSize="14"
+                           TextColor="#495057" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- App description -->
+            <Label Text="Build tailored resumes faster with AI-powered suggestions and export-ready formatting."
+                   FontSize="14"
+                   TextColor="#6C757D" />
+
+            <!-- Logout button -->
+            <Button Text="Sign out from this device"
+                    Command="{Binding LogoutCommand}"
+                    BackgroundColor="#DC3545"
+                    TextColor="White"
+                    CornerRadius="8"
+                    HeightRequest="48"
+                    Margin="0,20,0,0" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
