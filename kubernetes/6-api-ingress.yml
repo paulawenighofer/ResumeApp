@@ -8,7 +8,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: resumeapp.local
+    - host: resume-app-pb.duckdns.org
       http:
         paths:
           - path: /
