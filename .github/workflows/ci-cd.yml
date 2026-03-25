@@ -34,6 +34,8 @@ jobs:
             docker push paulawenighofer/resumeapp:$GITHUB_RUN_NUMBER
  
       - name: kubectl stuff
+        env:
+            KUBECONFIG: /home/paula/.kube/config
         run: |
           pwd
  
