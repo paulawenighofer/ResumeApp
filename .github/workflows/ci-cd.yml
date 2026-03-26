@@ -1,4 +1,4 @@
-name: pipelines for alex's kubernetes hosting
+name: Pipelines for alex's kubernetes hosting
 on:
   push:
     branches:
@@ -35,7 +35,7 @@ jobs:
  
       - name: kubectl stuff
         env:
-            KUBECONFIG: /home/paula/.kube/config
+            KUBECONFIG: /home/bishwas/.kube/config
         run: |
           pwd
  
