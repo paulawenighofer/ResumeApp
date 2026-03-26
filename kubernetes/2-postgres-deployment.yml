@@ -19,13 +19,9 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5432
-          env:
-            - name: POSTGRES_USER
-              value: devuser
-            - name: POSTGRES_PASSWORD
-              value: devpassword123
-            - name: POSTGRES_DB
-              value: resumebuilder
+          envFrom:
+            - secretRef:
+                name: resume-app-secrets
           volumeMounts:
             - name: postgres-data
               mountPath: /var/lib/postgresql/data

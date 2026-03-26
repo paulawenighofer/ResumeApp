@@ -24,5 +24,6 @@ spec:
               value: http://+:8080
             - name: ASPNETCORE_ENVIRONMENT
               value: Development
-            - name: ConnectionStrings__DefaultConnection
-              value: Host=resumeapp-postgres-service;Port=5432;Database=resumebuilder;Username=devuser;Password=devpassword123;Ssl Mode=Disable
+          envFrom:
+            - secretRef:
+                name: resume-app-secrets
