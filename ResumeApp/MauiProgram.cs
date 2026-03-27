@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using ResumeApp.Services;
 using ResumeApp.ViewModels;
@@ -11,6 +12,7 @@ public static class MauiProgram
     public static MauiApp CreateMauiApp()
     {
         var builder = MauiApp.CreateBuilder();
+
         builder.UseMauiApp<App>().ConfigureFonts(fonts =>
         {
             fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -19,13 +21,9 @@ public static class MauiProgram
 
         builder.Services.AddSingleton(sp =>
         {
+            var apiBaseUrl = builder.Configuration["ApiBaseUrl"]!;
             var client = new HttpClient();
-#if ANDROID
-            // Android emulator uses 10.0.2.2 to reach host machine's localhost
-            client.BaseAddress = new Uri("https://10.0.2.2:7082/");
-#else
-    client.BaseAddress = new Uri("https://localhost:7082/");
-#endif
+            client.BaseAddress = new Uri(apiBaseUrl.TrimEnd('/') + '/');
             return client;
         });
 

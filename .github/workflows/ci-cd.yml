@@ -56,6 +56,7 @@ jobs:
             --from-literal=GitHub__ClientId="${{ secrets.GH_CLIENT_ID }}" \
             --from-literal=GitHub__ClientSecret="${{ secrets.GH_CLIENT_SECRET }}" \
             --from-literal=AppScheme="myresumebuilder" \
+            --from-literal=ApiBaseUrl="https://resume-app-pb.duckdns.org" \
             --from-literal=POSTGRES_USER="${{ secrets.POSTGRES_USER }}" \
             --from-literal=POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}" \
             --from-literal=POSTGRES_DB="${{ secrets.POSTGRES_DB }}" \
