@@ -1,8 +1,8 @@
+﻿using CommunityToolkit.Maui;
 using Microsoft.Extensions.Logging;
 using ResumeApp.Services;
 using ResumeApp.ViewModels;
 using ResumeApp.Views;
-using CommunityToolkit.Maui;
 
 namespace ResumeApp;
 
@@ -11,35 +11,54 @@ public static class MauiProgram
     public static MauiApp CreateMauiApp()
     {
         var builder = MauiApp.CreateBuilder();
-        builder.UseMauiApp<App>().ConfigureFonts(fonts =>
-        {
-            fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-            fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
-        }).UseMauiCommunityToolkit();
 
-        builder.Services.AddSingleton(sp =>
-        {
-            var client = new HttpClient();
-#if ANDROID
-            // Android emulator uses 10.0.2.2 to reach host machine's localhost
-            client.BaseAddress = new Uri("https://10.0.2.2:7082/");
-#else
-    client.BaseAddress = new Uri("https://localhost:7082/");
-#endif
-            return client;
-        });
+        builder
+            .UseMauiApp<App>()
+            .UseMauiCommunityToolkit()
+            .ConfigureFonts(fonts =>
+            {
+                fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+                fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+            });
 
-        builder.Services.AddSingleton<AuthService>();
-        builder.Services.AddTransient<LoginViewModel>();
-        builder.Services.AddTransient<LoginPage>();
-        builder.Services.AddTransient<RegisterViewModel>();
-        builder.Services.AddTransient<RegisterPage>();
-        builder.Services.AddTransient<MainPageViewModel>();
-        builder.Services.AddTransient<MainPage>();
-        builder.Services.AddSingleton<AppShell>();
+        ConfigureServices(builder.Services);
+
 #if DEBUG
         builder.Logging.AddDebug();
 #endif
+
         return builder.Build();
+    }
+
+    private static void ConfigureServices(IServiceCollection services)
+    {
+        services.AddSingleton(new HttpClient
+        {
+            BaseAddress = new Uri(DeviceInfo.Platform == DevicePlatform.Android
+                ? "https://10.0.2.2:7082/"
+                : "https://localhost:7082/")
+        });
+
+        services.AddSingleton<AuthService>();
+        services.AddSingleton<IApiService, ApiService>();
+        services.AddSingleton<ILocalStorageService, LocalStorageService>();
+
+        services.AddSingleton<AppShell>();
+
+        services.AddTransient<LoginViewModel>();
+        services.AddTransient<RegisterViewModel>();
+        services.AddTransient<MainPageViewModel>();
+        services.AddTransient<EducationViewModel>();
+        services.AddTransient<ExperienceViewModel>();
+        services.AddTransient<SkillsViewModel>();
+        services.AddTransient<ProjectsViewModel>();
+
+        services.AddTransient<LoginPage>();
+        services.AddTransient<RegisterPage>();
+        services.AddTransient<MainPage>();
+        services.AddTransient<EducationPage>();
+        services.AddTransient<ExperiencePage>();
+        services.AddTransient<SkillsPage>();
+        services.AddTransient<ProjectsPage>();
     }
 }

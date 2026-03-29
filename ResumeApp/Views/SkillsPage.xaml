@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ResumeApp.Views.SkillsPage"
+             x:Name="SkillsPageRoot"
+             Title="Skills"
+             BackgroundColor="#F8F9FA">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="24" Spacing="16">
+            <Label Text="Skills"
+                   FontSize="28"
+                   FontAttributes="Bold"
+                   TextColor="#1A1A2E" />
+
+            <Border BackgroundColor="White"
+                    Stroke="#DEE2E6"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="18">
+                <VerticalStackLayout Spacing="12">
+                    <Entry Placeholder="New skill"
+                           Text="{Binding SkillInput}" />
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                        <Picker Grid.Column="0"
+                                Title="Level"
+                                ItemsSource="{Binding ProficiencyLevels}"
+                                SelectedItem="{Binding SelectedProficiencyLevel}" />
+                        <Picker Grid.Column="1"
+                                Title="Category"
+                                ItemsSource="{Binding SkillCategories}"
+                                SelectedItem="{Binding SelectedCategory}" />
+                    </Grid>
+
+                    <Button Text="{Binding SubmitButtonText}"
+                            Command="{Binding AddSkillCommand}"
+                            BackgroundColor="#1A1A2E"
+                            TextColor="White" />
+
+                    <Button Text="Cancel edit"
+                            Command="{Binding CancelEditCommand}"
+                            IsVisible="{Binding IsEditing}"
+                            BackgroundColor="#E9ECEF"
+                            TextColor="#1A1A2E" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Label Text="Suggestions"
+                   FontAttributes="Bold" />
+
+            <CollectionView ItemsSource="{Binding SuggestedSkills}"
+                            ItemsLayout="HorizontalList">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Button Text="{Binding .}"
+                                Command="{Binding Source={x:Reference SkillsPageRoot}, Path=BindingContext.AddSuggestedSkillCommand}"
+                                CommandParameter="{Binding .}"
+                                Margin="0,0,10,0"
+                                BackgroundColor="#E7F1FF"
+                                TextColor="#0A66C2" />
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <Label Text="{Binding ErrorMessage}"
+                   TextColor="#DC3545"
+                   IsVisible="{Binding HasError}" />
+
+            <CollectionView ItemsSource="{Binding SkillEntries}">
+                <CollectionView.EmptyView>
+                    <Label Text="No skills added yet."
+                           TextColor="#6C757D" />
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Border Margin="0,0,0,12"
+                                Padding="16"
+                                BackgroundColor="White"
+                                Stroke="#DEE2E6"
+                                StrokeShape="RoundRectangle 14">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                <VerticalStackLayout Grid.Column="0" Spacing="4">
+                                    <Label Text="{Binding Name}"
+                                           FontSize="18"
+                                           FontAttributes="Bold" />
+                                    <Label Text="{Binding Category}"
+                                           TextColor="#6C757D" />
+                                    <Label Text="{Binding ProficiencyLevel}"
+                                           TextColor="#0A66C2" />
+                                </VerticalStackLayout>
+                                <VerticalStackLayout Grid.Column="1" Spacing="8">
+                                    <Button Text="Delete"
+                                            Command="{Binding Source={x:Reference SkillsPageRoot}, Path=BindingContext.DeleteSkillCommand}"
+                                            CommandParameter="{Binding .}"
+                                            BackgroundColor="#FFF1F3"
+                                            TextColor="#B42318" />
+                                    <Button Text="Edit"
+                                            Command="{Binding Source={x:Reference SkillsPageRoot}, Path=BindingContext.EditSkillCommand}"
+                                            CommandParameter="{Binding .}"
+                                            BackgroundColor="#E7F1FF"
+                                            TextColor="#0A66C2" />
+                                </VerticalStackLayout>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <Button Text="Continue to Projects"
+                    Command="{Binding SaveAndContinueCommand}"
+                    BackgroundColor="#198754"
+                    TextColor="White" />
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}"
+                               IsVisible="{Binding IsBusy}" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
