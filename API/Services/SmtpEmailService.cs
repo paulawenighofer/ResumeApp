@@ -47,6 +47,7 @@ namespace API.Services
             var username = _config["Smtp:Username"]!;
             var password = _config["Smtp:Password"]!;
             var from = _config["Smtp:From"]!;
+            var senderName = _config["Smtp:SenderName"];
 
             var enableSsl = bool.Parse(_config["Smtp:EnableSsl"] ?? "true");
 
@@ -56,10 +57,17 @@ namespace API.Services
                 EnableSsl = enableSsl
             };
 
-            using var message = new MailMessage(from, toEmail, subject, htmlBody)
+            using var message = new MailMessage
             {
-                IsBodyHtml = true
+                Subject = subject,
+                Body = htmlBody,
+                IsBodyHtml = true,
+                From = string.IsNullOrWhiteSpace(senderName)
+                    ? new MailAddress(from)
+                    : new MailAddress(from, senderName)
             };
+
+            message.To.Add(toEmail);
 
             await client.SendMailAsync(message);
         }
