@@ -2,11 +2,13 @@ using API.Data;
 using API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Shared.Models;
 using System.Security.Claims;
 using System.Text;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -108,14 +110,52 @@ builder.Services.AddHttpClient();
 builder.Services.AddScoped<TokenService>();
 // Register our social auth service
 builder.Services.AddScoped<SocialAuthService>();
+// Register the email service — sends OTP codes and password-reset links via SMTP
+builder.Services.AddScoped<IEmailService, SmtpEmailService>();
+
+// =============================================
+// SECTION 5: RATE LIMITING
+// =============================================
+// Protects OTP endpoints against brute-force attacks.
+// "otp-verify"  — applied to verify-otp and reset-password: 5 attempts per 15 min per IP.
+//   With 1,000,000 possible codes an attacker would need ~200,000 windows to brute-force
+//   a single code, making automated attacks impractical within the 10-minute OTP window.
+// "otp-send"    — applied to forgot-password and resend-otp: 3 sends per 10 min per IP.
+//   Prevents email flooding / SMS-bombing style abuse.
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddSlidingWindowLimiter("otp-verify", opt =>
+    {
+        opt.PermitLimit = 5;
+        opt.Window = TimeSpan.FromMinutes(15);
+        opt.SegmentsPerWindow = 3;
+        opt.QueueLimit = 0;
+    });
+
+    options.AddSlidingWindowLimiter("otp-send", opt =>
+    {
+        opt.PermitLimit = 3;
+        opt.Window = TimeSpan.FromMinutes(10);
+        opt.SegmentsPerWindow = 2;
+        opt.QueueLimit = 0;
+    });
+
+    options.OnRejected = async (ctx, token) =>
+    {
+        ctx.HttpContext.Response.StatusCode = 429;
+        await ctx.HttpContext.Response.WriteAsJsonAsync(
+            new { message = "Too many attempts. Please try again later." }, token);
+    };
+});
 
 builder.Services.AddControllers();
 
 var app = builder.Build();
 
 // Auto-apply migrations on startup so the DB is always in sync
-using (var scope = app.Services.CreateScope())
+if (!app.Environment.IsEnvironment("Testing"))
 {
+    using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.Migrate();
 }
@@ -137,6 +177,7 @@ app.UseHttpsRedirection();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 
 app.MapControllers();
 
@@ -146,3 +187,5 @@ app.MapRazorPages().WithStaticAssets();
 app.MapGet("/api/", () => "Hello World");
 
 app.Run();
+
+public partial class Program { }

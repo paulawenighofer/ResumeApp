@@ -64,6 +64,16 @@
                    HorizontalOptions="Center"
                    IsVisible="{Binding HasError}" />
 
+            <!-- Forgot Password Link -->
+            <Label Text="Forgot password?"
+                   FontSize="13"
+                   TextColor="#6C757D"
+                   HorizontalOptions="End">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding GoToForgotPasswordCommand}" />
+                </Label.GestureRecognizers>
+            </Label>
+
             <!-- Login Button -->
             <Button Text="Sign In"
                     Command="{Binding LoginCommand}"

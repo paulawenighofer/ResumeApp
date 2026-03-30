@@ -14,6 +14,7 @@ namespace API.Data
         public DbSet<Project> Projects => Set<Project>();
         public DbSet<Certification> Certifications => Set<Certification>();
         public DbSet<Resume> Resumes => Set<Resume>();
+        public DbSet<OtpVerification> OtpVerifications => Set<OtpVerification>();
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -29,6 +30,7 @@ namespace API.Data
             builder.Entity<Project>().HasOne<ApplicationUser>().WithMany(u => u.Projects).HasForeignKey(e => e.UserId).OnDelete(DeleteBehavior.Cascade);
             builder.Entity<Certification>().HasOne<ApplicationUser>().WithMany(u => u.Certifications).HasForeignKey(e => e.UserId).OnDelete(DeleteBehavior.Cascade);
             builder.Entity<Resume>().HasOne<ApplicationUser>().WithMany(u => u.Resumes).HasForeignKey(e => e.UserId).OnDelete(DeleteBehavior.Cascade);
+            builder.Entity<OtpVerification>().HasOne<ApplicationUser>().WithMany().HasForeignKey(o => o.UserId).OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

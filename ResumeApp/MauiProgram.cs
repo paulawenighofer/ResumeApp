@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using ResumeApp.Services;
 using ResumeApp.ViewModels;
@@ -11,6 +12,7 @@ public static class MauiProgram
     public static MauiApp CreateMauiApp()
     {
         var builder = MauiApp.CreateBuilder();
+
         builder.UseMauiApp<App>().ConfigureFonts(fonts =>
         {
             fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -19,13 +21,17 @@ public static class MauiProgram
 
         builder.Services.AddSingleton(sp =>
         {
-            var client = new HttpClient();
-#if ANDROID
-            // Android emulator uses 10.0.2.2 to reach host machine's localhost
-            client.BaseAddress = new Uri("https://10.0.2.2:7082/");
+#if DEBUG
+            // In development, point to your local API server.
+            // Change this to match wherever your API is running (e.g. https://localhost:7082).
+            // The production URL in appsettings.json is used for release builds automatically.
+            var apiBaseUrl = "https://localhost:7082";
 #else
-    client.BaseAddress = new Uri("https://localhost:7082/");
+            var apiBaseUrl = builder.Configuration["ApiBaseUrl"]
+                ?? throw new InvalidOperationException("ApiBaseUrl is not set in appsettings.json.");
 #endif
+            var client = new HttpClient();
+            client.BaseAddress = new Uri(apiBaseUrl.TrimEnd('/') + '/');
             return client;
         });
 
@@ -34,6 +40,12 @@ public static class MauiProgram
         builder.Services.AddTransient<LoginPage>();
         builder.Services.AddTransient<RegisterViewModel>();
         builder.Services.AddTransient<RegisterPage>();
+        builder.Services.AddTransient<OtpVerificationViewModel>();
+        builder.Services.AddTransient<OtpVerificationPage>();
+        builder.Services.AddTransient<ForgotPasswordViewModel>();
+        builder.Services.AddTransient<ForgotPasswordPage>();
+        builder.Services.AddTransient<ResetPasswordViewModel>();
+        builder.Services.AddTransient<ResetPasswordPage>();
         builder.Services.AddTransient<MainPageViewModel>();
         builder.Services.AddTransient<MainPage>();
         builder.Services.AddSingleton<AppShell>();
