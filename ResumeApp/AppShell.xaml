@@ -14,6 +14,21 @@
                   Shell.NavBarIsVisible="False"
                   Shell.TabBarIsVisible="False" />
 
+    <ShellContent Route="otp"
+                  ContentTemplate="{DataTemplate views:OtpVerificationPage}"
+                  Shell.NavBarIsVisible="False"
+                  Shell.TabBarIsVisible="False" />
+
+    <ShellContent Route="forgot-password"
+                  ContentTemplate="{DataTemplate views:ForgotPasswordPage}"
+                  Shell.NavBarIsVisible="False"
+                  Shell.TabBarIsVisible="False" />
+
+    <ShellContent Route="reset-password"
+                  ContentTemplate="{DataTemplate views:ResetPasswordPage}"
+                  Shell.NavBarIsVisible="False"
+                  Shell.TabBarIsVisible="False" />
+
     <TabBar Route="main">
         <ShellContent Title="Home"
                       ContentTemplate="{DataTemplate views:MainPage}" />

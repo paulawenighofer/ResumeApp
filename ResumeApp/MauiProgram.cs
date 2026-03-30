@@ -21,7 +21,15 @@ public static class MauiProgram
 
         builder.Services.AddSingleton(sp =>
         {
-            var apiBaseUrl = builder.Configuration["ApiBaseUrl"]!;
+#if DEBUG
+            // In development, point to your local API server.
+            // Change this to match wherever your API is running (e.g. https://localhost:7082).
+            // The production URL in appsettings.json is used for release builds automatically.
+            var apiBaseUrl = "https://localhost:7082";
+#else
+            var apiBaseUrl = builder.Configuration["ApiBaseUrl"]
+                ?? throw new InvalidOperationException("ApiBaseUrl is not set in appsettings.json.");
+#endif
             var client = new HttpClient();
             client.BaseAddress = new Uri(apiBaseUrl.TrimEnd('/') + '/');
             return client;
@@ -32,6 +40,12 @@ public static class MauiProgram
         builder.Services.AddTransient<LoginPage>();
         builder.Services.AddTransient<RegisterViewModel>();
         builder.Services.AddTransient<RegisterPage>();
+        builder.Services.AddTransient<OtpVerificationViewModel>();
+        builder.Services.AddTransient<OtpVerificationPage>();
+        builder.Services.AddTransient<ForgotPasswordViewModel>();
+        builder.Services.AddTransient<ForgotPasswordPage>();
+        builder.Services.AddTransient<ResetPasswordViewModel>();
+        builder.Services.AddTransient<ResetPasswordPage>();
         builder.Services.AddTransient<MainPageViewModel>();
         builder.Services.AddTransient<MainPage>();
         builder.Services.AddSingleton<AppShell>();
