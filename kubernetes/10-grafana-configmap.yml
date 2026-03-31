@@ -30,13 +30,3 @@ data:
         updateIntervalSeconds: 30
         options:
           path: /var/lib/grafana/dashboards
-
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: grafana-dashboard-config-configmap
-  namespace: resumeapp
-data:
-  grafana-dashboard.json: |
-    {}
