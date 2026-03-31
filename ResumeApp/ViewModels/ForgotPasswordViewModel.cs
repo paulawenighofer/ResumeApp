@@ -32,6 +32,10 @@ public partial class ForgotPasswordViewModel : ObservableObject
     [ObservableProperty]
     private string? unverifiedEmail;
 
+    // True after a successful API call — shows the "check your email" confirmation state
+    [ObservableProperty]
+    private bool codeSent;
+
     [RelayCommand]
     private async Task SendResetLink()
     {
@@ -52,7 +56,11 @@ public partial class ForgotPasswordViewModel : ObservableObject
 
             if (result.Success)
             {
-                await Shell.Current.GoToAsync($"//reset-password?email={Uri.EscapeDataString(Email)}");
+                // Stay on this page and show a confirmation — do NOT navigate yet.
+                // The API returns 200 for both real and unknown emails (security),
+                // so navigating immediately would drop unknown-email users into the
+                // reset form waiting for a code that never arrives.
+                CodeSent = true;
             }
             else if (result.RequiresVerification)
             {
@@ -74,6 +82,20 @@ public partial class ForgotPasswordViewModel : ObservableObject
         {
             IsBusy = false;
         }
+    }
+
+    [RelayCommand]
+    private async Task EnterCode()
+    {
+        await Shell.Current.GoToAsync($"//reset-password?email={Uri.EscapeDataString(Email)}");
+    }
+
+    [RelayCommand]
+    private void TryDifferentEmail()
+    {
+        Email = "";
+        CodeSent = false;
+        HasError = false;
     }
 
     [RelayCommand]

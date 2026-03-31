@@ -111,42 +111,77 @@
             <!-- Social Login Buttons -->
             <VerticalStackLayout Spacing="10">
 
-                <!-- Google Button -->
-                <Button Text="Continue with Google"
-                        Command="{Binding GoogleLoginCommand}"
-                        BackgroundColor="#FFFFFF"
-                        TextColor="#3C4043"
-                        FontSize="14"
-                        FontAttributes="Bold"
-                        BorderColor="#DADCE0"
-                        BorderWidth="1"
-                        CornerRadius="8"
-                        HeightRequest="48" />
+                <!-- Google -->
+                <Border BackgroundColor="White"
+                        Stroke="#DADCE0"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 8"
+                        HeightRequest="48">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding GoogleLoginCommand}" />
+                    </Border.GestureRecognizers>
+                    <HorizontalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="10">
+                        <Label Text="&#xf1a0;"
+                               FontFamily="FABrands"
+                               FontSize="20"
+                               TextColor="#4285F4"
+                               VerticalOptions="Center" />
+                        <Label Text="Continue with Google"
+                               TextColor="#3C4043"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+                </Border>
 
-                <Grid ColumnDefinitions="*,*"
-                      ColumnSpacing="10">
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
 
-                    <!-- LinkedIn Button -->
-                    <Button Grid.Column="0"
-                            Text="LinkedIn"
-                            Command="{Binding LinkedInLoginCommand}"
+                    <!-- LinkedIn -->
+                    <Border Grid.Column="0"
                             BackgroundColor="#0A66C2"
-                            TextColor="White"
-                            FontSize="14"
-                            FontAttributes="Bold"
-                            CornerRadius="8"
-                            HeightRequest="48" />
+                            StrokeThickness="0"
+                            StrokeShape="RoundRectangle 8"
+                            HeightRequest="48">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding LinkedInLoginCommand}" />
+                        </Border.GestureRecognizers>
+                        <HorizontalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="8">
+                            <Label Text="&#xf08c;"
+                                   FontFamily="FABrands"
+                                   FontSize="20"
+                                   TextColor="White"
+                                   VerticalOptions="Center" />
+                            <Label Text="LinkedIn"
+                                   TextColor="White"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                    </Border>
 
-                    <!-- GitHub Button -->
-                    <Button Grid.Column="1"
-                            Text="GitHub"
-                            Command="{Binding GitHubLoginCommand}"
+                    <!-- GitHub -->
+                    <Border Grid.Column="1"
                             BackgroundColor="#24292F"
-                            TextColor="White"
-                            FontSize="14"
-                            FontAttributes="Bold"
-                            CornerRadius="8"
-                            HeightRequest="48" />
+                            StrokeThickness="0"
+                            StrokeShape="RoundRectangle 8"
+                            HeightRequest="48">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding GitHubLoginCommand}" />
+                        </Border.GestureRecognizers>
+                        <HorizontalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="8">
+                            <Label Text="&#xf09b;"
+                                   FontFamily="FABrands"
+                                   FontSize="20"
+                                   TextColor="White"
+                                   VerticalOptions="Center" />
+                            <Label Text="GitHub"
+                                   TextColor="White"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                    </Border>
+
                 </Grid>
             </VerticalStackLayout>
 
