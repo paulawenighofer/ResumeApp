@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using Shared.Models;
 using System.Security.Claims;
 using System.Text;
+using Prometheus;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -151,12 +152,14 @@ app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseHttpMetrics();
 
 app.MapControllers();
 
 app.MapStaticAssets();
 app.MapRazorPages().WithStaticAssets();
 
+app.MapMetrics(); 
 app.MapGet("/api/", () => "Hello World");
 
 app.Run();
