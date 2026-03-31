@@ -12,10 +12,12 @@ namespace API.Controllers;
 public class ProjectsController : ControllerBase
 {
     private readonly InMemoryResumeStore _store;
+    private readonly ApiMetrics _metrics;
 
-    public ProjectsController(InMemoryResumeStore store)
+    public ProjectsController(InMemoryResumeStore store, ApiMetrics metrics)
     {
         _store = store;
+        _metrics = metrics;
     }
 
     [HttpGet]
@@ -55,6 +57,7 @@ public class ProjectsController : ControllerBase
         project.Id = _store.NextProjectId();
         project.UserId = userId;
         _store.Projects.Add(project);
+        _metrics.ProjectsCreated.Add(1);
         return CreatedAtAction(nameof(GetById), new { id = project.Id }, project);
     }
 

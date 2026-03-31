@@ -29,6 +29,8 @@ services:
       Jwt__Issuer: ResumeApp.API
       Jwt__Audience: ResumeApp.Mobile
       Jwt__ExpirationInMinutes: 120
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+      OTEL_SERVICE_NAME: ResumeApp
     ports:
       - "5003:5003"
     volumes:
@@ -36,8 +38,110 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      otel-collector:
+        condition: service_started
     restart: unless-stopped
- 
+
+  nginx:
+    image: lscr.io/linuxserver/nginx:latest
+    container_name: resumebuilder-nginx
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - ./nginx.conf:/config/nginx/site-confs/default.conf
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+      - grafana
+    restart: unless-stopped
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: resumebuilder-otel-collector
+    command: ["--config", "/etc/otelcol-contrib/config.yaml"]
+    volumes:
+      - ./configs/otel-config.yaml:/etc/otelcol-contrib/config.yaml
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+      - "8889:8889"
+    depends_on:
+      - loki
+    restart: unless-stopped
+
+  loki:
+    image: grafana/loki:latest
+    container_name: resumebuilder-loki
+    ports:
+      - "3100:3100"
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v3.2.1
+    container_name: resumebuilder-prometheus
+    command: ["--config.file=/etc/prometheus/prometheus.yml"]
+    volumes:
+      - ./configs/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      - otel-collector
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: resumebuilder-grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./configs/grafana-dashboard.json:/var/lib/grafana/dashboards/resumeapp-dashboard.json
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Admin"
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+    configs:
+      - source: grafana_datasources
+        target: /etc/grafana/provisioning/datasources/datasources.yaml
+      - source: grafana_dashboard_provider
+        target: /etc/grafana/provisioning/dashboards/provider.yaml
+    depends_on:
+      - prometheus
+      - loki
+    restart: unless-stopped
+
 volumes:
   pgdata:
- 
+  prometheus_data:
+
+configs:
+  grafana_datasources:
+    content: |
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          access: proxy
+          url: http://prometheus:9090
+          isDefault: true
+          editable: false
+        - name: Loki
+          type: loki
+          access: proxy
+          url: http://loki:3100
+          editable: false
+  grafana_dashboard_provider:
+    content: |
+      apiVersion: 1
+      providers:
+        - name: ResumeApp
+          orgId: 1
+          folder: ResumeApp
+          type: file
+          disableDeletion: true
+          updateIntervalSeconds: 30
+          options:
+            path: /var/lib/grafana/dashboards

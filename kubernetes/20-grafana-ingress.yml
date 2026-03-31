@@ -1,17 +1,17 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: resumeapp-web-ingress
+  name: grafana-ingress
   namespace: resumeapp
 spec:
   rules:
-    - host: resume-app-pb.duckdns.org
+    - host: grafana.resume-app-pb.duckdns.org
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: resumeapp-api-service
+                name: grafana-service
                 port:
-                  number: 80
+                  number: 3000
