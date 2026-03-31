@@ -1,4 +1,5 @@
 ﻿using Shared.DTO;
+using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -105,6 +106,8 @@ public class AuthService
     {
         try
         {
+            Debug.WriteLine($"[RegisterAsync] Starting registration for email: {email}");
+
             var response = await _httpClient.PostAsJsonAsync("api/auth/register",
                 new { firstName, lastName, email, password });
 
@@ -175,23 +178,35 @@ public class AuthService
             var response = await _httpClient.PostAsJsonAsync("api/auth/verify-otp",
                 new { email, code });
 
+            Debug.WriteLine($"[RegisterAsync] Response status: {response.StatusCode}");
+
             if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                Debug.WriteLine($"[RegisterAsync] Request failed with status {response.StatusCode}. Error: {errorContent}");
                 return false;
+            }
 
             var result = await response.Content.ReadFromJsonAsync<AuthResponseDto>();
+            Debug.WriteLine($"[RegisterAsync] Response deserialized. Token exists: {result?.Token != null}");
 
             if (result?.Token != null)
             {
+                Debug.WriteLine($"[RegisterAsync] Saving token and user data...");
                 await SecureStorage.SetAsync("auth_token", result.Token);
                 await SecureStorage.SetAsync("user_email", result.Email);
                 await SaveUserNameAsync(result.FirstName, result.LastName, result.Email);
+                Debug.WriteLine($"[RegisterAsync] Registration successful!");
                 return true;
             }
 
+            Debug.WriteLine($"[RegisterAsync] Token is null or empty");
             return false;
         }
-        catch
+        catch (Exception ex)
         {
+            Debug.WriteLine($"[RegisterAsync] Exception caught: {ex.GetType().Name} - {ex.Message}");
+            Debug.WriteLine($"[RegisterAsync] Stack trace: {ex.StackTrace}");
             return false;
         }
     }

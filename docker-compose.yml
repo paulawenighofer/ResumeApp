@@ -24,6 +24,11 @@ services:
     command: ["dotnet", "run", "--project", "/src/API/API.csproj", "--urls", "http://0.0.0.0:5003"]
     environment:
       ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=resumebuilder;Username=devuser;Password=devpassword123
+      Jwt__Key: ResumeBuilderDevKey_ChangeThisBeforeProduction_123456789
+      Jwt__Issuer: ResumeApp.API
+      Jwt__Audience: ResumeApp.Mobile
+      Jwt__ExpirationInMinutes: 120
     ports:
       - "5003:5003"
     volumes:

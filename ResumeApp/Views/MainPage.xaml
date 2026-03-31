@@ -19,24 +19,70 @@
                     StrokeShape="RoundRectangle 12"
                     Stroke="#E9ECEF"
                     Padding="20">
-                <VerticalStackLayout Spacing="4">
-                    <Label Text="Signed in as"
-                           FontSize="12"
-                           TextColor="#6C757D" />
-                    <Label Text="{Binding UserName}"
-                           FontSize="20"
-                           FontAttributes="Bold"
-                           TextColor="#1A1A2E" />
-                    <Label Text="{Binding UserEmail}"
-                           FontSize="14"
-                           TextColor="#495057" />
-                </VerticalStackLayout>
+                <Grid ColumnDefinitions="80,*" ColumnSpacing="16">
+                    <Frame WidthRequest="80"
+                           HeightRequest="80"
+                           CornerRadius="40"
+                           Padding="0"
+                           BorderColor="#DEE2E6"
+                           BackgroundColor="#F8F9FA"
+                           HasShadow="False">
+                        <Grid>
+                            <Image Source="{Binding ProfileImageSource}"
+                                   Aspect="AspectFill" />
+                            <Label Text="+" 
+                                   FontSize="28"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center"
+                                   IsVisible="{Binding ProfileImageSource, Converter={StaticResource inverseBoolean}}" />
+                        </Grid>
+                    </Frame>
+
+                    <VerticalStackLayout Grid.Column="1" Spacing="4">
+                        <Label Text="Signed in as"
+                               FontSize="12"
+                               TextColor="#6C757D" />
+                        <Label Text="{Binding UserName}"
+                               FontSize="20"
+                               FontAttributes="Bold"
+                               TextColor="#1A1A2E" />
+                        <Label Text="{Binding UserEmail}"
+                               FontSize="14"
+                               TextColor="#495057" />
+                        <Button Text="Choose profile image"
+                                Command="{Binding PickProfileImageCommand}"
+                                BackgroundColor="#E7F1FF"
+                                TextColor="#0A66C2"
+                                HorizontalOptions="Start"
+                                Padding="12,8" />
+                    </VerticalStackLayout>
+                </Grid>
             </Border>
 
             <!-- App description -->
             <Label Text="Build tailored resumes faster with AI-powered suggestions and export-ready formatting."
                    FontSize="14"
                    TextColor="#6C757D" />
+
+            <Border BackgroundColor="White"
+                    StrokeShape="RoundRectangle 12"
+                    Stroke="#E9ECEF"
+                    Padding="20">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Complete your profile"
+                           FontSize="20"
+                           FontAttributes="Bold"
+                           TextColor="#1A1A2E" />
+                    <Label Text="All forms are now connected to local draft saving and API calls."
+                           FontSize="14"
+                           TextColor="#6C757D" />
+                    <Button Text="Edit profile"
+                            Command="{Binding GoToEducationCommand}"
+                            BackgroundColor="#1A1A2E"
+                            TextColor="White"
+                            HeightRequest="48" />
+                </VerticalStackLayout>
+            </Border>
 
             <!-- Logout button -->
             <Button Text="Sign out from this device"

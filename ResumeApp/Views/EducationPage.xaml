@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ResumeApp.Views.EducationPage"
+             x:Name="EducationPageRoot"
+             Title="Education"
+             BackgroundColor="#F8F9FA">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="24" Spacing="16">
+            <Label Text="Education"
+                   FontSize="28"
+                   FontAttributes="Bold"
+                   TextColor="#1A1A2E" />
+
+            <Label Text="Add your degrees, schools, and important details."
+                   FontSize="14"
+                   TextColor="#6C757D" />
+
+            <Border BackgroundColor="White"
+                    Stroke="#DEE2E6"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="18">
+                <VerticalStackLayout Spacing="12">
+                    <Entry Placeholder="School / University"
+                           Text="{Binding CurrentEducation.School}" />
+
+                    <Picker Title="Degree"
+                            ItemsSource="{Binding DegreeOptions}"
+                            SelectedItem="{Binding CurrentEducation.Degree}" />
+
+                    <Entry Placeholder="Field of Study"
+                           Text="{Binding CurrentEducation.FieldOfStudy}" />
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                        <DatePicker Grid.Column="0"
+                                    Date="{Binding CurrentEducation.StartDate}" />
+                        <DatePicker Grid.Column="1"
+                                    Date="{Binding CurrentEducation.EndDate}" />
+                    </Grid>
+
+                    <Entry Placeholder="GPA / Grade (optional)"
+                           Text="{Binding CurrentEducation.GPA}" />
+
+                    <Editor Placeholder="Description, focus areas, honors"
+                            AutoSize="TextChanges"
+                            Text="{Binding CurrentEducation.Description}" />
+
+                    <Button Text="{Binding SubmitButtonText}"
+                            Command="{Binding AddEducationCommand}"
+                            BackgroundColor="#1A1A2E"
+                            TextColor="White" />
+
+                    <Button Text="Cancel edit"
+                            Command="{Binding CancelEditCommand}"
+                            IsVisible="{Binding IsEditing}"
+                            BackgroundColor="#E9ECEF"
+                            TextColor="#1A1A2E" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Label Text="{Binding ErrorMessage}"
+                   TextColor="#DC3545"
+                   IsVisible="{Binding HasError}" />
+
+            <Label Text="Saved entries"
+                   FontSize="18"
+                   FontAttributes="Bold"
+                   TextColor="#1A1A2E" />
+
+            <CollectionView ItemsSource="{Binding EducationEntries}">
+                <CollectionView.EmptyView>
+                    <Label Text="No education entries added yet."
+                           TextColor="#6C757D" />
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Border Margin="0,0,0,12"
+                                Padding="16"
+                                BackgroundColor="White"
+                                Stroke="#DEE2E6"
+                                StrokeShape="RoundRectangle 14">
+                            <VerticalStackLayout Spacing="8">
+                                <Label Text="{Binding School}"
+                                       FontSize="18"
+                                       FontAttributes="Bold" />
+                                <Label Text="{Binding Degree}" />
+                                <Label Text="{Binding FieldOfStudy}"
+                                       TextColor="#6C757D" />
+                                <Label Text="{Binding DurationText}"
+                                       FontSize="12"
+                                       TextColor="#6C757D" />
+                                <Label Text="{Binding Description}" />
+                                <Button Text="Delete"
+                                        Command="{Binding Source={x:Reference EducationPageRoot}, Path=BindingContext.DeleteEducationCommand}"
+                                        CommandParameter="{Binding .}"
+                                        BackgroundColor="#FFF1F3"
+                                        TextColor="#B42318" />
+                                <Button Text="Edit"
+                                        Command="{Binding Source={x:Reference EducationPageRoot}, Path=BindingContext.EditEducationCommand}"
+                                        CommandParameter="{Binding .}"
+                                        BackgroundColor="#E7F1FF"
+                                        TextColor="#0A66C2" />
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <Button Text="Continue to Experience"
+                    Command="{Binding SaveAndContinueCommand}"
+                    BackgroundColor="#198754"
+                    TextColor="White" />
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}"
+                               IsVisible="{Binding IsBusy}" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
