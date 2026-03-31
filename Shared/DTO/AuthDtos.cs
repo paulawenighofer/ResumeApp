@@ -41,4 +41,49 @@ namespace Shared.DTO
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
     }
+
+    // Returned after registration — no token yet, OTP sent to email instead
+    public class RegisterPendingResponseDto
+    {
+        public string Email { get; set; } = string.Empty;
+        public string Message { get; set; } = string.Empty;
+    }
+
+    // Sent when the user submits their OTP code
+    public class VerifyOtpDto
+    {
+        [Required, EmailAddress]
+        public string Email { get; set; } = string.Empty;
+
+        [Required, StringLength(6, MinimumLength = 6)]
+        public string Code { get; set; } = string.Empty;
+    }
+
+    // Sent to request a new OTP (resend)
+    public class ResendOtpDto
+    {
+        [Required, EmailAddress]
+        public string Email { get; set; } = string.Empty;
+    }
+
+    // Sent when requesting a password reset email
+    public class ForgotPasswordDto
+    {
+        [Required, EmailAddress]
+        public string Email { get; set; } = string.Empty;
+    }
+
+    // Sent when submitting the reset code + new password
+    public class ResetPasswordDto
+    {
+        [Required, EmailAddress]
+        public string Email { get; set; } = string.Empty;
+
+        // The 6-digit OTP from the password-reset email
+        [Required, StringLength(6, MinimumLength = 6)]
+        public string Code { get; set; } = string.Empty;
+
+        [Required, MinLength(8)]
+        public string NewPassword { get; set; } = string.Empty;
+    }
 }

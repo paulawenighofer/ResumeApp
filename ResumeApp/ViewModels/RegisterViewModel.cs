@@ -69,19 +69,32 @@ public partial class RegisterViewModel : ObservableObject
         {
             IsBusy = true;
             HasError = false;
+            ErrorMessage = string.Empty;
 
-            var success = await _authService.RegisterAsync(
+            var result = await _authService.RegisterAsync(
                 FirstName, LastName, Email, Password);
 
-            if (success)
-                await Shell.Current.GoToAsync("//main");
+            if (result.Success && !string.IsNullOrWhiteSpace(result.Email))
+            {
+                try
+                {
+                    await Shell.Current.GoToAsync($"///otp?email={Uri.EscapeDataString(result.Email)}");
+                }
+                catch
+                {
+                    ErrorMessage = "Couldn't open verification screen. Please try again.";
+                    HasError = true;
+                }
+            }
             else
             {
-                ErrorMessage = "Registration failed. Email may already be taken.";
+                ErrorMessage = string.IsNullOrWhiteSpace(result.ErrorMessage)
+                    ? "Registration failed. Please try again."
+                    : result.ErrorMessage;
                 HasError = true;
             }
         }
-        catch (Exception)
+        catch
         {
             ErrorMessage = "Something went wrong. Please try again.";
             HasError = true;
