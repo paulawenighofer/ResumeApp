@@ -74,6 +74,11 @@ jobs:
           kubectl delete -n resumeapp configmap grafana-dashboard-config-configmap || true
           kubectl create -n resumeapp configmap grafana-dashboard-config-configmap --from-file=configs/grafana-dashboard.json
 
+      - name: Restart Grafana to pick up new dashboard configmap
+        env:
+            KUBECONFIG: /home/bishwas/.kube/config
+        run: kubectl rollout restart deployment/grafana -n resumeapp
+
       - name: Deploy Manifests
         env:
             KUBECONFIG: /home/bishwas/.kube/config
