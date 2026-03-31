@@ -13,9 +13,9 @@ public class TokenServiceTests
         var config = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["Jwt:Key"]                 = "TestSecretKeyThatIsLongEnoughForHS256!!",
-                ["Jwt:Issuer"]              = "TestIssuer",
-                ["Jwt:Audience"]            = "TestAudience",
+                ["Jwt:Key"] = "TestSecretKeyThatIsLongEnoughForHS256!!",
+                ["Jwt:Issuer"] = "TestIssuer",
+                ["Jwt:Audience"] = "TestAudience",
                 ["Jwt:ExpirationInMinutes"] = expiryMinutes.ToString(),
             })
             .Build();
@@ -25,12 +25,12 @@ public class TokenServiceTests
 
     private static ApplicationUser MakeUser() => new()
     {
-        Id             = Guid.NewGuid().ToString(),
-        UserName       = "test@example.com",
-        Email          = "test@example.com",
-        FirstName      = "Jane",
-        LastName       = "Doe",
-        SecurityStamp  = Guid.NewGuid().ToString(),
+        Id = Guid.NewGuid().ToString(),
+        UserName = "test@example.com",
+        Email = "test@example.com",
+        FirstName = "Jane",
+        LastName = "Doe",
+        SecurityStamp = Guid.NewGuid().ToString(),
     };
 
     [Fact]
@@ -52,26 +52,26 @@ public class TokenServiceTests
     [Fact]
     public void GenerateToken_ContainsExpectedClaims()
     {
-        var user  = MakeUser();
+        var user = MakeUser();
         var token = CreateService().GenerateToken(user);
 
-        var jwt    = new JwtSecurityTokenHandler().ReadJwtToken(token);
+        var jwt = new JwtSecurityTokenHandler().ReadJwtToken(token);
         var claims = jwt.Claims.ToList();
 
         Assert.Contains(claims, c => c.Type == ClaimTypes.NameIdentifier && c.Value == user.Id);
-        Assert.Contains(claims, c => c.Type == ClaimTypes.Email          && c.Value == user.Email);
-        Assert.Contains(claims, c => c.Type == "firstName"               && c.Value == user.FirstName);
-        Assert.Contains(claims, c => c.Type == "lastName"                && c.Value == user.LastName);
-        Assert.Contains(claims, c => c.Type == "security_stamp"          && c.Value == user.SecurityStamp);
+        Assert.Contains(claims, c => c.Type == ClaimTypes.Email && c.Value == user.Email);
+        Assert.Contains(claims, c => c.Type == "firstName" && c.Value == user.FirstName);
+        Assert.Contains(claims, c => c.Type == "lastName" && c.Value == user.LastName);
+        Assert.Contains(claims, c => c.Type == "security_stamp" && c.Value == user.SecurityStamp);
     }
 
     [Fact]
     public void GenerateToken_ExpiresAtConfiguredTime()
     {
         var service = CreateService(expiryMinutes: 30);
-        var before  = DateTime.UtcNow;
-        var token   = service.GenerateToken(MakeUser());
-        var after   = DateTime.UtcNow;
+        var before = DateTime.UtcNow;
+        var token = service.GenerateToken(MakeUser());
+        var after = DateTime.UtcNow;
 
         var jwt = new JwtSecurityTokenHandler().ReadJwtToken(token);
 
@@ -82,7 +82,7 @@ public class TokenServiceTests
     [Fact]
     public void GenerateToken_DifferentUsersProduceDifferentTokens()
     {
-        var svc    = CreateService();
+        var svc = CreateService();
         var token1 = svc.GenerateToken(MakeUser());
         var token2 = svc.GenerateToken(MakeUser());
         Assert.NotEqual(token1, token2);

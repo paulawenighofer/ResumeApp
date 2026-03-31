@@ -19,10 +19,10 @@ internal static class AuthTestHelpers
     internal static async Task<string> RegisterAndVerifyAsync(
         HttpClient client,
         ApiFactory factory,
-        string email       = "user@example.com",
-        string password    = "Password1",
-        string firstName   = "Test",
-        string lastName    = "User")
+        string email = "user@example.com",
+        string password = "Password1",
+        string firstName = "Test",
+        string lastName = "User")
     {
         // 1. Register
         var regRes = await client.PostAsJsonAsync("api/auth/register", new

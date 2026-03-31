@@ -17,7 +17,7 @@ public class AuthOtpTests : IClassFixture<ApiFactory>
     public AuthOtpTests(ApiFactory factory)
     {
         _factory = factory;
-        _client  = factory.CreateClient();
+        _client = factory.CreateClient();
         factory.EmailService.Reset();
     }
 
@@ -29,7 +29,10 @@ public class AuthOtpTests : IClassFixture<ApiFactory>
         const string email = "verify_ok@example.com";
         await _client.PostAsJsonAsync("api/auth/register", new
         {
-            firstName = "V", lastName = "Ok", email, password = "Password1",
+            firstName = "V",
+            lastName = "Ok",
+            email,
+            password = "Password1",
         });
 
         var code = _factory.EmailService.LastOtpCode!;
@@ -42,7 +45,7 @@ public class AuthOtpTests : IClassFixture<ApiFactory>
 
         // Confirm EmailConfirmed was set in the DB
         using var scope = _factory.Services.CreateScope();
-        var db   = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var user = db.Users.First(u => u.Email == email);
         Assert.True(user.EmailConfirmed);
     }
@@ -53,7 +56,10 @@ public class AuthOtpTests : IClassFixture<ApiFactory>
         const string email = "verify_wrong@example.com";
         await _client.PostAsJsonAsync("api/auth/register", new
         {
-            firstName = "V", lastName = "Wrong", email, password = "Password1",
+            firstName = "V",
+            lastName = "Wrong",
+            email,
+            password = "Password1",
         });
 
         var res = await _client.PostAsJsonAsync("api/auth/verify-otp", new
@@ -71,7 +77,10 @@ public class AuthOtpTests : IClassFixture<ApiFactory>
         const string email = "verify_expired@example.com";
         await _client.PostAsJsonAsync("api/auth/register", new
         {
-            firstName = "V", lastName = "Expired", email, password = "Password1",
+            firstName = "V",
+            lastName = "Expired",
+            email,
+            password = "Password1",
         });
 
         var code = _factory.EmailService.LastOtpCode!;
@@ -79,7 +88,7 @@ public class AuthOtpTests : IClassFixture<ApiFactory>
         // Manually expire the OTP in the database
         using (var scope = _factory.Services.CreateScope())
         {
-            var db  = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var otp = db.OtpVerifications.First(o => o.Purpose == OtpPurpose.EmailVerification);
             otp.ExpiresAt = DateTime.UtcNow.AddMinutes(-1);
             db.SaveChanges();
@@ -96,7 +105,7 @@ public class AuthOtpTests : IClassFixture<ApiFactory>
         var res = await _client.PostAsJsonAsync("api/auth/verify-otp", new
         {
             email = "ghost@example.com",
-            code  = "123456",
+            code = "123456",
         });
 
         Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
@@ -110,7 +119,10 @@ public class AuthOtpTests : IClassFixture<ApiFactory>
         const string email = "resend_unverified@example.com";
         await _client.PostAsJsonAsync("api/auth/register", new
         {
-            firstName = "R", lastName = "Unverified", email, password = "Password1",
+            firstName = "R",
+            lastName = "Unverified",
+            email,
+            password = "Password1",
         });
 
         var firstCode = _factory.EmailService.LastOtpCode!;

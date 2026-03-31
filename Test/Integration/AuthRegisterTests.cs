@@ -15,7 +15,7 @@ public class AuthRegisterTests : IClassFixture<ApiFactory>
     public AuthRegisterTests(ApiFactory factory)
     {
         _factory = factory;
-        _client  = factory.CreateClient();
+        _client = factory.CreateClient();
         factory.EmailService.Reset();
     }
 
@@ -25,9 +25,9 @@ public class AuthRegisterTests : IClassFixture<ApiFactory>
         var res = await _client.PostAsJsonAsync("api/auth/register", new
         {
             firstName = "Alice",
-            lastName  = "Smith",
-            email     = "alice@example.com",
-            password  = "Password1",
+            lastName = "Smith",
+            email = "alice@example.com",
+            password = "Password1",
         });
 
         Assert.Equal(HttpStatusCode.OK, res.StatusCode);
@@ -47,9 +47,9 @@ public class AuthRegisterTests : IClassFixture<ApiFactory>
         var payload = new
         {
             firstName = "Bob",
-            lastName  = "Jones",
-            email     = "bob@example.com",
-            password  = "Password1",
+            lastName = "Jones",
+            email = "bob@example.com",
+            password = "Password1",
         };
 
         await _client.PostAsJsonAsync("api/auth/register", payload);
@@ -64,9 +64,9 @@ public class AuthRegisterTests : IClassFixture<ApiFactory>
         var res = await _client.PostAsJsonAsync("api/auth/register", new
         {
             firstName = "Carl",
-            lastName  = "Lee",
-            email     = "carl@example.com",
-            password  = "weak",           // too short, no uppercase, no digit
+            lastName = "Lee",
+            email = "carl@example.com",
+            password = "weak",           // too short, no uppercase, no digit
         });
 
         Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
@@ -78,9 +78,9 @@ public class AuthRegisterTests : IClassFixture<ApiFactory>
         var res = await _client.PostAsJsonAsync("api/auth/register", new
         {
             firstName = "Dana",
-            lastName  = "White",
-            email     = "not-an-email",
-            password  = "Password1",
+            lastName = "White",
+            email = "not-an-email",
+            password = "Password1",
         });
 
         Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
@@ -92,7 +92,7 @@ public class AuthRegisterTests : IClassFixture<ApiFactory>
         var res = await _client.PostAsJsonAsync("api/auth/register", new
         {
             lastName = "White",
-            email    = "dana2@example.com",
+            email = "dana2@example.com",
             password = "Password1",
         });
 
@@ -107,17 +107,17 @@ public class AuthRegisterTests : IClassFixture<ApiFactory>
         var res = await _client.PostAsJsonAsync("api/auth/register", new
         {
             firstName = "Eve",
-            lastName  = "Fail",
-            email     = "eve@example.com",
-            password  = "Password1",
+            lastName = "Fail",
+            email = "eve@example.com",
+            password = "Password1",
         });
 
         Assert.Equal(HttpStatusCode.InternalServerError, res.StatusCode);
 
         // Verify the user was rolled back
         using var scope = _factory.Services.CreateScope();
-        var db    = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var user  = db.Users.FirstOrDefault(u => u.Email == "eve@example.com");
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var user = db.Users.FirstOrDefault(u => u.Email == "eve@example.com");
         Assert.Null(user);
     }
 }

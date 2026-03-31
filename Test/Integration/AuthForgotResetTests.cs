@@ -17,7 +17,7 @@ public class AuthForgotResetTests : IDisposable
     public AuthForgotResetTests()
     {
         _factory = new ApiFactory();
-        _client  = _factory.CreateClient();
+        _client = _factory.CreateClient();
         _factory.EmailService.Reset();
     }
 
@@ -64,7 +64,10 @@ public class AuthForgotResetTests : IDisposable
         const string email = "fp_unverified@example.com";
         await _client.PostAsJsonAsync("api/auth/register", new
         {
-            firstName = "FP", lastName = "Unverified", email, password = "Password1",
+            firstName = "FP",
+            lastName = "Unverified",
+            email,
+            password = "Password1",
         });
         _factory.EmailService.Reset();
 
@@ -118,7 +121,7 @@ public class AuthForgotResetTests : IDisposable
         var res = await _client.PostAsJsonAsync("api/auth/reset-password", new
         {
             email,
-            code        = "000000",
+            code = "000000",
             newPassword = "NewPassword1",
         });
 
@@ -190,13 +193,17 @@ public class AuthForgotResetTests : IDisposable
         // First use — should succeed
         await _client.PostAsJsonAsync("api/auth/reset-password", new
         {
-            email, code, newPassword = "NewPassword1",
+            email,
+            code,
+            newPassword = "NewPassword1",
         });
 
         // Second use — OTP was deleted, should fail
         var res = await _client.PostAsJsonAsync("api/auth/reset-password", new
         {
-            email, code, newPassword = "AnotherPassword1",
+            email,
+            code,
+            newPassword = "AnotherPassword1",
         });
 
         Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
@@ -205,7 +212,7 @@ public class AuthForgotResetTests : IDisposable
     [Fact]
     public async Task ResetPassword_CanLoginWithNewPassword_AfterReset()
     {
-        const string email       = "rp_e2e@example.com";
+        const string email = "rp_e2e@example.com";
         const string oldPassword = "OldPassword1";
         const string newPassword = "NewPassword1";
 
@@ -218,20 +225,24 @@ public class AuthForgotResetTests : IDisposable
 
         await _client.PostAsJsonAsync("api/auth/reset-password", new
         {
-            email, code, newPassword,
+            email,
+            code,
+            newPassword,
         });
 
         // Should be able to log in with the NEW password
         var loginRes = await _client.PostAsJsonAsync("api/auth/login", new
         {
-            email, password = newPassword,
+            email,
+            password = newPassword,
         });
         Assert.Equal(HttpStatusCode.OK, loginRes.StatusCode);
 
         // Old password should no longer work
         var oldLoginRes = await _client.PostAsJsonAsync("api/auth/login", new
         {
-            email, password = oldPassword,
+            email,
+            password = oldPassword,
         });
         Assert.Equal(HttpStatusCode.Unauthorized, oldLoginRes.StatusCode);
     }

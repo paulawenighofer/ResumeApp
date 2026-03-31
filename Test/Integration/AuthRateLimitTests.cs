@@ -16,7 +16,7 @@ public class AuthRateLimitTests : IDisposable
     public AuthRateLimitTests()
     {
         _factory = new ApiFactory(useProductionRateLimits: true);
-        _client  = _factory.CreateClient();
+        _client = _factory.CreateClient();
     }
 
     public void Dispose()
@@ -35,7 +35,10 @@ public class AuthRateLimitTests : IDisposable
         // Register so there is a valid user (wrong codes still count against the limit)
         await _client.PostAsJsonAsync("api/auth/register", new
         {
-            firstName = "RL", lastName = "User", email, password = "Password1",
+            firstName = "RL",
+            lastName = "User",
+            email,
+            password = "Password1",
         });
 
         for (int i = 0; i < 5; i++)
@@ -70,7 +73,7 @@ public class AuthRateLimitTests : IDisposable
             await _client.PostAsJsonAsync("api/auth/reset-password", new
             {
                 email,
-                code        = "000000",
+                code = "000000",
                 newPassword = "NewPassword1",
             });
         }
@@ -78,7 +81,7 @@ public class AuthRateLimitTests : IDisposable
         var res = await _client.PostAsJsonAsync("api/auth/reset-password", new
         {
             email,
-            code        = "000000",
+            code = "000000",
             newPassword = "NewPassword1",
         });
 
@@ -111,7 +114,10 @@ public class AuthRateLimitTests : IDisposable
         const string email = "rl_resendotp@example.com";
         await _client.PostAsJsonAsync("api/auth/register", new
         {
-            firstName = "RL", lastName = "Resend", email, password = "Password1",
+            firstName = "RL",
+            lastName = "Resend",
+            email,
+            password = "Password1",
         });
 
         for (int i = 0; i < 3; i++)

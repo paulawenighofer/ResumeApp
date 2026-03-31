@@ -13,7 +13,7 @@ public class AuthAuthorizationTests : IClassFixture<ApiFactory>
     public AuthAuthorizationTests(ApiFactory factory)
     {
         _factory = factory;
-        _client  = factory.CreateClient();
+        _client = factory.CreateClient();
         factory.EmailService.Reset();
     }
 
@@ -38,8 +38,8 @@ public class AuthAuthorizationTests : IClassFixture<ApiFactory>
 
         Assert.Equal(HttpStatusCode.OK, res.StatusCode);
         var body = await res.Content.ReadFromJsonAsync<JsonElement>(AuthTestHelpers.JsonOpts);
-        Assert.Equal(email,  body.GetProperty("email").GetString());
-        Assert.Equal("Me",   body.GetProperty("firstName").GetString());
+        Assert.Equal(email, body.GetProperty("email").GetString());
+        Assert.Equal("Me", body.GetProperty("firstName").GetString());
         Assert.Equal("Test", body.GetProperty("lastName").GetString());
     }
 

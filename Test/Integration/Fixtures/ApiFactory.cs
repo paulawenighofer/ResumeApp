@@ -37,9 +37,9 @@ public class ApiFactory : WebApplicationFactory<Program>
         {
             var testConfig = new Dictionary<string, string?>
             {
-                ["Jwt:Key"]                 = "TestSecretKeyThatIsLongEnoughForHS256!!",
-                ["Jwt:Issuer"]              = "TestIssuer",
-                ["Jwt:Audience"]            = "TestAudience",
+                ["Jwt:Key"] = "TestSecretKeyThatIsLongEnoughForHS256!!",
+                ["Jwt:Issuer"] = "TestIssuer",
+                ["Jwt:Audience"] = "TestAudience",
                 ["Jwt:ExpirationInMinutes"] = "60",
             };
 

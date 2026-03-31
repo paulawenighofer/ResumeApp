@@ -13,7 +13,7 @@ public class AuthLoginTests : IClassFixture<ApiFactory>
     public AuthLoginTests(ApiFactory factory)
     {
         _factory = factory;
-        _client  = factory.CreateClient();
+        _client = factory.CreateClient();
         factory.EmailService.Reset();
     }
 
@@ -25,7 +25,7 @@ public class AuthLoginTests : IClassFixture<ApiFactory>
 
         var res = await _client.PostAsJsonAsync("api/auth/login", new
         {
-            email    = "login_ok@example.com",
+            email = "login_ok@example.com",
             password = "Password1",
         });
 
@@ -42,16 +42,16 @@ public class AuthLoginTests : IClassFixture<ApiFactory>
         await _client.PostAsJsonAsync("api/auth/register", new
         {
             firstName = "Unverified",
-            lastName  = "User",
-            email     = "unverified@example.com",
-            password  = "Password1",
+            lastName = "User",
+            email = "unverified@example.com",
+            password = "Password1",
         });
 
         _factory.EmailService.Reset();
 
         var res = await _client.PostAsJsonAsync("api/auth/login", new
         {
-            email    = "unverified@example.com",
+            email = "unverified@example.com",
             password = "Password1",
         });
 
@@ -72,7 +72,7 @@ public class AuthLoginTests : IClassFixture<ApiFactory>
 
         var res = await _client.PostAsJsonAsync("api/auth/login", new
         {
-            email    = "login_badpw@example.com",
+            email = "login_badpw@example.com",
             password = "WrongPassword1",
         });
 
@@ -84,7 +84,7 @@ public class AuthLoginTests : IClassFixture<ApiFactory>
     {
         var res = await _client.PostAsJsonAsync("api/auth/login", new
         {
-            email    = "nobody@example.com",
+            email = "nobody@example.com",
             password = "Password1",
         });
 
@@ -102,14 +102,14 @@ public class AuthLoginTests : IClassFixture<ApiFactory>
         {
             await _client.PostAsJsonAsync("api/auth/login", new
             {
-                email    = "lockme@example.com",
+                email = "lockme@example.com",
                 password = "BadPassword1",
             });
         }
 
         var res = await _client.PostAsJsonAsync("api/auth/login", new
         {
-            email    = "lockme@example.com",
+            email = "lockme@example.com",
             password = "Password1",    // correct password, but account is now locked
         });
 
