@@ -12,10 +12,12 @@ namespace API.Controllers;
 public class ExperiencesController : ControllerBase
 {
     private readonly InMemoryResumeStore _store;
+    private readonly ApiMetrics _metrics;
 
-    public ExperiencesController(InMemoryResumeStore store)
+    public ExperiencesController(InMemoryResumeStore store, ApiMetrics metrics)
     {
         _store = store;
+        _metrics = metrics;
     }
 
     [HttpGet]
@@ -55,6 +57,7 @@ public class ExperiencesController : ControllerBase
         experience.Id = _store.NextExperienceId();
         experience.UserId = userId;
         _store.Experiences.Add(experience);
+        _metrics.ExperiencesCreated.Add(1);
         return CreatedAtAction(nameof(GetById), new { id = experience.Id }, experience);
     }
 

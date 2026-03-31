@@ -24,6 +24,10 @@ spec:
               value: http://+:8080
             - name: ASPNETCORE_ENVIRONMENT
               value: Development
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://otel-collector-service:4317
+            - name: OTEL_SERVICE_NAME
+              value: ResumeApp
           envFrom:
             - secretRef:
                 name: resume-app-secrets

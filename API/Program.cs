@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
 using Shared.Models;
 using System.Security.Claims;
 using System.Text;
@@ -153,6 +155,26 @@ builder.Services.AddRateLimiter(options =>
 });
 
 builder.Services.AddControllers();
+
+// =============================================
+// SECTION 6: OPENTELEMETRY
+// =============================================
+builder.Services.AddSingleton<ApiMetrics>();
+
+builder.Services.AddOpenTelemetry()
+    .WithTracing(tracing => tracing
+        .AddAspNetCoreInstrumentation()
+        .AddHttpClientInstrumentation()
+        .AddEntityFrameworkCoreInstrumentation()
+        .AddOtlpExporter()
+        .AddConsoleExporter())
+    .WithMetrics(metrics => metrics
+        .AddAspNetCoreInstrumentation()
+        .AddHttpClientInstrumentation()
+        .AddRuntimeInstrumentation()
+        .AddMeter(ApiMetrics.MeterName)
+        .AddOtlpExporter()
+        .AddConsoleExporter());
 
 var app = builder.Build();
 

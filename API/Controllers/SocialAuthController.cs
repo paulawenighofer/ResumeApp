@@ -10,11 +10,13 @@ public class SocialAuthController : ControllerBase
 {
     private readonly SocialAuthService _socialAuth;
     private readonly IConfiguration _config;
+    private readonly ApiMetrics _metrics;
 
-    public SocialAuthController(SocialAuthService socialAuth, IConfiguration config)
+    public SocialAuthController(SocialAuthService socialAuth, IConfiguration config, ApiMetrics metrics)
     {
         _socialAuth = socialAuth;
         _config = config;
+        _metrics = metrics;
     }
 
     // ============================================================
@@ -61,6 +63,7 @@ public class SocialAuthController : ControllerBase
     {
         var redirectUri = GetCallbackUri("google");
         var token = await _socialAuth.HandleGoogleCallbackAsync(code, redirectUri);
+        if (token != null) _metrics.SocialLogins.Add(1, new KeyValuePair<string, object?>("provider", "google"));
         return BuildCallbackRedirect(token, state, "google_auth_failed");
     }
 
@@ -83,6 +86,7 @@ public class SocialAuthController : ControllerBase
     {
         var redirectUri = GetCallbackUri("linkedin");
         var token = await _socialAuth.HandleLinkedInCallbackAsync(code, redirectUri);
+        if (token != null) _metrics.SocialLogins.Add(1, new KeyValuePair<string, object?>("provider", "linkedin"));
         return BuildCallbackRedirect(token, state, "linkedin_auth_failed");
     }
 
@@ -105,6 +109,7 @@ public class SocialAuthController : ControllerBase
     {
         var redirectUri = GetCallbackUri("github");
         var token = await _socialAuth.HandleGitHubCallbackAsync(code, redirectUri);
+        if (token != null) _metrics.SocialLogins.Add(1, new KeyValuePair<string, object?>("provider", "github"));
         return BuildCallbackRedirect(token, state, "github_auth_failed");
     }
 

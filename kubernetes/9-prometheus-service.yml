@@ -4,10 +4,11 @@ metadata:
   name: prometheus-service
   namespace: resumeapp
 spec:
-  type: NodePort
+  type: ClusterIP
   selector:
     app: prometheus
   ports:
     - port: 9090
       targetPort: 9090
-      nodePort: 30090
+      port: 9090
+      protocol: TCP

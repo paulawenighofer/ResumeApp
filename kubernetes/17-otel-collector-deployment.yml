@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-collector
+  namespace: resumeapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: otel-collector
+  template:
+    metadata:
+      labels:
+        app: otel-collector
+    spec:
+      containers:
+        - name: otel-collector
+          image: otel/opentelemetry-collector-contrib:0.146.1
+          args:
+            - --config=/etc/otelcol-contrib/otel-config.yaml
+          ports:
+            - containerPort: 4317
+            - containerPort: 4318
+            - containerPort: 8889
+          volumeMounts:
+            - name: otel-config
+              mountPath: /etc/otelcol-contrib/otel-config.yaml
+              subPath: otel-config.yaml
+      volumes:
+        - name: otel-config
+          configMap:
+            name: otel-config-configmap
