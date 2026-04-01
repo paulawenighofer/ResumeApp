@@ -43,10 +43,12 @@ public partial class LoginViewModel : ObservableObject
             IsBusy = true;
             HasError = false;
 
-            var success = await _authService.LoginAsync(Email, Password);
+            var result = await _authService.LoginAsync(Email, Password);
 
-            if (success)
+            if (result.Success)
                 await Shell.Current.GoToAsync("//main");
+            else if (result.RequiresVerification)
+                await Shell.Current.GoToAsync($"///otp?email={Uri.EscapeDataString(result.Email ?? Email)}");
             else
             {
                 ErrorMessage = "Invalid email or password.";
@@ -154,5 +156,11 @@ public partial class LoginViewModel : ObservableObject
     private async Task GoToRegister()
     {
         await Shell.Current.GoToAsync("//register");
+    }
+
+    [RelayCommand]
+    private async Task GoToForgotPassword()
+    {
+        await Shell.Current.GoToAsync("//forgot-password");
     }
 }
