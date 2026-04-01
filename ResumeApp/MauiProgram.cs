@@ -37,6 +37,8 @@ public static class MauiProgram
         });
 
         builder.Services.AddSingleton<AuthService>();
+        builder.Services.AddSingleton<IApiService, ApiService>();
+        builder.Services.AddSingleton<ILocalStorageService, LocalStorageService>();
         builder.Services.AddTransient<LoginViewModel>();
         builder.Services.AddTransient<LoginPage>();
         builder.Services.AddTransient<RegisterViewModel>();
@@ -49,43 +51,19 @@ public static class MauiProgram
         builder.Services.AddTransient<ResetPasswordPage>();
         builder.Services.AddTransient<MainPageViewModel>();
         builder.Services.AddTransient<MainPage>();
+        builder.Services.AddTransient<EducationViewModel>();
+        builder.Services.AddTransient<EducationPage>();
+        builder.Services.AddTransient<ExperienceViewModel>();
+        builder.Services.AddTransient<ExperiencePage>();
+        builder.Services.AddTransient<SkillsViewModel>();
+        builder.Services.AddTransient<SkillsPage>();
+        builder.Services.AddTransient<ProjectsViewModel>();
+        builder.Services.AddTransient<ProjectsPage>();
         builder.Services.AddSingleton<AppShell>();
 #if DEBUG
         builder.Logging.AddDebug();
 #endif
 
         return builder.Build();
-    }
-
-    private static void ConfigureServices(IServiceCollection services)
-    {
-        services.AddSingleton(new HttpClient
-        {
-            BaseAddress = new Uri(DeviceInfo.Platform == DevicePlatform.Android
-                ? "https://10.0.2.2:7082/"
-                : "https://localhost:7082/")
-        });
-
-        services.AddSingleton<AuthService>();
-        services.AddSingleton<IApiService, ApiService>();
-        services.AddSingleton<ILocalStorageService, LocalStorageService>();
-
-        services.AddSingleton<AppShell>();
-
-        services.AddTransient<LoginViewModel>();
-        services.AddTransient<RegisterViewModel>();
-        services.AddTransient<MainPageViewModel>();
-        services.AddTransient<EducationViewModel>();
-        services.AddTransient<ExperienceViewModel>();
-        services.AddTransient<SkillsViewModel>();
-        services.AddTransient<ProjectsViewModel>();
-
-        services.AddTransient<LoginPage>();
-        services.AddTransient<RegisterPage>();
-        services.AddTransient<MainPage>();
-        services.AddTransient<EducationPage>();
-        services.AddTransient<ExperiencePage>();
-        services.AddTransient<SkillsPage>();
-        services.AddTransient<ProjectsPage>();
     }
 }
