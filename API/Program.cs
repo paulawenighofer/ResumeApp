@@ -269,7 +269,7 @@ app.MapControllers();
 app.MapStaticAssets();
 app.MapRazorPages().WithStaticAssets();
 
-app.MapGet("/api/", () => "Hello World");
+app.MapGet("/api/", () => "Hello World!");
 
 app.Run();
 
