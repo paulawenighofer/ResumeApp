@@ -200,7 +200,7 @@
       "gridPos": { "h": 10, "w": 24, "x": 0, "y": 24 },
       "datasource": { "type": "loki", "uid": "${DS_LOKI}" },
       "targets": [
-        { "expr": "{exporter=\"OTLP\"}", "refId": "A" }
+        { "expr": "{service_name=\"ResumeApp.API\"}", "refId": "A" }
       ],
       "options": {
         "showTime": true,

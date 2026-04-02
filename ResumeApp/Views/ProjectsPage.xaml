@@ -4,22 +4,24 @@
              x:Class="ResumeApp.Views.ProjectsPage"
              x:Name="ProjectsPageRoot"
              Title="Projects"
-             BackgroundColor="#F8F9FA">
+             BackgroundColor="{StaticResource PageBackground}">
 
     <ScrollView>
-        <VerticalStackLayout Padding="24" Spacing="16">
-            <Label Text="Projects"
-                   FontSize="28"
-                   FontAttributes="Bold"
-                   TextColor="#1A1A2E" />
+        <VerticalStackLayout Padding="24,16" Spacing="16">
 
-            <Border BackgroundColor="White"
-                    Stroke="#DEE2E6"
-                    StrokeShape="RoundRectangle 16"
-                    Padding="18">
+            <Label Text="🚀 Projects"
+                   FontSize="26"
+                   FontFamily="OpenSansSemibold"
+                   TextColor="{StaticResource TextPrimary}" />
+            <Label Text="Add your portfolio and side projects."
+                   Style="{StaticResource SubtitleStyle}" />
+
+            <!-- Form card -->
+            <Border Style="{StaticResource CardStyle}">
                 <VerticalStackLayout Spacing="12">
                     <Entry Placeholder="Project name"
-                           Text="{Binding CurrentProject.Name}" />
+                           Text="{Binding CurrentProject.Name}"
+                           PlaceholderColor="{StaticResource InactiveIcon}" />
 
                     <Picker Title="Project type"
                             ItemsSource="{Binding ProjectTypes}"
@@ -33,89 +35,102 @@
                     </Grid>
 
                     <Entry Placeholder="Technologies"
-                           Text="{Binding CurrentProject.Technologies}" />
+                           Text="{Binding CurrentProject.Technologies}"
+                           PlaceholderColor="{StaticResource InactiveIcon}" />
 
                     <Entry Placeholder="Project URL"
-                           Text="{Binding CurrentProject.ProjectUrl}" />
+                           Text="{Binding CurrentProject.ProjectUrl}"
+                           PlaceholderColor="{StaticResource InactiveIcon}" />
 
                     <Editor Placeholder="Project description"
                             AutoSize="TextChanges"
-                            Text="{Binding CurrentProject.Description}" />
+                            Text="{Binding CurrentProject.Description}"
+                            PlaceholderColor="{StaticResource InactiveIcon}" />
 
                     <Button Text="Select project images"
                             Command="{Binding SelectProjectImagesCommand}"
-                            BackgroundColor="#E7F1FF"
-                            TextColor="#0A66C2" />
+                            Style="{StaticResource OutlineButtonStyle}" />
 
                     <Button Text="{Binding SubmitButtonText}"
                             Command="{Binding AddProjectCommand}"
-                            BackgroundColor="#1A1A2E"
-                            TextColor="White" />
+                            Style="{StaticResource VioletButtonStyle}" />
 
                     <Button Text="Cancel edit"
                             Command="{Binding CancelEditCommand}"
                             IsVisible="{Binding IsEditing}"
-                            BackgroundColor="#E9ECEF"
-                            TextColor="#1A1A2E" />
+                            Style="{StaticResource OutlineButtonStyle}" />
                 </VerticalStackLayout>
             </Border>
 
             <Label Text="{Binding ErrorMessage}"
-                   TextColor="#DC3545"
+                   TextColor="{StaticResource DangerRed}"
                    IsVisible="{Binding HasError}" />
+
+            <Label Text="Saved projects"
+                   Style="{StaticResource SectionHeaderStyle}"
+                   Margin="0,4,0,0" />
 
             <CollectionView ItemsSource="{Binding ProjectEntries}">
                 <CollectionView.EmptyView>
                     <Label Text="No projects added yet."
-                           TextColor="#6C757D" />
+                           Style="{StaticResource SubtitleStyle}" />
                 </CollectionView.EmptyView>
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
                         <Border Margin="0,0,0,12"
                                 Padding="16"
-                                BackgroundColor="White"
-                                Stroke="#DEE2E6"
+                                BackgroundColor="{StaticResource SurfaceWhite}"
+                                Stroke="{StaticResource CardBorder}"
                                 StrokeShape="RoundRectangle 14">
-                            <VerticalStackLayout Spacing="8">
+                            <VerticalStackLayout Spacing="6">
                                 <Label Text="{Binding Name}"
-                                       FontSize="18"
-                                       FontAttributes="Bold" />
+                                       FontSize="16"
+                                       FontFamily="OpenSansSemibold"
+                                       TextColor="{StaticResource TextPrimary}" />
                                 <Label Text="{Binding ProjectType}"
-                                       TextColor="#0A66C2" />
+                                       TextColor="{StaticResource PrimaryViolet}"
+                                       FontSize="14" />
                                 <Label Text="{Binding DurationText}"
                                        FontSize="12"
-                                       TextColor="#6C757D" />
+                                       TextColor="{StaticResource InactiveIcon}" />
                                 <Label Text="{Binding Technologies}"
                                        FontSize="12"
-                                       TextColor="#6C757D" />
-                                <Label Text="{Binding Description}" />
-                                <Label Text="Images selected"
+                                       TextColor="{StaticResource SecondaryBlue}" />
+                                <Label Text="{Binding Description}"
+                                       FontSize="13"
+                                       TextColor="{StaticResource TextPrimary}" />
+                                <Label Text="✓ Images attached"
                                        FontSize="12"
-                                       TextColor="#198754"
+                                       TextColor="{StaticResource SuccessGreen}"
                                        IsVisible="{Binding HasImages}" />
-                                <Button Text="Delete"
-                                        Command="{Binding Source={x:Reference ProjectsPageRoot}, Path=BindingContext.DeleteProjectCommand}"
-                                        CommandParameter="{Binding .}"
-                                        BackgroundColor="#FFF1F3"
-                                        TextColor="#B42318" />
-                                <Button Text="Edit"
-                                        Command="{Binding Source={x:Reference ProjectsPageRoot}, Path=BindingContext.EditProjectCommand}"
-                                        CommandParameter="{Binding .}"
-                                        BackgroundColor="#E7F1FF"
-                                        TextColor="#0A66C2" />
+                                <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,4,0,0">
+                                    <Button Grid.Column="0"
+                                            Text="Edit"
+                                            Command="{Binding Source={x:Reference ProjectsPageRoot}, Path=BindingContext.EditProjectCommand}"
+                                            CommandParameter="{Binding .}"
+                                            Style="{StaticResource OutlineButtonStyle}"
+                                            HeightRequest="36" />
+                                    <Button Grid.Column="1"
+                                            Text="Delete"
+                                            Command="{Binding Source={x:Reference ProjectsPageRoot}, Path=BindingContext.DeleteProjectCommand}"
+                                            CommandParameter="{Binding .}"
+                                            Style="{StaticResource DangerButtonStyle}"
+                                            HeightRequest="36" />
+                                </Grid>
                             </VerticalStackLayout>
                         </Border>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
 
-            <Button Text="Save everything"
+            <Button Text="Save"
                     Command="{Binding SaveAndContinueCommand}"
-                    BackgroundColor="#198754"
-                    TextColor="White" />
+                    Style="{StaticResource VioletButtonStyle}"
+                    Margin="0,4,0,0" />
 
             <ActivityIndicator IsRunning="{Binding IsBusy}"
-                               IsVisible="{Binding IsBusy}" />
+                               IsVisible="{Binding IsBusy}"
+                               Color="{StaticResource PrimaryViolet}" />
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

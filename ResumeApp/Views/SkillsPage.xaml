@@ -4,22 +4,24 @@
              x:Class="ResumeApp.Views.SkillsPage"
              x:Name="SkillsPageRoot"
              Title="Skills"
-             BackgroundColor="#F8F9FA">
+             BackgroundColor="{StaticResource PageBackground}">
 
     <ScrollView>
-        <VerticalStackLayout Padding="24" Spacing="16">
-            <Label Text="Skills"
-                   FontSize="28"
-                   FontAttributes="Bold"
-                   TextColor="#1A1A2E" />
+        <VerticalStackLayout Padding="24,16" Spacing="16">
 
-            <Border BackgroundColor="White"
-                    Stroke="#DEE2E6"
-                    StrokeShape="RoundRectangle 16"
-                    Padding="18">
+            <Label Text="⭐ Skills"
+                   FontSize="26"
+                   FontFamily="OpenSansSemibold"
+                   TextColor="{StaticResource TextPrimary}" />
+            <Label Text="Add your technical and soft skills."
+                   Style="{StaticResource SubtitleStyle}" />
+
+            <!-- Form card -->
+            <Border Style="{StaticResource CardStyle}">
                 <VerticalStackLayout Spacing="12">
                     <Entry Placeholder="New skill"
-                           Text="{Binding SkillInput}" />
+                           Text="{Binding SkillInput}"
+                           PlaceholderColor="{StaticResource InactiveIcon}" />
 
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
                         <Picker Grid.Column="0"
@@ -34,71 +36,89 @@
 
                     <Button Text="{Binding SubmitButtonText}"
                             Command="{Binding AddSkillCommand}"
-                            BackgroundColor="#1A1A2E"
-                            TextColor="White" />
+                            Style="{StaticResource VioletButtonStyle}" />
 
                     <Button Text="Cancel edit"
                             Command="{Binding CancelEditCommand}"
                             IsVisible="{Binding IsEditing}"
-                            BackgroundColor="#E9ECEF"
-                            TextColor="#1A1A2E" />
+                            Style="{StaticResource OutlineButtonStyle}" />
                 </VerticalStackLayout>
             </Border>
 
+            <!-- Suggestions -->
             <Label Text="Suggestions"
-                   FontAttributes="Bold" />
+                   Style="{StaticResource SectionHeaderStyle}" />
 
             <CollectionView ItemsSource="{Binding SuggestedSkills}"
-                            ItemsLayout="HorizontalList">
+                            ItemsLayout="HorizontalList"
+                            HeightRequest="44">
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
-                        <Button Text="{Binding .}"
-                                Command="{Binding Source={x:Reference SkillsPageRoot}, Path=BindingContext.AddSuggestedSkillCommand}"
-                                CommandParameter="{Binding .}"
-                                Margin="0,0,10,0"
-                                BackgroundColor="#E7F1FF"
-                                TextColor="#0A66C2" />
+                        <Border Margin="0,0,8,0"
+                                BackgroundColor="#EDE9FE"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 10"
+                                Padding="12,8">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    Command="{Binding Source={x:Reference SkillsPageRoot}, Path=BindingContext.AddSuggestedSkillCommand}"
+                                    CommandParameter="{Binding .}" />
+                            </Border.GestureRecognizers>
+                            <Label Text="{Binding .}"
+                                   TextColor="{StaticResource PrimaryViolet}"
+                                   FontSize="13"
+                                   FontFamily="OpenSansSemibold"
+                                   VerticalOptions="Center" />
+                        </Border>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
 
             <Label Text="{Binding ErrorMessage}"
-                   TextColor="#DC3545"
+                   TextColor="{StaticResource DangerRed}"
                    IsVisible="{Binding HasError}" />
+
+            <Label Text="Your skills"
+                   Style="{StaticResource SectionHeaderStyle}"
+                   Margin="0,4,0,0" />
 
             <CollectionView ItemsSource="{Binding SkillEntries}">
                 <CollectionView.EmptyView>
                     <Label Text="No skills added yet."
-                           TextColor="#6C757D" />
+                           Style="{StaticResource SubtitleStyle}" />
                 </CollectionView.EmptyView>
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
                         <Border Margin="0,0,0,12"
                                 Padding="16"
-                                BackgroundColor="White"
-                                Stroke="#DEE2E6"
+                                BackgroundColor="{StaticResource SurfaceWhite}"
+                                Stroke="{StaticResource CardBorder}"
                                 StrokeShape="RoundRectangle 14">
                             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
                                 <VerticalStackLayout Grid.Column="0" Spacing="4">
                                     <Label Text="{Binding Name}"
-                                           FontSize="18"
-                                           FontAttributes="Bold" />
+                                           FontSize="16"
+                                           FontFamily="OpenSansSemibold"
+                                           TextColor="{StaticResource TextPrimary}" />
                                     <Label Text="{Binding Category}"
-                                           TextColor="#6C757D" />
+                                           Style="{StaticResource SubtitleStyle}" />
                                     <Label Text="{Binding ProficiencyLevel}"
-                                           TextColor="#0A66C2" />
+                                           TextColor="{StaticResource PrimaryViolet}"
+                                           FontSize="13" />
                                 </VerticalStackLayout>
-                                <VerticalStackLayout Grid.Column="1" Spacing="8">
-                                    <Button Text="Delete"
-                                            Command="{Binding Source={x:Reference SkillsPageRoot}, Path=BindingContext.DeleteSkillCommand}"
-                                            CommandParameter="{Binding .}"
-                                            BackgroundColor="#FFF1F3"
-                                            TextColor="#B42318" />
+                                <VerticalStackLayout Grid.Column="1" Spacing="8" VerticalOptions="Center">
                                     <Button Text="Edit"
                                             Command="{Binding Source={x:Reference SkillsPageRoot}, Path=BindingContext.EditSkillCommand}"
                                             CommandParameter="{Binding .}"
-                                            BackgroundColor="#E7F1FF"
-                                            TextColor="#0A66C2" />
+                                            Style="{StaticResource OutlineButtonStyle}"
+                                            HeightRequest="36"
+                                            Padding="12,4" />
+                                    <Button Text="Delete"
+                                            Command="{Binding Source={x:Reference SkillsPageRoot}, Path=BindingContext.DeleteSkillCommand}"
+                                            CommandParameter="{Binding .}"
+                                            Style="{StaticResource DangerButtonStyle}"
+                                            HeightRequest="36"
+                                            Padding="12,4" />
                                 </VerticalStackLayout>
                             </Grid>
                         </Border>
@@ -106,13 +126,14 @@
                 </CollectionView.ItemTemplate>
             </CollectionView>
 
-            <Button Text="Continue to Projects"
+            <Button Text="Save"
                     Command="{Binding SaveAndContinueCommand}"
-                    BackgroundColor="#198754"
-                    TextColor="White" />
+                    Style="{StaticResource VioletButtonStyle}"
+                    Margin="0,4,0,0" />
 
             <ActivityIndicator IsRunning="{Binding IsBusy}"
-                               IsVisible="{Binding IsBusy}" />
+                               IsVisible="{Binding IsBusy}"
+                               Color="{StaticResource PrimaryViolet}" />
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

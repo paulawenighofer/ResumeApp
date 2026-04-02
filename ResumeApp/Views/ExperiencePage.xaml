@@ -4,28 +4,27 @@
              x:Class="ResumeApp.Views.ExperiencePage"
              x:Name="ExperiencePageRoot"
              Title="Experience"
-             BackgroundColor="#F8F9FA">
+             BackgroundColor="{StaticResource PageBackground}">
 
     <ScrollView>
-        <VerticalStackLayout Padding="24" Spacing="16">
-            <Label Text="Experience"
-                   FontSize="28"
-                   FontAttributes="Bold"
-                   TextColor="#1A1A2E" />
+        <VerticalStackLayout Padding="24,16" Spacing="16">
 
-            <Label Text="Lege Positionen, Aufgaben und Technologien strukturiert an."
-                   FontSize="14"
-                   TextColor="#6C757D" />
+            <Label Text="💼 Experience"
+                   FontSize="26"
+                   FontFamily="OpenSansSemibold"
+                   TextColor="{StaticResource TextPrimary}" />
+            <Label Text="Add your work history, roles, and achievements."
+                   Style="{StaticResource SubtitleStyle}" />
 
-            <Border BackgroundColor="White"
-                    Stroke="#DEE2E6"
-                    StrokeShape="RoundRectangle 16"
-                    Padding="18">
+            <!-- Form card -->
+            <Border Style="{StaticResource CardStyle}">
                 <VerticalStackLayout Spacing="12">
                     <Entry Placeholder="Company"
-                           Text="{Binding CurrentExperience.Company}" />
+                           Text="{Binding CurrentExperience.Company}"
+                           PlaceholderColor="{StaticResource InactiveIcon}" />
                     <Entry Placeholder="Job Title"
-                           Text="{Binding CurrentExperience.JobTitle}" />
+                           Text="{Binding CurrentExperience.JobTitle}"
+                           PlaceholderColor="{StaticResource InactiveIcon}" />
 
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
                         <Picker Grid.Column="0"
@@ -34,7 +33,8 @@
                                 SelectedItem="{Binding CurrentExperience.EmploymentType}" />
                         <Entry Grid.Column="1"
                                Placeholder="Location"
-                               Text="{Binding CurrentExperience.Location}" />
+                               Text="{Binding CurrentExperience.Location}"
+                               PlaceholderColor="{StaticResource InactiveIcon}" />
                     </Grid>
 
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
@@ -45,84 +45,100 @@
                     </Grid>
 
                     <HorizontalStackLayout Spacing="10">
-                        <CheckBox IsChecked="{Binding CurrentExperience.IsCurrentJob}" />
+                        <CheckBox IsChecked="{Binding CurrentExperience.IsCurrentJob}"
+                                  Color="{StaticResource PrimaryViolet}" />
                         <Label Text="I currently work here"
-                               VerticalOptions="Center" />
+                               VerticalOptions="Center"
+                               TextColor="{StaticResource TextPrimary}" />
                     </HorizontalStackLayout>
 
                     <Entry Placeholder="Technologies, e.g. C#, Azure, SQL"
-                           Text="{Binding CurrentExperience.Technologies}" />
+                           Text="{Binding CurrentExperience.Technologies}"
+                           PlaceholderColor="{StaticResource InactiveIcon}" />
 
                     <Editor Placeholder="Describe responsibilities and achievements"
                             AutoSize="TextChanges"
-                            Text="{Binding CurrentExperience.Description}" />
+                            Text="{Binding CurrentExperience.Description}"
+                            PlaceholderColor="{StaticResource InactiveIcon}" />
 
                     <Button Text="{Binding SubmitButtonText}"
                             Command="{Binding AddExperienceCommand}"
-                            BackgroundColor="#1A1A2E"
-                            TextColor="White" />
+                            Style="{StaticResource VioletButtonStyle}" />
 
                     <Button Text="Cancel edit"
                             Command="{Binding CancelEditCommand}"
                             IsVisible="{Binding IsEditing}"
-                            BackgroundColor="#E9ECEF"
-                            TextColor="#1A1A2E" />
+                            Style="{StaticResource OutlineButtonStyle}" />
                 </VerticalStackLayout>
             </Border>
 
             <Label Text="{Binding ErrorMessage}"
-                   TextColor="#DC3545"
+                   TextColor="{StaticResource DangerRed}"
                    IsVisible="{Binding HasError}" />
+
+            <Label Text="Saved entries"
+                   Style="{StaticResource SectionHeaderStyle}"
+                   Margin="0,4,0,0" />
 
             <CollectionView ItemsSource="{Binding ExperienceEntries}">
                 <CollectionView.EmptyView>
                     <Label Text="No experience entries added yet."
-                           TextColor="#6C757D" />
+                           Style="{StaticResource SubtitleStyle}" />
                 </CollectionView.EmptyView>
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
                         <Border Margin="0,0,0,12"
                                 Padding="16"
-                                BackgroundColor="White"
-                                Stroke="#DEE2E6"
+                                BackgroundColor="{StaticResource SurfaceWhite}"
+                                Stroke="{StaticResource CardBorder}"
                                 StrokeShape="RoundRectangle 14">
-                            <VerticalStackLayout Spacing="8">
+                            <VerticalStackLayout Spacing="6">
                                 <Label Text="{Binding JobTitle}"
-                                       FontSize="18"
-                                       FontAttributes="Bold" />
-                                <Label Text="{Binding Company}" />
+                                       FontSize="16"
+                                       FontFamily="OpenSansSemibold"
+                                       TextColor="{StaticResource TextPrimary}" />
+                                <Label Text="{Binding Company}"
+                                       TextColor="{StaticResource PrimaryViolet}"
+                                       FontSize="14" />
                                 <Label Text="{Binding Location}"
-                                       TextColor="#6C757D" />
+                                       Style="{StaticResource SubtitleStyle}" />
                                 <Label Text="{Binding DurationText}"
                                        FontSize="12"
-                                       TextColor="#6C757D" />
+                                       TextColor="{StaticResource InactiveIcon}" />
                                 <Label Text="{Binding Technologies}"
                                        FontSize="12"
-                                       TextColor="#0A66C2" />
-                                <Label Text="{Binding Description}" />
-                                <Button Text="Delete"
-                                        Command="{Binding Source={x:Reference ExperiencePageRoot}, Path=BindingContext.DeleteExperienceCommand}"
-                                        CommandParameter="{Binding .}"
-                                        BackgroundColor="#FFF1F3"
-                                        TextColor="#B42318" />
-                                <Button Text="Edit"
-                                        Command="{Binding Source={x:Reference ExperiencePageRoot}, Path=BindingContext.EditExperienceCommand}"
-                                        CommandParameter="{Binding .}"
-                                        BackgroundColor="#E7F1FF"
-                                        TextColor="#0A66C2" />
+                                       TextColor="{StaticResource SecondaryBlue}" />
+                                <Label Text="{Binding Description}"
+                                       FontSize="13"
+                                       TextColor="{StaticResource TextPrimary}" />
+                                <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,4,0,0">
+                                    <Button Grid.Column="0"
+                                            Text="Edit"
+                                            Command="{Binding Source={x:Reference ExperiencePageRoot}, Path=BindingContext.EditExperienceCommand}"
+                                            CommandParameter="{Binding .}"
+                                            Style="{StaticResource OutlineButtonStyle}"
+                                            HeightRequest="36" />
+                                    <Button Grid.Column="1"
+                                            Text="Delete"
+                                            Command="{Binding Source={x:Reference ExperiencePageRoot}, Path=BindingContext.DeleteExperienceCommand}"
+                                            CommandParameter="{Binding .}"
+                                            Style="{StaticResource DangerButtonStyle}"
+                                            HeightRequest="36" />
+                                </Grid>
                             </VerticalStackLayout>
                         </Border>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
 
-            <Button Text="Continue to Skills"
+            <Button Text="Save"
                     Command="{Binding SaveAndContinueCommand}"
-                    BackgroundColor="#198754"
-                    TextColor="White" />
+                    Style="{StaticResource VioletButtonStyle}"
+                    Margin="0,4,0,0" />
 
             <ActivityIndicator IsRunning="{Binding IsBusy}"
-                               IsVisible="{Binding IsBusy}" />
+                               IsVisible="{Binding IsBusy}"
+                               Color="{StaticResource PrimaryViolet}" />
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

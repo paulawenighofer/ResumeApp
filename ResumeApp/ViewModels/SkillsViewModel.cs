@@ -213,10 +213,10 @@ public partial class SkillsViewModel : ObservableObject
 
             if (syncFailed)
             {
-                ShowError("Skills were saved locally, but the backend sync failed. You can continue and sync again later.");
+                ShowError("Skills saved locally. Backend sync failed — it will retry automatically.");
             }
 
-            await Shell.Current.GoToAsync(nameof(ProjectsPage));
+            await Shell.Current.GoToAsync("..");
         }
         catch (Exception ex)
         {

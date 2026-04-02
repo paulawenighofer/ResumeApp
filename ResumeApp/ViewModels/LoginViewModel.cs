@@ -46,7 +46,7 @@ public partial class LoginViewModel : ObservableObject
             var result = await _authService.LoginAsync(Email, Password);
 
             if (result.Success)
-                await Shell.Current.GoToAsync("//main");
+                await Shell.Current.GoToAsync("//main/home");
             else if (result.RequiresVerification)
                 await Shell.Current.GoToAsync($"///otp?email={Uri.EscapeDataString(result.Email ?? Email)}");
             else
@@ -129,7 +129,7 @@ public partial class LoginViewModel : ObservableObject
                 // Social login only returns a token — fetch profile separately
                 // so name and email are available on the main page
                 await _authService.FetchAndSaveUserInfoAsync();
-                await Shell.Current.GoToAsync("//main");
+                await Shell.Current.GoToAsync("//main/home");
             }
             else
             {

@@ -5,10 +5,9 @@ using ResumeApp.Views;
 
 namespace ResumeApp.ViewModels;
 
-public partial class MainPageViewModel : ObservableObject
+public partial class ProfileViewModel : ObservableObject
 {
     private readonly AuthService _authService;
-    private readonly IApiService _apiService;
     private readonly ILocalStorageService _localStorageService;
 
     [ObservableProperty]
@@ -20,27 +19,14 @@ public partial class MainPageViewModel : ObservableObject
     [ObservableProperty]
     private string profileImagePath = "";
 
-    [ObservableProperty]
-    private string profileImageUrl = "";
-
-    public string AppHeading { get; } = "AI Resume Builder";
-
-    public string Greeting => $"Hi, {UserName} 👋";
-
     public ImageSource? ProfileImageSource =>
         !string.IsNullOrWhiteSpace(ProfileImagePath)
             ? ImageSource.FromFile(ProfileImagePath)
-            : !string.IsNullOrWhiteSpace(ProfileImageUrl)
-                ? ImageSource.FromUri(new Uri(ProfileImageUrl))
-                : null;
+            : null;
 
-    public MainPageViewModel(
-        AuthService authService,
-        IApiService apiService,
-        ILocalStorageService localStorageService)
+    public ProfileViewModel(AuthService authService, ILocalStorageService localStorageService)
     {
         _authService = authService;
-        _apiService = apiService;
         _localStorageService = localStorageService;
         _ = LoadUserInfoAsync();
     }
@@ -64,13 +50,6 @@ public partial class MainPageViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task Logout()
-    {
-        await _authService.LogoutAsync();
-        await Shell.Current.GoToAsync("//login");
-    }
-
-    [RelayCommand]
     private async Task PickProfileImage()
     {
         try
@@ -81,34 +60,26 @@ public partial class MainPageViewModel : ObservableObject
                 PickerTitle = "Select profile image"
             });
 
-            if (result?.FullPath is null)
-            {
-                return;
-            }
+            if (result?.FullPath is null) return;
 
             ProfileImagePath = result.FullPath;
             await _localStorageService.SaveProfileImagePathAsync(ProfileImagePath);
             OnPropertyChanged(nameof(ProfileImageSource));
-
-            var uploadedUrl = await _apiService.UploadProfileImageAsync(ProfileImagePath);
-            if (!string.IsNullOrWhiteSpace(uploadedUrl))
-            {
-                ProfileImageUrl = uploadedUrl;
-                OnPropertyChanged(nameof(ProfileImageSource));
-            }
         }
         catch (Exception ex)
         {
             if (Shell.Current is not null)
-            {
-                await Shell.Current.DisplayAlert("Profile image", $"Profile image could not be updated.\n{ex.Message}", "OK");
-            }
+                await Shell.Current.DisplayAlert("Profile image", ex.Message, "OK");
         }
     }
 
     [RelayCommand]
     private async Task GoToEducation() =>
         await Shell.Current.GoToAsync(nameof(EducationPage));
+
+    [RelayCommand]
+    private async Task GoToExperience() =>
+        await Shell.Current.GoToAsync(nameof(ExperiencePage));
 
     [RelayCommand]
     private async Task GoToSkills() =>
@@ -119,6 +90,9 @@ public partial class MainPageViewModel : ObservableObject
         await Shell.Current.GoToAsync(nameof(ProjectsPage));
 
     [RelayCommand]
-    private async Task GoToGenerateResume() =>
-        await Shell.Current.GoToAsync(nameof(GenerateResumePage));
+    private async Task Logout()
+    {
+        await _authService.LogoutAsync();
+        await Shell.Current.GoToAsync("//login");
+    }
 }

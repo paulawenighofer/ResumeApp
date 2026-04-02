@@ -5,34 +5,49 @@
        x:Class="ResumeApp.AppShell"
        FlyoutBehavior="Disabled">
 
+    <!-- Auth pages — no nav bar, no tab bar -->
     <ShellContent Route="login"
                   ContentTemplate="{DataTemplate views:LoginPage}"
                   Shell.NavBarIsVisible="False"
                   Shell.TabBarIsVisible="False" />
-
     <ShellContent Route="register"
                   ContentTemplate="{DataTemplate views:RegisterPage}"
                   Shell.NavBarIsVisible="False"
                   Shell.TabBarIsVisible="False" />
-
     <ShellContent Route="otp"
                   ContentTemplate="{DataTemplate views:OtpVerificationPage}"
                   Shell.NavBarIsVisible="False"
                   Shell.TabBarIsVisible="False" />
-
     <ShellContent Route="forgot-password"
                   ContentTemplate="{DataTemplate views:ForgotPasswordPage}"
                   Shell.NavBarIsVisible="False"
                   Shell.TabBarIsVisible="False" />
-
     <ShellContent Route="reset-password"
                   ContentTemplate="{DataTemplate views:ResetPasswordPage}"
                   Shell.NavBarIsVisible="False"
                   Shell.TabBarIsVisible="False" />
 
+    <!-- Main app — custom BottomNavBar embedded in each root page; Shell TabBar hidden -->
     <TabBar Route="main">
         <ShellContent Title="Home"
                       Route="home"
-                      ContentTemplate="{DataTemplate views:MainPage}" />
+                      ContentTemplate="{DataTemplate views:MainPage}"
+                      Shell.NavBarIsVisible="False"
+                      Shell.TabBarIsVisible="False" />
+        <ShellContent Title="Resume"
+                      Route="resume"
+                      ContentTemplate="{DataTemplate views:ResumeListPage}"
+                      Shell.NavBarIsVisible="False"
+                      Shell.TabBarIsVisible="False" />
+        <ShellContent Title="Profile"
+                      Route="profile"
+                      ContentTemplate="{DataTemplate views:ProfilePage}"
+                      Shell.NavBarIsVisible="False"
+                      Shell.TabBarIsVisible="False" />
+        <ShellContent Title="Settings"
+                      Route="settings"
+                      ContentTemplate="{DataTemplate views:SettingsPage}"
+                      Shell.NavBarIsVisible="False"
+                      Shell.TabBarIsVisible="False" />
     </TabBar>
 </Shell>

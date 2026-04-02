@@ -1,6 +1,8 @@
+using API.Data;
 using API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Shared.Models;
 using System.Security.Claims;
 
@@ -11,17 +13,17 @@ namespace API.Controllers;
 [Route("api/projects")]
 public class ProjectsController : ControllerBase
 {
-    private readonly InMemoryResumeStore _store;
+    private readonly AppDbContext _db;
     private readonly ApiMetrics _metrics;
 
-    public ProjectsController(InMemoryResumeStore store, ApiMetrics metrics)
+    public ProjectsController(AppDbContext db, ApiMetrics metrics)
     {
-        _store = store;
+        _db = db;
         _metrics = metrics;
     }
 
     [HttpGet]
-    public ActionResult<IEnumerable<ResumeProject>> GetAll()
+    public async Task<ActionResult<IEnumerable<ResumeProject>>> GetAll()
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrWhiteSpace(userId))
@@ -29,11 +31,17 @@ public class ProjectsController : ControllerBase
             return Unauthorized();
         }
 
-        return Ok(_store.Projects.Where(x => x.UserId == userId));
+        var entities = await _db.Projects
+            .Where(x => x.UserId == userId)
+            .OrderByDescending(x => x.Id)
+            .ToListAsync();
+
+        var items = entities.Select(MapToResumeProject);
+        return Ok(items);
     }
 
     [HttpGet("{id:int}")]
-    public ActionResult<ResumeProject> GetById(int id)
+    public async Task<ActionResult<ResumeProject>> GetById(int id)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrWhiteSpace(userId))
@@ -41,12 +49,14 @@ public class ProjectsController : ControllerBase
             return Unauthorized();
         }
 
-        var project = _store.Projects.FirstOrDefault(x => x.Id == id && x.UserId == userId);
-        return project is null ? NotFound() : Ok(project);
+        var entity = await _db.Projects
+            .FirstOrDefaultAsync(x => x.Id == id && x.UserId == userId);
+
+        return entity is null ? NotFound() : Ok(MapToResumeProject(entity));
     }
 
     [HttpPost]
-    public ActionResult<ResumeProject> Create([FromBody] ResumeProject project)
+    public async Task<ActionResult<ResumeProject>> Create([FromBody] ResumeProject project)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrWhiteSpace(userId))
@@ -54,15 +64,37 @@ public class ProjectsController : ControllerBase
             return Unauthorized();
         }
 
-        project.Id = _store.NextProjectId();
-        project.UserId = userId;
-        _store.Projects.Add(project);
+        var entity = new Project
+        {
+            UserId = userId,
+            Title = project.Name,
+            Description = project.Description,
+            ProjectUrl = project.Url,
+            StartDate = project.StartDate?.ToDateTime(TimeOnly.MinValue),
+            EndDate = project.EndDate?.ToDateTime(TimeOnly.MinValue)
+        };
+
+        _db.Projects.Add(entity);
+        await _db.SaveChangesAsync();
+
         _metrics.ProjectsCreated.Add(1);
-        return CreatedAtAction(nameof(GetById), new { id = project.Id }, project);
+
+        var response = new ResumeProject
+        {
+            Id = entity.Id,
+            UserId = entity.UserId,
+            Name = entity.Title,
+            Description = entity.Description,
+            Url = entity.ProjectUrl,
+            StartDate = entity.StartDate is null ? null : DateOnly.FromDateTime(entity.StartDate.Value),
+            EndDate = entity.EndDate is null ? null : DateOnly.FromDateTime(entity.EndDate.Value)
+        };
+
+        return CreatedAtAction(nameof(GetById), new { id = entity.Id }, response);
     }
 
     [HttpPut("{id:int}")]
-    public ActionResult<ResumeProject> Update(int id, [FromBody] ResumeProject project)
+    public async Task<ActionResult<ResumeProject>> Update(int id, [FromBody] ResumeProject project)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrWhiteSpace(userId))
@@ -70,20 +102,27 @@ public class ProjectsController : ControllerBase
             return Unauthorized();
         }
 
-        var index = _store.Projects.FindIndex(x => x.Id == id && x.UserId == userId);
-        if (index < 0)
+        var entity = await _db.Projects
+            .FirstOrDefaultAsync(x => x.Id == id && x.UserId == userId);
+
+        if (entity is null)
         {
             return NotFound();
         }
 
-        project.Id = id;
-        project.UserId = userId;
-        _store.Projects[index] = project;
-        return Ok(project);
+        entity.Title = project.Name;
+        entity.Description = project.Description;
+        entity.ProjectUrl = project.Url;
+        entity.StartDate = project.StartDate?.ToDateTime(TimeOnly.MinValue);
+        entity.EndDate = project.EndDate?.ToDateTime(TimeOnly.MinValue);
+
+        await _db.SaveChangesAsync();
+
+        return Ok(MapToResumeProject(entity));
     }
 
     [HttpDelete("{id:int}")]
-    public IActionResult Delete(int id)
+    public async Task<IActionResult> Delete(int id)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrWhiteSpace(userId))
@@ -91,13 +130,16 @@ public class ProjectsController : ControllerBase
             return Unauthorized();
         }
 
-        var project = _store.Projects.FirstOrDefault(x => x.Id == id && x.UserId == userId);
+        var project = await _db.Projects
+            .FirstOrDefaultAsync(x => x.Id == id && x.UserId == userId);
+
         if (project is null)
         {
             return NotFound();
         }
 
-        _store.Projects.Remove(project);
+        _db.Projects.Remove(project);
+        await _db.SaveChangesAsync();
         return NoContent();
     }
 
@@ -111,7 +153,9 @@ public class ProjectsController : ControllerBase
             return Unauthorized();
         }
 
-        var project = _store.Projects.FirstOrDefault(x => x.Id == id && x.UserId == userId);
+        var project = await _db.Projects
+            .FirstOrDefaultAsync(x => x.Id == id && x.UserId == userId);
+
         if (project is null)
         {
             return NotFound();
@@ -141,4 +185,19 @@ public class ProjectsController : ControllerBase
 
         return Ok(new { images = uploadedUrls });
     }
+
+    private static ResumeProject MapToResumeProject(Project project) => new()
+    {
+        Id = project.Id,
+        UserId = project.UserId,
+        Name = project.Title,
+        Description = project.Description,
+        Url = project.ProjectUrl,
+        StartDate = project.StartDate.HasValue
+            ? DateOnly.FromDateTime(project.StartDate.Value)
+            : null,
+        EndDate = project.EndDate.HasValue
+            ? DateOnly.FromDateTime(project.EndDate.Value)
+            : null
+    };
 }
