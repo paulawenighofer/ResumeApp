@@ -3,63 +3,77 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="ResumeApp.Views.LoginPage"
              Shell.NavBarIsVisible="False"
-             BackgroundColor="#F8F9FA">
+             BackgroundColor="{StaticResource PageBackground}">
 
     <ScrollView>
         <VerticalStackLayout
             Spacing="16"
-            Padding="24,60,24,24"
+            Padding="28,60,28,28"
             VerticalOptions="Center">
 
-            <!-- App Logo / Title Area -->
-            <Image Source="dotnet_bot.png"
-                   HeightRequest="80"
-                   HorizontalOptions="Center"
-                   Margin="0,0,0,8" />
+            <!-- Logo area -->
+            <Border WidthRequest="72"
+                    HeightRequest="72"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 20"
+                    BackgroundColor="{StaticResource PrimaryViolet}"
+                    HorizontalOptions="Center"
+                    Margin="0,0,0,4">
+                <Border.Shadow>
+                    <Shadow Brush="{StaticResource PrimaryViolet}"
+                            Offset="0,6"
+                            Radius="20"
+                            Opacity="0.35" />
+                </Border.Shadow>
+                <Label Text="✦"
+                       FontSize="32"
+                       TextColor="White"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center" />
+            </Border>
 
             <Label Text="Resume Builder"
-                   FontSize="28"
-                   FontAttributes="Bold"
+                   FontSize="26"
+                   FontFamily="OpenSansSemibold"
                    HorizontalOptions="Center"
-                   TextColor="#1A1A2E" />
+                   TextColor="{StaticResource TextPrimary}" />
 
             <Label Text="Build tailored resumes with AI"
-                   FontSize="14"
+                   Style="{StaticResource SubtitleStyle}"
                    HorizontalOptions="Center"
-                   TextColor="#6C757D"
-                   Margin="0,0,0,24" />
+                   Margin="0,0,0,16" />
 
             <!-- Email Field -->
-            <Frame BorderColor="#DEE2E6"
-                   BackgroundColor="White"
-                   CornerRadius="8"
-                   Padding="4,0"
-                   HasShadow="False">
+            <Border BackgroundColor="{StaticResource SurfaceWhite}"
+                    Stroke="{StaticResource CardBorder}"
+                    StrokeThickness="1.5"
+                    StrokeShape="RoundRectangle 12"
+                    Padding="4,0">
                 <Entry Placeholder="Email address"
                        Keyboard="Email"
                        Text="{Binding Email}"
                        FontSize="15"
-                       TextColor="#1A1A2E"
-                       PlaceholderColor="#ADB5BD" />
-            </Frame>
+                       TextColor="{StaticResource TextPrimary}"
+                       PlaceholderColor="{StaticResource InactiveIcon}" />
+            </Border>
 
             <!-- Password Field -->
-            <Frame BorderColor="#DEE2E6"
-                   BackgroundColor="White"
-                   CornerRadius="8"
-                   Padding="4,0"
-                   HasShadow="False">
+            <Border BackgroundColor="{StaticResource SurfaceWhite}"
+                    Stroke="{StaticResource CardBorder}"
+                    StrokeThickness="1.5"
+                    StrokeShape="RoundRectangle 12"
+                    Padding="4,0">
                 <Entry Placeholder="Password"
                        IsPassword="True"
                        Text="{Binding Password}"
                        FontSize="15"
-                       TextColor="#1A1A2E"
-                       PlaceholderColor="#ADB5BD" />
-            </Frame>
+                       TextColor="{StaticResource TextPrimary}"
+                       PlaceholderColor="{StaticResource InactiveIcon}" />
+            </Border>
 
             <!-- Error Message -->
             <Label Text="{Binding ErrorMessage}"
-                   TextColor="#DC3545"
+                   TextColor="{StaticResource DangerRed}"
                    FontSize="13"
                    HorizontalOptions="Center"
                    IsVisible="{Binding HasError}" />
@@ -67,44 +81,44 @@
             <!-- Forgot Password Link -->
             <Label Text="Forgot password?"
                    FontSize="13"
-                   TextColor="#6C757D"
+                   TextColor="{StaticResource PrimaryViolet}"
+                   FontFamily="OpenSansSemibold"
                    HorizontalOptions="End">
                 <Label.GestureRecognizers>
                     <TapGestureRecognizer Command="{Binding GoToForgotPasswordCommand}" />
                 </Label.GestureRecognizers>
             </Label>
 
-            <!-- Login Button -->
+            <!-- Sign In Button -->
             <Button Text="Sign In"
                     Command="{Binding LoginCommand}"
-                    BackgroundColor="#1A1A2E"
-                    TextColor="White"
-                    FontAttributes="Bold"
-                    FontSize="16"
-                    CornerRadius="8"
-                    HeightRequest="50"
-                    Margin="0,8,0,0" />
+                    Style="{StaticResource VioletButtonStyle}"
+                    Margin="0,8,0,0">
+                <Button.Shadow>
+                    <Shadow Brush="{StaticResource PrimaryViolet}"
+                            Offset="0,6"
+                            Radius="16"
+                            Opacity="0.30" />
+                </Button.Shadow>
+            </Button>
 
             <!-- Loading Indicator -->
             <ActivityIndicator IsRunning="{Binding IsBusy}"
                                IsVisible="{Binding IsBusy}"
-                               Color="#1A1A2E"
+                               Color="{StaticResource PrimaryViolet}"
                                HorizontalOptions="Center" />
 
             <!-- Divider -->
-            <Grid ColumnDefinitions="*,Auto,*"
-                  Margin="0,8">
-                <BoxView Grid.Column="0"
-                         HeightRequest="1"
-                         Color="#DEE2E6"
+            <Grid ColumnDefinitions="*,Auto,*" Margin="0,8">
+                <BoxView Grid.Column="0" HeightRequest="1"
+                         Color="{StaticResource CardBorder}"
                          VerticalOptions="Center" />
                 <Label Grid.Column="1"
                        Text="  or continue with  "
                        FontSize="13"
-                       TextColor="#6C757D" />
-                <BoxView Grid.Column="2"
-                         HeightRequest="1"
-                         Color="#DEE2E6"
+                       TextColor="{StaticResource TextSecondary}" />
+                <BoxView Grid.Column="2" HeightRequest="1"
+                         Color="{StaticResource CardBorder}"
                          VerticalOptions="Center" />
             </Grid>
 
@@ -112,11 +126,11 @@
             <VerticalStackLayout Spacing="10">
 
                 <!-- Google -->
-                <Border BackgroundColor="White"
-                        Stroke="#DADCE0"
-                        StrokeThickness="1"
-                        StrokeShape="RoundRectangle 8"
-                        HeightRequest="48">
+                <Border BackgroundColor="{StaticResource SurfaceWhite}"
+                        Stroke="{StaticResource CardBorder}"
+                        StrokeThickness="1.5"
+                        StrokeShape="RoundRectangle 12"
+                        HeightRequest="50">
                     <Border.GestureRecognizers>
                         <TapGestureRecognizer Command="{Binding GoogleLoginCommand}" />
                     </Border.GestureRecognizers>
@@ -127,9 +141,9 @@
                                TextColor="#4285F4"
                                VerticalOptions="Center" />
                         <Label Text="Continue with Google"
-                               TextColor="#3C4043"
+                               TextColor="{StaticResource TextPrimary}"
                                FontSize="14"
-                               FontAttributes="Bold"
+                               FontFamily="OpenSansSemibold"
                                VerticalOptions="Center" />
                     </HorizontalStackLayout>
                 </Border>
@@ -140,8 +154,8 @@
                     <Border Grid.Column="0"
                             BackgroundColor="#0A66C2"
                             StrokeThickness="0"
-                            StrokeShape="RoundRectangle 8"
-                            HeightRequest="48">
+                            StrokeShape="RoundRectangle 12"
+                            HeightRequest="50">
                         <Border.GestureRecognizers>
                             <TapGestureRecognizer Command="{Binding LinkedInLoginCommand}" />
                         </Border.GestureRecognizers>
@@ -154,7 +168,7 @@
                             <Label Text="LinkedIn"
                                    TextColor="White"
                                    FontSize="14"
-                                   FontAttributes="Bold"
+                                   FontFamily="OpenSansSemibold"
                                    VerticalOptions="Center" />
                         </HorizontalStackLayout>
                     </Border>
@@ -163,8 +177,8 @@
                     <Border Grid.Column="1"
                             BackgroundColor="#24292F"
                             StrokeThickness="0"
-                            StrokeShape="RoundRectangle 8"
-                            HeightRequest="48">
+                            StrokeShape="RoundRectangle 12"
+                            HeightRequest="50">
                         <Border.GestureRecognizers>
                             <TapGestureRecognizer Command="{Binding GitHubLoginCommand}" />
                         </Border.GestureRecognizers>
@@ -177,7 +191,7 @@
                             <Label Text="GitHub"
                                    TextColor="White"
                                    FontSize="14"
-                                   FontAttributes="Bold"
+                                   FontFamily="OpenSansSemibold"
                                    VerticalOptions="Center" />
                         </HorizontalStackLayout>
                     </Border>
@@ -186,16 +200,15 @@
             </VerticalStackLayout>
 
             <!-- Sign Up Link -->
-            <HorizontalStackLayout HorizontalOptions="Center"
-                                   Margin="0,16,0,0">
+            <HorizontalStackLayout HorizontalOptions="Center" Margin="0,16,0,0">
                 <Label Text="Don't have an account? "
                        FontSize="14"
-                       TextColor="#6C757D"
+                       TextColor="{StaticResource TextSecondary}"
                        VerticalOptions="Center" />
                 <Label Text="Sign Up"
                        FontSize="14"
-                       FontAttributes="Bold"
-                       TextColor="#1A1A2E"
+                       FontFamily="OpenSansSemibold"
+                       TextColor="{StaticResource PrimaryViolet}"
                        VerticalOptions="Center">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Command="{Binding GoToRegisterCommand}" />

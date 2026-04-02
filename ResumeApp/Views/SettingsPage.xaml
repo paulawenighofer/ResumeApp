@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:ResumeApp.Views.Controls"
+             x:Class="ResumeApp.Views.SettingsPage"
+             Shell.NavBarIsVisible="False">
+
+    <Grid RowDefinitions="*,80">
+
+        <ScrollView Grid.Row="0">
+            <VerticalStackLayout Padding="24,56,24,16" Spacing="20">
+
+                <!-- Header -->
+                <Label Text="Settings"
+                       FontSize="28"
+                       FontFamily="OpenSansSemibold"
+                       TextColor="{StaticResource TextPrimary}" />
+
+                <!-- Appearance -->
+                <Label Text="Appearance"
+                       Style="{StaticResource SectionHeaderStyle}" />
+
+                <Border Style="{StaticResource CardStyle}" Padding="16">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
+                            <Label Text="Dark Mode"
+                                   FontSize="15"
+                                   FontFamily="OpenSansSemibold"
+                                   TextColor="{StaticResource TextPrimary}" />
+                            <Label Text="Switch between light and dark theme"
+                                   Style="{StaticResource SubtitleStyle}"
+                                   FontSize="12" />
+                        </VerticalStackLayout>
+                        <Switch Grid.Column="1"
+                                IsToggled="{Binding IsDarkMode}"
+                                OnColor="{StaticResource PrimaryViolet}"
+                                VerticalOptions="Center" />
+                    </Grid>
+                </Border>
+
+                <!-- Data -->
+                <Label Text="Data"
+                       Style="{StaticResource SectionHeaderStyle}" />
+
+                <Border Style="{StaticResource CardStyle}" Padding="16">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding ClearCacheCommand}" />
+                    </Border.GestureRecognizers>
+                    <Grid ColumnDefinitions="40,*,24">
+                        <Border WidthRequest="40" HeightRequest="40"
+                                StrokeThickness="0" StrokeShape="RoundRectangle 12"
+                                BackgroundColor="#FEF3C7">
+                            <Label Text="🗑" FontSize="18" HorizontalOptions="Center" VerticalOptions="Center" />
+                        </Border>
+                        <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center" Margin="12,0,0,0">
+                            <Label Text="Clear local cache"
+                                   FontSize="15"
+                                   FontFamily="OpenSansSemibold"
+                                   TextColor="{StaticResource TextPrimary}" />
+                            <Label Text="Remove saved drafts from this device"
+                                   Style="{StaticResource SubtitleStyle}"
+                                   FontSize="12" />
+                        </VerticalStackLayout>
+                        <Label Grid.Column="2" Text="›"
+                               FontSize="20"
+                               TextColor="{StaticResource InactiveIcon}"
+                               VerticalOptions="Center" />
+                    </Grid>
+                </Border>
+
+                <!-- About -->
+                <Label Text="About"
+                       Style="{StaticResource SectionHeaderStyle}" />
+
+                <Border Style="{StaticResource CardStyle}" Padding="16">
+                    <Grid ColumnDefinitions="40,*">
+                        <Border WidthRequest="40" HeightRequest="40"
+                                StrokeThickness="0" StrokeShape="RoundRectangle 12"
+                                BackgroundColor="#EDE9FE">
+                            <Label Text="✦" FontSize="18" TextColor="{StaticResource PrimaryViolet}"
+                                   HorizontalOptions="Center" VerticalOptions="Center" />
+                        </Border>
+                        <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center" Margin="12,0,0,0">
+                            <Label Text="AI Resume Builder"
+                                   FontSize="15"
+                                   FontFamily="OpenSansSemibold"
+                                   TextColor="{StaticResource TextPrimary}" />
+                            <Label Text="{Binding AppVersion, StringFormat='Version {0}'}"
+                                   Style="{StaticResource SubtitleStyle}"
+                                   FontSize="12" />
+                        </VerticalStackLayout>
+                    </Grid>
+                </Border>
+
+                <!-- Account -->
+                <Label Text="Account"
+                       Style="{StaticResource SectionHeaderStyle}" />
+
+                <Button Text="Sign out"
+                        Command="{Binding LogoutCommand}"
+                        BackgroundColor="#FEE2E2"
+                        TextColor="{StaticResource DangerRed}"
+                        CornerRadius="12"
+                        HeightRequest="50" />
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Bottom nav bar -->
+        <controls:BottomNavBar Grid.Row="1" VerticalOptions="End" />
+    </Grid>
+</ContentPage>

@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:ResumeApp.ViewModels"
+             x:Class="ResumeApp.Views.Controls.BottomNavBar"
+             x:DataType="vm:BottomNavBarViewModel">
+
+    <Grid HeightRequest="80" VerticalOptions="End">
+
+        <!-- Nav bar background card -->
+        <Border BackgroundColor="{StaticResource NavBarBg}"
+                StrokeThickness="0"
+                VerticalOptions="End"
+                HeightRequest="80">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="24,24,0,0" />
+            </Border.StrokeShape>
+            <Border.Shadow>
+                <Shadow Brush="#6C63FF" Offset="0,-4" Radius="20" Opacity="0.12" />
+            </Border.Shadow>
+
+            <!-- Columns: Home | Resume | [FAB spacer] | Profile | Settings -->
+            <Grid ColumnDefinitions="*,*,72,*,*" Padding="4,0" VerticalOptions="Center">
+
+                <!-- HOME -->
+                <Grid Grid.Column="0" VerticalOptions="Center">
+                    <Grid.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding GoToHomeCommand}" />
+                    </Grid.GestureRecognizers>
+                    <Border BackgroundColor="{StaticResource PrimaryViolet}"
+                            StrokeThickness="0" StrokeShape="RoundRectangle 20"
+                            Padding="10,8" HorizontalOptions="Center"
+                            IsVisible="{Binding SelectedTab, Converter={StaticResource navTabMatch}, ConverterParameter=Home}">
+                        <HorizontalStackLayout Spacing="5" HorizontalOptions="Center">
+                            <Label Text="⌂" FontSize="15" TextColor="White" VerticalOptions="Center" />
+                            <Label Text="Home" FontSize="12" FontFamily="OpenSansSemibold" TextColor="White" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                    </Border>
+                    <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="2"
+                                         IsVisible="{Binding SelectedTab, Converter={StaticResource navTabNotMatch}, ConverterParameter=Home}">
+                        <Label Text="⌂" FontSize="20" TextColor="{StaticResource InactiveIcon}" HorizontalOptions="Center" />
+                        <Label Text="Home" FontSize="9" TextColor="{StaticResource InactiveIcon}" HorizontalOptions="Center" />
+                    </VerticalStackLayout>
+                </Grid>
+
+                <!-- RESUME -->
+                <Grid Grid.Column="1" VerticalOptions="Center">
+                    <Grid.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding GoToResumeCommand}" />
+                    </Grid.GestureRecognizers>
+                    <Border BackgroundColor="{StaticResource PrimaryViolet}"
+                            StrokeThickness="0" StrokeShape="RoundRectangle 20"
+                            Padding="10,8" HorizontalOptions="Center"
+                            IsVisible="{Binding SelectedTab, Converter={StaticResource navTabMatch}, ConverterParameter=Resume}">
+                        <HorizontalStackLayout Spacing="5" HorizontalOptions="Center">
+                            <Label Text="☰" FontSize="15" TextColor="White" VerticalOptions="Center" />
+                            <Label Text="Resume" FontSize="12" FontFamily="OpenSansSemibold" TextColor="White" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                    </Border>
+                    <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="2"
+                                         IsVisible="{Binding SelectedTab, Converter={StaticResource navTabNotMatch}, ConverterParameter=Resume}">
+                        <Label Text="☰" FontSize="20" TextColor="{StaticResource InactiveIcon}" HorizontalOptions="Center" />
+                        <Label Text="Resume" FontSize="9" TextColor="{StaticResource InactiveIcon}" HorizontalOptions="Center" />
+                    </VerticalStackLayout>
+                </Grid>
+
+                <!-- FAB spacer (col 2 — FAB is overlaid above the grid) -->
+                <Grid Grid.Column="2" />
+
+                <!-- PROFILE -->
+                <Grid Grid.Column="3" VerticalOptions="Center">
+                    <Grid.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding GoToProfileCommand}" />
+                    </Grid.GestureRecognizers>
+                    <Border BackgroundColor="{StaticResource PrimaryViolet}"
+                            StrokeThickness="0" StrokeShape="RoundRectangle 20"
+                            Padding="10,8" HorizontalOptions="Center"
+                            IsVisible="{Binding SelectedTab, Converter={StaticResource navTabMatch}, ConverterParameter=Profile}">
+                        <HorizontalStackLayout Spacing="5" HorizontalOptions="Center">
+                            <Label Text="◉" FontSize="15" TextColor="White" VerticalOptions="Center" />
+                            <Label Text="Profile" FontSize="12" FontFamily="OpenSansSemibold" TextColor="White" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                    </Border>
+                    <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="2"
+                                         IsVisible="{Binding SelectedTab, Converter={StaticResource navTabNotMatch}, ConverterParameter=Profile}">
+                        <Label Text="◉" FontSize="20" TextColor="{StaticResource InactiveIcon}" HorizontalOptions="Center" />
+                        <Label Text="Profile" FontSize="9" TextColor="{StaticResource InactiveIcon}" HorizontalOptions="Center" />
+                    </VerticalStackLayout>
+                </Grid>
+
+                <!-- SETTINGS -->
+                <Grid Grid.Column="4" VerticalOptions="Center">
+                    <Grid.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding GoToSettingsCommand}" />
+                    </Grid.GestureRecognizers>
+                    <Border BackgroundColor="{StaticResource PrimaryViolet}"
+                            StrokeThickness="0" StrokeShape="RoundRectangle 20"
+                            Padding="10,8" HorizontalOptions="Center"
+                            IsVisible="{Binding SelectedTab, Converter={StaticResource navTabMatch}, ConverterParameter=Settings}">
+                        <HorizontalStackLayout Spacing="5" HorizontalOptions="Center">
+                            <Label Text="⚙" FontSize="15" TextColor="White" VerticalOptions="Center" />
+                            <Label Text="Settings" FontSize="12" FontFamily="OpenSansSemibold" TextColor="White" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                    </Border>
+                    <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="2"
+                                         IsVisible="{Binding SelectedTab, Converter={StaticResource navTabNotMatch}, ConverterParameter=Settings}">
+                        <Label Text="⚙" FontSize="20" TextColor="{StaticResource InactiveIcon}" HorizontalOptions="Center" />
+                        <Label Text="Settings" FontSize="9" TextColor="{StaticResource InactiveIcon}" HorizontalOptions="Center" />
+                    </VerticalStackLayout>
+                </Grid>
+
+            </Grid>
+        </Border>
+
+        <!-- Center FAB — floats above the nav bar -->
+        <Border WidthRequest="56" HeightRequest="56"
+                StrokeThickness="0" StrokeShape="RoundRectangle 28"
+                BackgroundColor="{StaticResource PrimaryViolet}"
+                HorizontalOptions="Center" VerticalOptions="Start"
+                TranslationY="-20">
+            <Border.Shadow>
+                <Shadow Brush="{StaticResource PrimaryViolet}" Offset="0,4" Radius="16" Opacity="0.45" />
+            </Border.Shadow>
+            <Border.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding OpenGenerateCommand}" />
+            </Border.GestureRecognizers>
+            <Label Text="+" FontSize="28" FontAttributes="Bold" TextColor="White"
+                   HorizontalOptions="Center" VerticalOptions="Center" />
+        </Border>
+
+    </Grid>
+</ContentView>

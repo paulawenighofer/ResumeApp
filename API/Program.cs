@@ -1,11 +1,14 @@
 using API.Data;
+using API.Middleware;
 using API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Shared.Models;
 using System.Security.Claims;
@@ -14,9 +17,35 @@ using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var telemetryServiceName = "ResumeApp.API";
+var otlpEndpoint = Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT")
+    ?? string.Empty;
+var hasOtlpEndpoint = !string.IsNullOrWhiteSpace(otlpEndpoint);
+
+// Configure logging to send to OpenTelemetry
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
+builder.Logging.AddOpenTelemetry(options =>
+{
+    options.IncludeFormattedMessage = true;
+    // Add resource with service name
+    options.SetResourceBuilder(
+        ResourceBuilder.CreateDefault()
+            .AddService(serviceName: telemetryServiceName, serviceVersion: "1.0.0"));
+
+    if (!hasOtlpEndpoint)
+    {
+        return;
+    }
+
+    options.AddOtlpExporter(options =>
+    {
+        options.Endpoint = new Uri(otlpEndpoint);
+        options.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
+    });
+});
+builder.Logging.SetMinimumLevel(LogLevel.Information);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
@@ -56,10 +85,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddDefaultTokenProviders();
 
 
-// =============================================
-// SECTION 3: AUTHENTICATION 
-// =============================================
-var authBuilder = builder.Services.AddAuthentication(options =>
+builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -105,7 +131,6 @@ var authBuilder = builder.Services.AddAuthentication(options =>
         }
     };
 });
-
 
 // =============================================
 // SECTION 4: OTHER SERVICES
@@ -161,20 +186,43 @@ builder.Services.AddControllers();
 // =============================================
 builder.Services.AddSingleton<ApiMetrics>();
 
+// Configure OpenTelemetry tracing and metrics
 builder.Services.AddOpenTelemetry()
-    .WithTracing(tracing => tracing
-        .AddAspNetCoreInstrumentation()
-        .AddHttpClientInstrumentation()
-        .AddEntityFrameworkCoreInstrumentation()
-        .AddOtlpExporter()
-        .AddConsoleExporter())
-    .WithMetrics(metrics => metrics
-        .AddAspNetCoreInstrumentation()
-        .AddHttpClientInstrumentation()
-        .AddRuntimeInstrumentation()
-        .AddMeter(ApiMetrics.MeterName)
-        .AddOtlpExporter()
-        .AddConsoleExporter());
+    .ConfigureResource(resource => resource
+        .AddService(serviceName: telemetryServiceName, serviceVersion: "1.0.0"))
+    .WithTracing(tracing =>
+    {
+        tracing
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddEntityFrameworkCoreInstrumentation();
+
+        if (hasOtlpEndpoint)
+        {
+            tracing.AddOtlpExporter(options =>
+            {
+                options.Endpoint = new Uri(otlpEndpoint);
+                options.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
+            });
+        }
+    })
+    .WithMetrics(metrics =>
+    {
+        metrics
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddRuntimeInstrumentation();
+
+        if (hasOtlpEndpoint)
+        {
+            metrics.AddOtlpExporter(options =>
+            {
+                options.Endpoint = new Uri(otlpEndpoint);
+                options.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
+            });
+        }
+    });
+
 
 var app = builder.Build();
 
@@ -211,6 +259,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseRateLimiter();

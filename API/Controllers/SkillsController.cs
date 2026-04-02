@@ -1,6 +1,8 @@
+using API.Data;
 using API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Shared.Models;
 using System.Security.Claims;
 
@@ -11,17 +13,17 @@ namespace API.Controllers;
 [Route("api/skills")]
 public class SkillsController : ControllerBase
 {
-    private readonly InMemoryResumeStore _store;
+    private readonly AppDbContext _db;
     private readonly ApiMetrics _metrics;
 
-    public SkillsController(InMemoryResumeStore store, ApiMetrics metrics)
+    public SkillsController(AppDbContext db, ApiMetrics metrics)
     {
-        _store = store;
+        _db = db;
         _metrics = metrics;
     }
 
     [HttpGet]
-    public ActionResult<IEnumerable<Skill>> GetAll()
+    public async Task<ActionResult<IEnumerable<Skill>>> GetAll()
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrWhiteSpace(userId))
@@ -29,11 +31,16 @@ public class SkillsController : ControllerBase
             return Unauthorized();
         }
 
-        return Ok(_store.Skills.Where(x => x.UserId == userId));
+        var items = await _db.Skills
+            .Where(x => x.UserId == userId)
+            .OrderByDescending(x => x.Id)
+            .ToListAsync();
+
+        return Ok(items);
     }
 
     [HttpGet("{id:int}")]
-    public ActionResult<Skill> GetById(int id)
+    public async Task<ActionResult<Skill>> GetById(int id)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrWhiteSpace(userId))
@@ -41,12 +48,14 @@ public class SkillsController : ControllerBase
             return Unauthorized();
         }
 
-        var skill = _store.Skills.FirstOrDefault(x => x.Id == id && x.UserId == userId);
+        var skill = await _db.Skills
+            .FirstOrDefaultAsync(x => x.Id == id && x.UserId == userId);
+
         return skill is null ? NotFound() : Ok(skill);
     }
 
     [HttpPost]
-    public ActionResult<Skill> Create([FromBody] Skill skill)
+    public async Task<ActionResult<Skill>> Create([FromBody] Skill skill)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrWhiteSpace(userId))
@@ -54,15 +63,18 @@ public class SkillsController : ControllerBase
             return Unauthorized();
         }
 
-        skill.Id = _store.NextSkillId();
+        skill.Id = 0;
         skill.UserId = userId;
-        _store.Skills.Add(skill);
+
+        _db.Skills.Add(skill);
+        await _db.SaveChangesAsync();
+
         _metrics.SkillsCreated.Add(1);
         return CreatedAtAction(nameof(GetById), new { id = skill.Id }, skill);
     }
 
     [HttpPut("{id:int}")]
-    public ActionResult<Skill> Update(int id, [FromBody] Skill skill)
+    public async Task<ActionResult<Skill>> Update(int id, [FromBody] Skill skill)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrWhiteSpace(userId))
@@ -70,20 +82,24 @@ public class SkillsController : ControllerBase
             return Unauthorized();
         }
 
-        var index = _store.Skills.FindIndex(x => x.Id == id && x.UserId == userId);
-        if (index < 0)
+        var existing = await _db.Skills
+            .FirstOrDefaultAsync(x => x.Id == id && x.UserId == userId);
+
+        if (existing is null)
         {
             return NotFound();
         }
 
-        skill.Id = id;
-        skill.UserId = userId;
-        _store.Skills[index] = skill;
-        return Ok(skill);
+        existing.Name = skill.Name;
+        existing.Category = skill.Category;
+        existing.ProficiencyLevel = skill.ProficiencyLevel;
+
+        await _db.SaveChangesAsync();
+        return Ok(existing);
     }
 
     [HttpDelete("{id:int}")]
-    public IActionResult Delete(int id)
+    public async Task<IActionResult> Delete(int id)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrWhiteSpace(userId))
@@ -91,13 +107,16 @@ public class SkillsController : ControllerBase
             return Unauthorized();
         }
 
-        var skill = _store.Skills.FirstOrDefault(x => x.Id == id && x.UserId == userId);
+        var skill = await _db.Skills
+            .FirstOrDefaultAsync(x => x.Id == id && x.UserId == userId);
+
         if (skill is null)
         {
             return NotFound();
         }
 
-        _store.Skills.Remove(skill);
+        _db.Skills.Remove(skill);
+        await _db.SaveChangesAsync();
         return NoContent();
     }
 }

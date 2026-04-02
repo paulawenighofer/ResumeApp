@@ -42,4 +42,23 @@
     <SolidColorBrush x:Key="Gray600Brush" Color="{StaticResource Gray600}"/>
     <SolidColorBrush x:Key="Gray900Brush" Color="{StaticResource Gray900}"/>
     <SolidColorBrush x:Key="Gray950Brush" Color="{StaticResource Gray950}"/>
+
+    <!-- Modern Design System -->
+    <Color x:Key="PageBackground">#F4F5FF</Color>
+    <Color x:Key="PrimaryViolet">#6C63FF</Color>
+    <Color x:Key="SecondaryBlue">#3D8BFF</Color>
+    <Color x:Key="SurfaceWhite">#FFFFFF</Color>
+    <Color x:Key="TextPrimary">#0F1117</Color>
+    <Color x:Key="TextSecondary">#6B7280</Color>
+    <Color x:Key="CardBorder">#EDEEF2</Color>
+    <Color x:Key="SuccessGreen">#10B981</Color>
+    <Color x:Key="DangerRed">#EF4444</Color>
+    <Color x:Key="NavBarBg">#FFFFFF</Color>
+    <Color x:Key="InactiveIcon">#B0B7C3</Color>
+    <Color x:Key="AccentAmber">#F59E0B</Color>
+
+    <SolidColorBrush x:Key="PrimaryVioletBrush" Color="{StaticResource PrimaryViolet}"/>
+    <SolidColorBrush x:Key="SecondaryBlueBrush" Color="{StaticResource SecondaryBlue}"/>
+    <SolidColorBrush x:Key="SurfaceWhiteBrush" Color="{StaticResource SurfaceWhite}"/>
+    <SolidColorBrush x:Key="PageBackgroundBrush" Color="{StaticResource PageBackground}"/>
 </ResourceDictionary>

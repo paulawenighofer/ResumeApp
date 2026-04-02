@@ -1,98 +1,211 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:ResumeApp.Views.Controls"
              x:Class="ResumeApp.Views.MainPage"
-             Shell.NavBarIsVisible="False"
-             BackgroundColor="#F8F9FA">
+             Shell.NavBarIsVisible="False">
 
-    <ScrollView>
-        <VerticalStackLayout Padding="24,60,24,24" Spacing="20">
+    <Grid RowDefinitions="*,80">
 
-            <!-- App title -->
-            <Label Text="{Binding AppHeading}"
-                   FontSize="30"
-                   FontAttributes="Bold"
-                   TextColor="#1A1A2E" />
+        <ScrollView Grid.Row="0">
+            <VerticalStackLayout Spacing="0">
 
-            <!-- Profile card -->
-            <Border BackgroundColor="White"
-                    StrokeShape="RoundRectangle 12"
-                    Stroke="#E9ECEF"
-                    Padding="20">
-                <Grid ColumnDefinitions="80,*" ColumnSpacing="16">
-                    <Frame WidthRequest="80"
-                           HeightRequest="80"
-                           CornerRadius="40"
-                           Padding="0"
-                           BorderColor="#DEE2E6"
-                           BackgroundColor="#F8F9FA"
-                           HasShadow="False">
-                        <Grid>
-                            <Image Source="{Binding ProfileImageSource}"
-                                   Aspect="AspectFill" />
-                            <Label Text="+" 
-                                   FontSize="28"
-                                   HorizontalOptions="Center"
-                                   VerticalOptions="Center"
-                                   IsVisible="{Binding ProfileImageSource, Converter={StaticResource inverseBoolean}}" />
+                <!-- Gradient header -->
+                <Border StrokeThickness="0"
+                        BackgroundColor="{StaticResource PrimaryViolet}"
+                        Padding="24,56,24,32">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="0,0,28,28" />
+                    </Border.StrokeShape>
+
+                    <Grid ColumnDefinitions="*,Auto">
+                        <VerticalStackLayout Grid.Column="0" Spacing="4">
+                            <Label Text="{Binding Greeting}"
+                                   FontSize="13"
+                                   TextColor="#DDD6FE" />
+                            <Label Text="{Binding UserName}"
+                                   FontSize="26"
+                                   FontFamily="OpenSansSemibold"
+                                   TextColor="White" />
+                            <Label Text="Ready to build your next resume?"
+                                   FontSize="13"
+                                   TextColor="#C4B5FD"
+                                   Margin="0,2,0,0" />
+                        </VerticalStackLayout>
+
+                        <!-- Avatar -->
+                        <Border Grid.Column="1"
+                                WidthRequest="52"
+                                HeightRequest="52"
+                                StrokeThickness="2"
+                                StrokeShape="RoundRectangle 26"
+                                Stroke="#C4B5FD"
+                                BackgroundColor="#7C3AED"
+                                VerticalOptions="Center">
+                            <Grid>
+                                <Image Source="{Binding ProfileImageSource}"
+                                       Aspect="AspectFill" />
+                                <Label Text="👤"
+                                       FontSize="24"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center"
+                                       IsVisible="{Binding ProfileImageSource, Converter={StaticResource inverseBoolean}}" />
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <!-- Content area -->
+                <VerticalStackLayout Padding="24,24,24,16" Spacing="20">
+
+                    <!-- Quick actions -->
+                    <Label Text="Quick Actions"
+                           Style="{StaticResource SectionHeaderStyle}" />
+
+                    <!-- Build Resume card -->
+                    <Border Style="{StaticResource CardStyle}" Padding="0">
+                        <Border.Shadow>
+                            <Shadow Brush="{StaticResource PrimaryViolet}"
+                                    Offset="0,4"
+                                    Radius="20"
+                                    Opacity="0.10" />
+                        </Border.Shadow>
+                        <Grid ColumnDefinitions="4,*" HeightRequest="80">
+                            <!-- Accent strip -->
+                            <Border Grid.Column="0"
+                                    BackgroundColor="{StaticResource PrimaryViolet}"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 16,0,0,16" />
+                            <Grid Grid.Column="1"
+                                  ColumnDefinitions="*,Auto"
+                                  Padding="16,0">
+                                <VerticalStackLayout Grid.Column="0" VerticalOptions="Center" Spacing="2">
+                                    <Label Text="Generate Resume"
+                                           FontSize="16"
+                                           FontFamily="OpenSansSemibold"
+                                           TextColor="{StaticResource TextPrimary}" />
+                                    <Label Text="Build an AI-optimized resume"
+                                           Style="{StaticResource SubtitleStyle}"
+                                           FontSize="12" />
+                                </VerticalStackLayout>
+                                <Label Grid.Column="1" Text="›"
+                                       FontSize="22"
+                                       TextColor="{StaticResource PrimaryViolet}"
+                                       VerticalOptions="Center" />
+                            </Grid>
                         </Grid>
-                    </Frame>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding GoToGenerateResumeCommand}" />
+                        </Border.GestureRecognizers>
+                    </Border>
 
-                    <VerticalStackLayout Grid.Column="1" Spacing="4">
-                        <Label Text="Signed in as"
-                               FontSize="12"
-                               TextColor="#6C757D" />
-                        <Label Text="{Binding UserName}"
-                               FontSize="20"
-                               FontAttributes="Bold"
-                               TextColor="#1A1A2E" />
-                        <Label Text="{Binding UserEmail}"
-                               FontSize="14"
-                               TextColor="#495057" />
-                        <Button Text="Choose profile image"
-                                Command="{Binding PickProfileImageCommand}"
-                                BackgroundColor="#E7F1FF"
-                                TextColor="#0A66C2"
-                                HorizontalOptions="Start"
-                                Padding="12,8" />
-                    </VerticalStackLayout>
-                </Grid>
-            </Border>
+                    <!-- Profile sections row -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
 
-            <!-- App description -->
-            <Label Text="Build tailored resumes faster with AI-powered suggestions and export-ready formatting."
-                   FontSize="14"
-                   TextColor="#6C757D" />
+                        <!-- Skills card -->
+                        <Border Grid.Column="0"
+                                Style="{StaticResource CardStyle}"
+                                Padding="16">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding GoToSkillsCommand}" />
+                            </Border.GestureRecognizers>
+                            <VerticalStackLayout Spacing="8">
+                                <Label Text="⭐" FontSize="28" />
+                                <Label Text="Skills"
+                                       FontSize="15"
+                                       FontFamily="OpenSansSemibold"
+                                       TextColor="{StaticResource TextPrimary}" />
+                                <Label Text="Add &amp; manage"
+                                       Style="{StaticResource SubtitleStyle}"
+                                       FontSize="11" />
+                            </VerticalStackLayout>
+                        </Border>
 
-            <Border BackgroundColor="White"
-                    StrokeShape="RoundRectangle 12"
-                    Stroke="#E9ECEF"
-                    Padding="20">
-                <VerticalStackLayout Spacing="12">
-                    <Label Text="Complete your profile"
-                           FontSize="20"
-                           FontAttributes="Bold"
-                           TextColor="#1A1A2E" />
-                    <Label Text="All forms are now connected to local draft saving and API calls."
-                           FontSize="14"
-                           TextColor="#6C757D" />
-                    <Button Text="Edit profile"
-                            Command="{Binding GoToEducationCommand}"
-                            BackgroundColor="#1A1A2E"
-                            TextColor="White"
-                            HeightRequest="48" />
+                        <!-- Projects card -->
+                        <Border Grid.Column="1"
+                                Style="{StaticResource CardStyle}"
+                                Padding="16">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding GoToProjectsCommand}" />
+                            </Border.GestureRecognizers>
+                            <VerticalStackLayout Spacing="8">
+                                <Label Text="🚀" FontSize="28" />
+                                <Label Text="Projects"
+                                       FontSize="15"
+                                       FontFamily="OpenSansSemibold"
+                                       TextColor="{StaticResource TextPrimary}" />
+                                <Label Text="Showcase work"
+                                       Style="{StaticResource SubtitleStyle}"
+                                       FontSize="11" />
+                            </VerticalStackLayout>
+                        </Border>
+
+                    </Grid>
+
+                    <!-- Profile completion -->
+                    <Label Text="Profile Completion"
+                           Style="{StaticResource SectionHeaderStyle}"
+                           Margin="0,4,0,0" />
+
+                    <!-- Education progress -->
+                    <Border Style="{StaticResource CardStyle}" Padding="16">
+                        <Grid ColumnDefinitions="40,*,Auto" ColumnSpacing="12">
+                            <Border WidthRequest="40" HeightRequest="40"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 12"
+                                    BackgroundColor="#EDE9FE">
+                                <Label Text="🎓" FontSize="18" HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" Spacing="6" VerticalOptions="Center">
+                                <Label Text="Education"
+                                       FontSize="14"
+                                       FontFamily="OpenSansSemibold"
+                                       TextColor="{StaticResource TextPrimary}" />
+                                <ProgressBar Progress="0.5"
+                                             ProgressColor="{StaticResource PrimaryViolet}"
+                                             HeightRequest="6" />
+                            </VerticalStackLayout>
+                            <Label Grid.Column="2"
+                                   Text="50%"
+                                   FontSize="13"
+                                   TextColor="{StaticResource PrimaryViolet}"
+                                   FontFamily="OpenSansSemibold"
+                                   VerticalOptions="Center" />
+                        </Grid>
+                    </Border>
+
+                    <!-- Experience progress -->
+                    <Border Style="{StaticResource CardStyle}" Padding="16">
+                        <Grid ColumnDefinitions="40,*,Auto" ColumnSpacing="12">
+                            <Border WidthRequest="40" HeightRequest="40"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 12"
+                                    BackgroundColor="#DBEAFE">
+                                <Label Text="💼" FontSize="18" HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" Spacing="6" VerticalOptions="Center">
+                                <Label Text="Experience"
+                                       FontSize="14"
+                                       FontFamily="OpenSansSemibold"
+                                       TextColor="{StaticResource TextPrimary}" />
+                                <ProgressBar Progress="0.3"
+                                             ProgressColor="{StaticResource SecondaryBlue}"
+                                             HeightRequest="6" />
+                            </VerticalStackLayout>
+                            <Label Grid.Column="2"
+                                   Text="30%"
+                                   FontSize="13"
+                                   TextColor="{StaticResource SecondaryBlue}"
+                                   FontFamily="OpenSansSemibold"
+                                   VerticalOptions="Center" />
+                        </Grid>
+                    </Border>
+
                 </VerticalStackLayout>
-            </Border>
+            </VerticalStackLayout>
+        </ScrollView>
 
-            <!-- Logout button -->
-            <Button Text="Sign out from this device"
-                    Command="{Binding LogoutCommand}"
-                    BackgroundColor="#DC3545"
-                    TextColor="White"
-                    CornerRadius="8"
-                    HeightRequest="48"
-                    Margin="0,20,0,0" />
-
-        </VerticalStackLayout>
-    </ScrollView>
+        <!-- Bottom nav bar -->
+        <controls:BottomNavBar Grid.Row="1" VerticalOptions="End" />
+    </Grid>
 </ContentPage>

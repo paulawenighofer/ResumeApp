@@ -14,6 +14,8 @@
 
             <converters:InverseBoolConverter x:Key="inverseBoolean" />
             <converters:InverseIntToBoolConverter x:Key="inverseIntToBool" />
+            <converters:NavTabMatchConverter x:Key="navTabMatch" />
+            <converters:NavTabNotMatchConverter x:Key="navTabNotMatch" />
 
             <toolkit:InvertedBoolConverter x:Key="InverseBoolConverter" />
         </ResourceDictionary>

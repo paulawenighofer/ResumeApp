@@ -54,7 +54,7 @@ public partial class OtpVerificationViewModel : ObservableObject
             var success = await _authService.VerifyOtpAsync(Email, Code);
 
             if (success)
-                await Shell.Current.GoToAsync("//main");
+                await Shell.Current.GoToAsync("//main/home");
             else
             {
                 ErrorMessage = "Invalid or expired code. Please try again.";

@@ -8,26 +8,27 @@ receivers:
 
 processors:
   batch:
+    timeout: 1s
+    send_batch_size: 1024
 
 exporters:
-  prometheus:
-    endpoint: "0.0.0.0:8889"
-  otlphttp/loki:
-    endpoint: http://loki-service:3100/otlp
   debug:
     verbosity: detailed
+  
+  otlphttp:
+    endpoint: http://loki:3100/otlp
+
+  prometheus:
+    endpoint: "0.0.0.0:8889"
 
 service:
   pipelines:
-    traces:
-      receivers: [otlp]
-      processors: [batch]
-      exporters: [debug]
-    metrics:
-      receivers: [otlp]
-      processors: [batch]
-      exporters: [prometheus, debug]
     logs:
       receivers: [otlp]
-      processors: [batch]
-      exporters: [otlphttp/loki, debug]
+      processors: []
+      exporters: [debug, otlphttp]
+
+    metrics:
+      receivers: [otlp]
+      processors: []
+      exporters: [debug, prometheus]

@@ -191,7 +191,7 @@ public partial class ExperienceViewModel : ObservableObject
                 ShowError("Experience was saved locally, but the backend sync failed. You can continue and sync again later.");
             }
 
-            await Shell.Current.GoToAsync(nameof(SkillsPage));
+            await Shell.Current.GoToAsync("..");
         }
         catch (Exception ex)
         {

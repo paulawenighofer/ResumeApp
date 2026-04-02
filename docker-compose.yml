@@ -18,29 +18,25 @@ services:
       retries: 5
 
   api:
-    image: mcr.microsoft.com/dotnet/sdk:9.0
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: resumebuilder-api
-    working_dir: /src/API
-    command: ["dotnet", "run", "--project", "/src/API/API.csproj", "--urls", "http://0.0.0.0:5003"]
     environment:
-      ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=resumebuilder;Username=devuser;Password=devpassword123
-      Jwt__Key: ResumeBuilderDevKey_ChangeThisBeforeProduction_123456789
-      Jwt__Issuer: ResumeApp.API
-      Jwt__Audience: ResumeApp.Mobile
-      Jwt__ExpirationInMinutes: 120
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
-      OTEL_SERVICE_NAME: ResumeApp
-    ports:
-      - "5003:5003"
-    volumes:
-      - ./:/src
+      - ASPNETCORE_ENVIRONMENT=Development
+      - "ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=resumebuilder;Username=devuser;Password=devpassword123"
+      - Jwt__Key=ResumeBuilderDevKey_ChangeThisBeforeProduction_123456789
+      - Jwt__Issuer=ResumeApp.API
+      - Jwt__Audience=ResumeApp.Mobile
+      - Jwt__ExpirationInMinutes=120
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_SERVICE_NAME=ResumeApp
     depends_on:
       postgres:
         condition: service_healthy
       otel-collector:
         condition: service_started
-    restart: unless-stopped
+
 
   nginx:
     image: lscr.io/linuxserver/nginx:latest
@@ -56,10 +52,11 @@ services:
     depends_on:
       - api
       - grafana
-    restart: unless-stopped
+      - otel-collector
+
 
   otel-collector:
-    image: otel/opentelemetry-collector-contrib:latest
+    image: otel/opentelemetry-collector-contrib:nightly-386
     container_name: resumebuilder-otel-collector
     command: ["--config", "/etc/otelcol-contrib/config.yaml"]
     volumes:
@@ -68,16 +65,16 @@ services:
       - "4317:4317"
       - "4318:4318"
       - "8889:8889"
-    depends_on:
-      - loki
-    restart: unless-stopped
+
 
   loki:
-    image: grafana/loki:latest
+    image: grafana/loki:3.7
     container_name: resumebuilder-loki
     ports:
       - "3100:3100"
-    restart: unless-stopped
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - loki_data:/loki
 
   prometheus:
     image: prom/prometheus:v3.2.1
@@ -90,7 +87,6 @@ services:
       - "9090:9090"
     depends_on:
       - otel-collector
-    restart: unless-stopped
 
   grafana:
     image: grafana/grafana:latest
@@ -98,6 +94,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
+      - grafana_data:/var/lib/grafana
       - ./configs/grafana-dashboard.json:/var/lib/grafana/dashboards/resumeapp-dashboard.json
     environment:
       GF_AUTH_ANONYMOUS_ENABLED: "true"
@@ -111,11 +108,13 @@ services:
     depends_on:
       - prometheus
       - loki
-    restart: unless-stopped
+
 
 volumes:
   pgdata:
   prometheus_data:
+  grafana_data:
+  loki_data:
 
 configs:
   grafana_datasources:

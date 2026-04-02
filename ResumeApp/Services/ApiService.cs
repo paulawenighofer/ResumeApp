@@ -27,16 +27,32 @@ public class ApiService : IApiService
     }
 
     public async Task<bool> PostEducationAsync(EducationEntry entry)
-        => await SendJsonAsync(HttpMethod.Post, "api/educations", new Education
+    {
+        var payload = new Education
         {
             Institution = entry.School,
             Degree = entry.Degree,
             FieldOfStudy = entry.FieldOfStudy,
-            StartDate = entry.StartDate,
-            EndDate = entry.EndDate,
+            StartDate = ToUtcDate(entry.StartDate),
+            EndDate = ToUtcDate(entry.EndDate),
             GPA = decimal.TryParse(entry.GPA, out var gpa) ? gpa : null,
             Description = entry.Description
-        });
+        };
+
+        var response = await SendAsync(HttpMethod.Post, "api/educations", JsonContent.Create(payload));
+        if (response is null || !response.IsSuccessStatusCode)
+        {
+            return false;
+        }
+
+        var education = await response.Content.ReadFromJsonAsync<Education>();
+        if (education is not null)
+        {
+            entry.Id = education.Id.ToString();
+        }
+
+        return true;
+    }
 
     public async Task<bool> UpdateEducationAsync(EducationEntry entry)
     {
@@ -50,8 +66,8 @@ public class ApiService : IApiService
             Institution = entry.School,
             Degree = entry.Degree,
             FieldOfStudy = entry.FieldOfStudy,
-            StartDate = entry.StartDate,
-            EndDate = entry.EndDate,
+            StartDate = ToUtcDate(entry.StartDate),
+            EndDate = ToUtcDate(entry.EndDate),
             GPA = decimal.TryParse(entry.GPA, out var gpa) ? gpa : null,
             Description = entry.Description
         };
@@ -277,6 +293,9 @@ public class ApiService : IApiService
         ".webp" => "image/webp",
         _ => "image/jpeg"
     };
+
+    private static DateTime ToUtcDate(DateTime value)
+        => DateTime.SpecifyKind(value.Date, DateTimeKind.Utc);
 
     private static EducationEntry MapEducation(Education education) => new()
     {

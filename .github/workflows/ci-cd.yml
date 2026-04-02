@@ -64,13 +64,19 @@ jobs:
             --from-literal=Smtp__Password="${{ secrets.SMTP_PASSWORD }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
-      - name: Create observability configmaps
+      - name: Deploy Manifests
         env:
             KUBECONFIG: /home/bishwas/.kube/config
         run: |
-          kubectl delete -n resumeapp configmap otel-config-configmap || true
-          kubectl create -n resumeapp configmap otel-config-configmap --from-file=configs/otel-config.yaml
+          for file in ./kubernetes/*.yml; do
+            echo "$file"
+            cat "$file" | envsubst | kubectl apply -f -
+          done
 
+      - name: Update grafana dashboard configmap
+        env:
+            KUBECONFIG: /home/bishwas/.kube/config
+        run: |
           kubectl delete -n resumeapp configmap grafana-dashboard-config-configmap || true
           kubectl create -n resumeapp configmap grafana-dashboard-config-configmap --from-file=configs/grafana-dashboard.json
 
@@ -80,12 +86,3 @@ jobs:
         run: |
           kubectl rollout restart deployment/grafana -n resumeapp
           kubectl rollout restart deployment/otel-collector -n resumeapp
-
-      - name: Deploy Manifests
-        env:
-            KUBECONFIG: /home/bishwas/.kube/config
-        run: |
-          for file in ./kubernetes/*.yml; do
-            echo "$file"
-            cat "$file" | envsubst | kubectl apply -f -
-          done

@@ -186,10 +186,11 @@ public partial class EducationViewModel : ObservableObject
 
             if (syncFailed)
             {
-                ShowError("Education was saved locally, but the backend sync failed. You can continue and sync again later.");
+                ShowError("Education saved locally. Backend sync failed — it will retry automatically.");
+                return;
             }
 
-            await Shell.Current.GoToAsync(nameof(ExperiencePage));
+            await Shell.Current.GoToAsync("..");
         }
         catch (Exception ex)
         {

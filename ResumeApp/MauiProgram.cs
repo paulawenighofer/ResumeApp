@@ -59,6 +59,15 @@ public static class MauiProgram
         builder.Services.AddTransient<SkillsPage>();
         builder.Services.AddTransient<ProjectsViewModel>();
         builder.Services.AddTransient<ProjectsPage>();
+        builder.Services.AddTransient<ProfileViewModel>();
+        builder.Services.AddTransient<ProfilePage>();
+        builder.Services.AddTransient<ResumeListViewModel>();
+        builder.Services.AddTransient<ResumeListPage>();
+        builder.Services.AddTransient<GenerateResumeViewModel>();
+        builder.Services.AddTransient<GenerateResumePage>();
+        builder.Services.AddTransient<SettingsViewModel>();
+        builder.Services.AddTransient<SettingsPage>();
+        builder.Services.AddSingleton<BottomNavBarViewModel>();
         builder.Services.AddSingleton<AppShell>();
 #if DEBUG
         builder.Logging.AddDebug();
