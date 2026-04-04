@@ -31,6 +31,9 @@ services:
       - Jwt__ExpirationInMinutes=120
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
       - OTEL_SERVICE_NAME=ResumeApp
+      - Dashboard__EnableDemoTelemetry=true
+      - Dashboard__InternalBaseUrl=http://api:8080
+      - Dashboard__DemoTelemetryIntervalSeconds=12
     depends_on:
       postgres:
         condition: service_healthy
@@ -122,12 +125,14 @@ configs:
       apiVersion: 1
       datasources:
         - name: Prometheus
+          uid: Prometheus
           type: prometheus
           access: proxy
           url: http://prometheus:9090
           isDefault: true
           editable: false
         - name: Loki
+          uid: Loki
           type: loki
           access: proxy
           url: http://loki:3100

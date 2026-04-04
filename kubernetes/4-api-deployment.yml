@@ -28,6 +28,12 @@ spec:
               value: http://otel-collector-service:4317
             - name: OTEL_SERVICE_NAME
               value: ResumeApp
+            - name: Dashboard__EnableDemoTelemetry
+              value: "true"
+            - name: Dashboard__InternalBaseUrl
+              value: http://localhost:8080
+            - name: Dashboard__DemoTelemetryIntervalSeconds
+              value: "12"
           envFrom:
             - secretRef:
                 name: resume-app-secrets

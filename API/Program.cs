@@ -56,6 +56,7 @@ builder.Services.AddSingleton<InMemoryResumeStore>();
 builder.Services.AddSingleton<AppLogStore>();
 builder.Services.AddSingleton<DashboardVisitStore>();
 builder.Services.AddSingleton<RequestStatsService>();
+builder.Services.AddHostedService<DemoTelemetryService>();
 
 // =============================================
 // SECTION 1: DATABASE
