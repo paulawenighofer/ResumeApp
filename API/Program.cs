@@ -26,6 +26,7 @@ var hasOtlpEndpoint = !string.IsNullOrWhiteSpace(otlpEndpoint);
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
+builder.Logging.Services.AddSingleton<ILoggerProvider, DashboardLoggerProvider>();
 builder.Logging.AddOpenTelemetry(options =>
 {
     options.IncludeFormattedMessage = true;
@@ -52,6 +53,9 @@ builder.Services.AddRazorPages();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<InMemoryResumeStore>();
+builder.Services.AddSingleton<AppLogStore>();
+builder.Services.AddSingleton<DashboardVisitStore>();
+builder.Services.AddSingleton<RequestStatsService>();
 
 // =============================================
 // SECTION 1: DATABASE

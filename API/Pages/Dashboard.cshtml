@@ -1,0 +1,184 @@
+@page
+@model API.Pages.DashboardModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<section class="dashboard-shell">
+    <div class="dashboard-hero">
+        <div>
+            <p class="dashboard-kicker">ResumeApp Monitoring</p>
+            <h1>Meaningful dashboard for app metrics and live logs</h1>
+            <p class="dashboard-subtitle">
+                This page tracks dashboard visits over time, summarizes app activity, and streams recent backend logs in near real time.
+            </p>
+        </div>
+        <div class="dashboard-status">
+            <span class="status-dot"></span>
+            <span id="dashboard-generated-at">Loading metrics...</span>
+        </div>
+    </div>
+
+    <div class="metric-grid">
+        <article class="metric-card accent-a">
+            <p>Registered users</p>
+            <strong id="metric-users">0</strong>
+        </article>
+        <article class="metric-card accent-b">
+            <p>Total resume entries</p>
+            <strong id="metric-entries">0</strong>
+        </article>
+        <article class="metric-card accent-c">
+            <p>Pending OTP codes</p>
+            <strong id="metric-otps">0</strong>
+        </article>
+        <article class="metric-card accent-d">
+            <p>Dashboard loads</p>
+            <strong id="metric-loads">0</strong>
+        </article>
+        <article class="metric-card accent-e">
+            <p>Loads today</p>
+            <strong id="metric-loads-today">0</strong>
+        </article>
+        <article class="metric-card accent-f">
+            <p>API requests since startup</p>
+            <strong id="metric-requests">0</strong>
+        </article>
+    </div>
+
+    <div class="dashboard-content">
+        <section class="dashboard-panel">
+            <div class="panel-header">
+                <h2>Profile section metrics</h2>
+                <span class="panel-note">Visualized as relative bars</span>
+            </div>
+            <div id="section-bars" class="bar-list"></div>
+        </section>
+
+        <section class="dashboard-panel">
+            <div class="panel-header">
+                <h2>Dashboard loads over the last 14 days</h2>
+                <span class="panel-note">Persistent count for weekly tracking</span>
+            </div>
+            <div id="daily-loads" class="daily-loads"></div>
+        </section>
+    </div>
+
+    <section class="dashboard-panel log-panel">
+        <div class="panel-header">
+            <h2>Near live application logs</h2>
+            <span class="panel-note">Updates automatically while the app is running</span>
+        </div>
+        <div id="log-stream" class="log-stream" aria-live="polite"></div>
+    </section>
+</section>
+
+@section Scripts {
+    <script>
+        const logStream = document.getElementById("log-stream");
+        const maxLogEntries = 120;
+
+        function setText(id, value) {
+            document.getElementById(id).textContent = value;
+        }
+
+        function formatTimestamp(value) {
+            const date = new Date(value);
+            return date.toLocaleString();
+        }
+
+        function renderBars(items) {
+            const container = document.getElementById("section-bars");
+            container.innerHTML = "";
+
+            const max = Math.max(...items.map(x => x.value), 1);
+
+            items.forEach(item => {
+                const row = document.createElement("div");
+                row.className = "bar-row";
+                row.innerHTML = `
+                    <div class="bar-label-row">
+                        <span>${item.label}</span>
+                        <strong>${item.value}</strong>
+                    </div>
+                    <div class="bar-track">
+                        <div class="bar-fill" style="width:${(item.value / max) * 100}%"></div>
+                    </div>`;
+                container.appendChild(row);
+            });
+        }
+
+        function renderDailyLoads(items) {
+            const container = document.getElementById("daily-loads");
+            container.innerHTML = "";
+
+            const max = Math.max(...items.map(x => x.count), 1);
+
+            items.forEach(item => {
+                const column = document.createElement("div");
+                column.className = "load-column";
+                const height = Math.max(14, (item.count / max) * 140);
+                column.innerHTML = `
+                    <span class="load-count">${item.count}</span>
+                    <div class="load-bar" style="height:${height}px"></div>
+                    <span class="load-date">${item.date.slice(5)}</span>`;
+                container.appendChild(column);
+            });
+        }
+
+        function appendLog(entry) {
+            const line = document.createElement("div");
+            line.className = "log-line";
+            line.innerHTML = `
+                <span class="log-time">${formatTimestamp(entry.timestampUtc)}</span>
+                <span class="log-level level-${entry.level.toLowerCase()}">${entry.level}</span>
+                <span class="log-category">${entry.category}</span>
+                <span class="log-message">${entry.message}</span>`;
+
+            logStream.appendChild(line);
+
+            while (logStream.children.length > maxLogEntries) {
+                logStream.removeChild(logStream.firstChild);
+            }
+
+            logStream.scrollTop = logStream.scrollHeight;
+        }
+
+        async function loadSummary() {
+            const response = await fetch("/api/dashboard/summary");
+            const data = await response.json();
+
+            setText("metric-users", data.cards.registeredUsers);
+            setText("metric-entries", data.cards.resumeEntries);
+            setText("metric-otps", data.cards.pendingOtps);
+            setText("metric-loads", data.cards.dashboardLoads);
+            setText("metric-loads-today", data.cards.todayLoads);
+            setText("metric-requests", data.cards.apiRequestsSinceStartup);
+            setText("dashboard-generated-at", `Last updated ${formatTimestamp(data.generatedAtUtc)}`);
+
+            renderBars(data.sections);
+            renderDailyLoads(data.dailyLoads);
+        }
+
+        async function loadInitialLogs() {
+            const response = await fetch("/api/dashboard/logs");
+            const entries = await response.json();
+            logStream.innerHTML = "";
+            entries.forEach(appendLog);
+        }
+
+        function connectLogStream() {
+            const source = new EventSource("/api/dashboard/log-stream");
+            source.onmessage = event => appendLog(JSON.parse(event.data));
+            source.onerror = () => {
+                source.close();
+                setTimeout(connectLogStream, 3000);
+            };
+        }
+
+        loadSummary();
+        loadInitialLogs();
+        connectLogStream();
+        setInterval(loadSummary, 10000);
+    </script>
+}
