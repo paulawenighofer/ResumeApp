@@ -29,6 +29,7 @@ builder.Logging.AddDebug();
 builder.Logging.AddOpenTelemetry(options =>
 {
     options.IncludeFormattedMessage = true;
+    options.IncludeScopes = true;
     // Add resource with service name
     options.SetResourceBuilder(
         ResourceBuilder.CreateDefault()
