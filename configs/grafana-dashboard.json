@@ -56,11 +56,11 @@
       "pluginVersion": "12.4.2",
       "targets": [
         {
-          "expr": "sum(increase(resumeapp_http_requests_total{scheme=\"https\"}[1d]))",
+          "expr": "sum(increase(resumeapp_http_requests_total{scheme=\"http\"}[1d]))",
           "refId": "A"
         }
       ],
-      "title": "Total HTTPS Requests Today",
+      "title": "Total HTTP Requests Today",
       "type": "stat"
     },
     {
