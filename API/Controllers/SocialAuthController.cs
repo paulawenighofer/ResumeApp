@@ -11,12 +11,14 @@ public class SocialAuthController : ControllerBase
     private readonly SocialAuthService _socialAuth;
     private readonly IConfiguration _config;
     private readonly ApiMetrics _metrics;
+    private readonly ILogger<SocialAuthController> _logger;
 
-    public SocialAuthController(SocialAuthService socialAuth, IConfiguration config, ApiMetrics metrics)
+    public SocialAuthController(SocialAuthService socialAuth, IConfiguration config, ApiMetrics metrics, ILogger<SocialAuthController> logger)
     {
         _socialAuth = socialAuth;
         _config = config;
         _metrics = metrics;
+        _logger = logger;
     }
 
     // ============================================================
@@ -61,10 +63,12 @@ public class SocialAuthController : ControllerBase
     public async Task<IActionResult> GoogleCallback(
         [FromQuery] string code, [FromQuery] string state)
     {
-        var redirectUri = GetCallbackUri("google");
-        var token = await _socialAuth.HandleGoogleCallbackAsync(code, redirectUri);
-        _metrics.RecordSocialLogin(TelemetryTags.Providers.Google, token is null ? TelemetryTags.Outcomes.Failure : TelemetryTags.Outcomes.Success);
-        return BuildCallbackRedirect(token, state, "google_auth_failed");
+        return await HandleCallbackAsync(
+            TelemetryTags.Providers.Google,
+            "google",
+            state,
+            "google_auth_failed",
+            redirectUri => _socialAuth.HandleGoogleCallbackAsync(code, redirectUri));
     }
 
     // ============================================================
@@ -84,10 +88,12 @@ public class SocialAuthController : ControllerBase
     public async Task<IActionResult> LinkedInCallback(
         [FromQuery] string code, [FromQuery] string state)
     {
-        var redirectUri = GetCallbackUri("linkedin");
-        var token = await _socialAuth.HandleLinkedInCallbackAsync(code, redirectUri);
-        _metrics.RecordSocialLogin(TelemetryTags.Providers.LinkedIn, token is null ? TelemetryTags.Outcomes.Failure : TelemetryTags.Outcomes.Success);
-        return BuildCallbackRedirect(token, state, "linkedin_auth_failed");
+        return await HandleCallbackAsync(
+            TelemetryTags.Providers.LinkedIn,
+            "linkedin",
+            state,
+            "linkedin_auth_failed",
+            redirectUri => _socialAuth.HandleLinkedInCallbackAsync(code, redirectUri));
     }
 
     // ============================================================
@@ -107,10 +113,12 @@ public class SocialAuthController : ControllerBase
     public async Task<IActionResult> GitHubCallback(
         [FromQuery] string code, [FromQuery] string state)
     {
-        var redirectUri = GetCallbackUri("github");
-        var token = await _socialAuth.HandleGitHubCallbackAsync(code, redirectUri);
-        _metrics.RecordSocialLogin(TelemetryTags.Providers.GitHub, token is null ? TelemetryTags.Outcomes.Failure : TelemetryTags.Outcomes.Success);
-        return BuildCallbackRedirect(token, state, "github_auth_failed");
+        return await HandleCallbackAsync(
+            TelemetryTags.Providers.GitHub,
+            "github",
+            state,
+            "github_auth_failed",
+            redirectUri => _socialAuth.HandleGitHubCallbackAsync(code, redirectUri));
     }
 
     // ============================================================
@@ -190,5 +198,41 @@ public class SocialAuthController : ControllerBase
             ? $"{returnUrl}?token={token}"
             : $"{appScheme}://auth?token={token}";
         return Redirect(successUrl);
+    }
+
+    private async Task<IActionResult> HandleCallbackAsync(
+        string provider,
+        string providerRoute,
+        string state,
+        string errorCode,
+        Func<string, Task<string?>> callbackHandler)
+    {
+        var redirectUri = GetCallbackUri(providerRoute);
+
+        try
+        {
+            var token = await callbackHandler(redirectUri);
+
+            if (token is null)
+            {
+                _logger.LogError(
+                    "Social login callback returned no application token for provider {Provider}",
+                    provider);
+                _metrics.RecordSocialLogin(provider, TelemetryTags.Outcomes.Failure);
+                return BuildCallbackRedirect(null, state, errorCode);
+            }
+
+            _metrics.RecordSocialLogin(provider, TelemetryTags.Outcomes.Success);
+            return BuildCallbackRedirect(token, state, errorCode);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Social login callback processing failed for provider {Provider}",
+                provider);
+            _metrics.RecordSocialLogin(provider, TelemetryTags.Outcomes.Failure);
+            throw;
+        }
     }
 }

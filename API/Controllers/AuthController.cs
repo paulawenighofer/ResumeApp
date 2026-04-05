@@ -43,6 +43,7 @@ namespace API.Controllers
         // Access to appsettings.json values (we need the Google ClientId).
 
         private readonly ApiMetrics _metrics;
+        private readonly ILogger<AuthController> _logger;
 
         public AuthController(
             UserManager<ApplicationUser> userManager,
@@ -51,7 +52,8 @@ namespace API.Controllers
             IEmailService emailService,
             AppDbContext db,
             IConfiguration config,
-            ApiMetrics metrics)
+            ApiMetrics metrics,
+            ILogger<AuthController> logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -60,6 +62,7 @@ namespace API.Controllers
             _db = db;
             _config = config;
             _metrics = metrics;
+            _logger = logger;
         }
 
 
@@ -119,6 +122,10 @@ namespace API.Controllers
             {
                 // Don't leave a half-registered account if OTP email could not be sent.
                 await _userManager.DeleteAsync(user);
+                _logger.LogError(
+                    ex,
+                    "Registration failed after user creation because verification email delivery failed for {Email}",
+                    user.Email);
                 _metrics.RecordRegistration(TelemetryTags.Outcomes.Failure);
                 return StatusCode(500, new { message = $"Failed to send verification email: {ex.Message}" });
             }

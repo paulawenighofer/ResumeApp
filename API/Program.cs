@@ -6,10 +6,12 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using Scalar.AspNetCore;
 using Shared.Models;
 using System.Security.Claims;
 using System.Text;
@@ -51,7 +53,27 @@ builder.Logging.SetMinimumLevel(LogLevel.Information);
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    var bearerScheme = new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Paste a JWT bearer token to call protected endpoints."
+    };
+
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "ResumeApp API",
+        Version = "v1"
+    });
+
+    options.AddSecurityDefinition("BearerAuth", bearerScheme);
+
+});
 builder.Services.AddSingleton<InMemoryResumeStore>();
 
 // =============================================
@@ -247,8 +269,12 @@ if (!app.Environment.IsEnvironment("Testing"))
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.MapSwagger("/openapi/{documentName}.json");
+    app.MapScalarApiReference("/scalar", options => options
+        .WithTitle("ResumeApp API")
+        .WithOpenApiRoutePattern("/openapi/{documentName}.json")
+        .AddPreferredSecuritySchemes("BearerAuth"))
+        .AllowAnonymous();
 }
 
 // Configure the HTTP request pipeline.
