@@ -18,9 +18,12 @@ using System.Threading.RateLimiting;
 var builder = WebApplication.CreateBuilder(args);
 
 var telemetryServiceName = "ResumeApp.API";
+var telemetryServiceVersion = "1.0.0";
 var otlpEndpoint = Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT")
     ?? string.Empty;
 var hasOtlpEndpoint = !string.IsNullOrWhiteSpace(otlpEndpoint);
+var resourceBuilder = ResourceBuilder.CreateDefault()
+    .AddService(serviceName: telemetryServiceName, serviceVersion: telemetryServiceVersion);
 
 // Configure logging to send to OpenTelemetry
 builder.Logging.ClearProviders();
@@ -30,10 +33,7 @@ builder.Logging.AddOpenTelemetry(options =>
 {
     options.IncludeFormattedMessage = true;
     options.IncludeScopes = true;
-    // Add resource with service name
-    options.SetResourceBuilder(
-        ResourceBuilder.CreateDefault()
-            .AddService(serviceName: telemetryServiceName, serviceVersion: "1.0.0"));
+    options.SetResourceBuilder(resourceBuilder);
 
     if (!hasOtlpEndpoint)
     {
@@ -144,6 +144,7 @@ builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<SocialAuthService>();
 // Register the email service — sends OTP codes and password-reset links via SMTP
 builder.Services.AddScoped<IEmailService, SmtpEmailService>();
+builder.Services.AddSingleton<UserActivityTracker>();
 
 // =============================================
 // SECTION 5: RATE LIMITING
@@ -189,8 +190,7 @@ builder.Services.AddSingleton<ApiMetrics>();
 
 // Configure OpenTelemetry tracing and metrics
 builder.Services.AddOpenTelemetry()
-    .ConfigureResource(resource => resource
-        .AddService(serviceName: telemetryServiceName, serviceVersion: "1.0.0"))
+    .ConfigureResource(resource => resource.AddService(serviceName: telemetryServiceName, serviceVersion: telemetryServiceVersion))
     .WithTracing(tracing =>
     {
         tracing
@@ -210,6 +210,7 @@ builder.Services.AddOpenTelemetry()
     .WithMetrics(metrics =>
     {
         metrics
+            .AddMeter(ApiMetrics.MeterName)
             .AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation()
             .AddRuntimeInstrumentation();
@@ -260,8 +261,8 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
-app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseAuthentication();
+app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseAuthorization();
 app.UseRateLimiter();
 

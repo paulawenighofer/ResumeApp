@@ -1,15 +1,18 @@
 using System.Net;
 using System.Net.Mail;
+using System.Diagnostics;
 
 namespace API.Services
 {
     public class SmtpEmailService : IEmailService
     {
         private readonly IConfiguration _config;
+        private readonly ApiMetrics _metrics;
 
-        public SmtpEmailService(IConfiguration config)
+        public SmtpEmailService(IConfiguration config, ApiMetrics metrics)
         {
             _config = config;
+            _metrics = metrics;
         }
 
         public async Task SendOtpAsync(string toEmail, string code)
@@ -23,7 +26,7 @@ namespace API.Services
                 <p>If you didn't request this, you can ignore this email.</p>
             ";
 
-            await SendAsync(toEmail, subject, body);
+            await SendAsync(toEmail, subject, body, TelemetryTags.EmailTemplates.Verification);
         }
 
         public async Task SendPasswordResetOtpAsync(string toEmail, string code)
@@ -37,11 +40,12 @@ namespace API.Services
                 <p>If you didn't request a password reset, you can ignore this email.</p>
             ";
 
-            await SendAsync(toEmail, subject, body);
+            await SendAsync(toEmail, subject, body, TelemetryTags.EmailTemplates.PasswordReset);
         }
 
-        private async Task SendAsync(string toEmail, string subject, string htmlBody)
+        private async Task SendAsync(string toEmail, string subject, string htmlBody, string template)
         {
+            var stopwatch = Stopwatch.StartNew();
             var host = _config["Smtp:Host"]!;
             var port = int.Parse(_config["Smtp:Port"]!);
             var username = _config["Smtp:Username"]!;
@@ -69,7 +73,18 @@ namespace API.Services
 
             message.To.Add(toEmail);
 
-            await client.SendMailAsync(message);
+            try
+            {
+                await client.SendMailAsync(message);
+                stopwatch.Stop();
+                _metrics.RecordEmailSend(template, TelemetryTags.Outcomes.Success, stopwatch.Elapsed.TotalMilliseconds);
+            }
+            catch
+            {
+                stopwatch.Stop();
+                _metrics.RecordEmailSend(template, TelemetryTags.Outcomes.Failure, stopwatch.Elapsed.TotalMilliseconds);
+                throw;
+            }
         }
     }
 }

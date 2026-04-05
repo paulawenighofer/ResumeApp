@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Models;
 using System.Security.Claims;
+using API.Services;
+using System.Diagnostics;
 
 namespace API.Controllers;
 
@@ -13,11 +15,13 @@ public class ProfileController : ControllerBase
 {
     private readonly IWebHostEnvironment _environment;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly ApiMetrics _metrics;
 
-    public ProfileController(IWebHostEnvironment environment, UserManager<ApplicationUser> userManager)
+    public ProfileController(IWebHostEnvironment environment, UserManager<ApplicationUser> userManager, ApiMetrics metrics)
     {
         _environment = environment;
         _userManager = userManager;
+        _metrics = metrics;
     }
 
     [HttpPost("image")]
@@ -26,6 +30,7 @@ public class ProfileController : ControllerBase
     {
         if (file is null || file.Length == 0)
         {
+            _metrics.RecordUpload(TelemetryTags.Sections.ProfileImage, TelemetryTags.Outcomes.Failure, 0, 0, 0);
             return BadRequest(new { message = "No image uploaded." });
         }
 
@@ -35,7 +40,11 @@ public class ProfileController : ControllerBase
             return Unauthorized();
         }
 
-        var uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads", "profiles");
+        var stopwatch = Stopwatch.StartNew();
+        var webRoot = string.IsNullOrWhiteSpace(_environment.WebRootPath)
+            ? Path.Combine(_environment.ContentRootPath, "wwwroot")
+            : _environment.WebRootPath;
+        var uploadsFolder = Path.Combine(webRoot, "uploads", "profiles");
         Directory.CreateDirectory(uploadsFolder);
 
         var extension = Path.GetExtension(file.FileName);
@@ -56,6 +65,8 @@ public class ProfileController : ControllerBase
         var publicPath = $"/uploads/profiles/{fileName}";
         user.ProfileImageUrl = $"{Request.Scheme}://{Request.Host}{publicPath}";
         await _userManager.UpdateAsync(user);
+        stopwatch.Stop();
+        _metrics.RecordUpload(TelemetryTags.Sections.ProfileImage, TelemetryTags.Outcomes.Success, 1, file.Length, stopwatch.Elapsed.TotalMilliseconds, userId);
 
         return Ok(new { imageUrl = user.ProfileImageUrl });
     }

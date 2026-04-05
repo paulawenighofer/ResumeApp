@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Security.Claims;
 
 namespace API.Middleware;
 
@@ -21,7 +22,12 @@ public class RequestLoggingMiddleware
             return;
         }
 
-        _logger.LogInformation("Incoming request {Method} {Path}", context.Request.Method, context.Request.Path);
+        var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        _logger.LogInformation(
+            "Incoming request {Method} {Path}  {UserId}",
+            context.Request.Method,
+            context.Request.Path,
+            userId ?? "anonymous");
         var start = Stopwatch.GetTimestamp();
 
         try
@@ -32,26 +38,27 @@ public class RequestLoggingMiddleware
 
             if (status >= 500)
                 _logger.LogError(
-                    "Request failed {Method} {Path} with status {StatusCode} in {ElapsedMs:0.000} ms",
-                    context.Request.Method, context.Request.Path, status, elapsedMs);
+                    "Request failed {Method} {Path} with status {StatusCode} in {ElapsedMs:0.000} ms {UserId}",
+                    context.Request.Method, context.Request.Path, status, elapsedMs, userId ?? "anonymous");
             else if (status >= 400)
                 _logger.LogWarning(
-                    "Request rejected {Method} {Path} with status {StatusCode} in {ElapsedMs:0.000} ms",
-                    context.Request.Method, context.Request.Path, status, elapsedMs);
+                    "Request rejected {Method} {Path} with status {StatusCode} in {ElapsedMs:0.000} ms {UserId}",
+                    context.Request.Method, context.Request.Path, status, elapsedMs, userId ?? "anonymous");
             else
                 _logger.LogInformation(
-                    "Completed request {Method} {Path} with status {StatusCode} in {ElapsedMs:0.000} ms",
-                    context.Request.Method, context.Request.Path, status, elapsedMs);
+                    "Completed request {Method} {Path} with status {StatusCode} in {ElapsedMs:0.000} ms {UserId}",
+                    context.Request.Method, context.Request.Path, status, elapsedMs, userId ?? "anonymous");
         }
         catch (Exception ex)
         {
             var elapsedMs = Stopwatch.GetElapsedTime(start).TotalMilliseconds;
             _logger.LogError(
                 ex,
-                "Unhandled exception {Method} {Path} in {ElapsedMs:0.000} ms",
+                "Unhandled exception {Method} {Path} in {ElapsedMs:0.000} ms {UserId}",
                 context.Request.Method,
                 context.Request.Path,
-                elapsedMs);
+                elapsedMs,
+                userId ?? "anonymous");
             throw;
         }
     }

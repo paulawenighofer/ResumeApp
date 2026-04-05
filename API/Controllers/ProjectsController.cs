@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Shared.Models;
 using System.Security.Claims;
+using System.Diagnostics;
 
 namespace API.Controllers;
 
@@ -77,7 +78,7 @@ public class ProjectsController : ControllerBase
         _db.Projects.Add(entity);
         await _db.SaveChangesAsync();
 
-        _metrics.ProjectsCreated.Add(1);
+        _metrics.RecordProfileMutation(TelemetryTags.Sections.Project, TelemetryTags.Actions.Create, userId);
 
         var response = new ResumeProject
         {
@@ -117,6 +118,7 @@ public class ProjectsController : ControllerBase
         entity.EndDate = project.EndDate?.ToDateTime(TimeOnly.MinValue);
 
         await _db.SaveChangesAsync();
+        _metrics.RecordProfileMutation(TelemetryTags.Sections.Project, TelemetryTags.Actions.Update, userId);
 
         return Ok(MapToResumeProject(entity));
     }
@@ -140,6 +142,7 @@ public class ProjectsController : ControllerBase
 
         _db.Projects.Remove(project);
         await _db.SaveChangesAsync();
+        _metrics.RecordProfileMutation(TelemetryTags.Sections.Project, TelemetryTags.Actions.Delete, userId);
         return NoContent();
     }
 
@@ -163,13 +166,19 @@ public class ProjectsController : ControllerBase
 
         if (files.Count == 0)
         {
+            _metrics.RecordUpload(TelemetryTags.Sections.ProjectImage, TelemetryTags.Outcomes.Failure, 0, 0, 0, userId);
             return BadRequest(new { message = "No images uploaded." });
         }
 
-        var uploadsFolder = Path.Combine(environment.WebRootPath, "uploads", "projects", id.ToString());
+        var stopwatch = Stopwatch.StartNew();
+        var webRoot = string.IsNullOrWhiteSpace(environment.WebRootPath)
+            ? Path.Combine(environment.ContentRootPath, "wwwroot")
+            : environment.WebRootPath;
+        var uploadsFolder = Path.Combine(webRoot, "uploads", "projects", id.ToString());
         Directory.CreateDirectory(uploadsFolder);
 
         var uploadedUrls = new List<string>();
+        long totalBytes = 0;
 
         foreach (var file in files.Where(f => f.Length > 0))
         {
@@ -179,10 +188,13 @@ public class ProjectsController : ControllerBase
 
             await using var stream = System.IO.File.Create(fullPath);
             await file.CopyToAsync(stream);
+            totalBytes += file.Length;
 
             uploadedUrls.Add($"{Request.Scheme}://{Request.Host}/uploads/projects/{id}/{fileName}");
         }
 
+        stopwatch.Stop();
+        _metrics.RecordUpload(TelemetryTags.Sections.ProjectImage, TelemetryTags.Outcomes.Success, uploadedUrls.Count, totalBytes, stopwatch.Elapsed.TotalMilliseconds, userId);
         return Ok(new { images = uploadedUrls });
     }
 

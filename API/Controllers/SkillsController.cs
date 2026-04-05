@@ -69,7 +69,7 @@ public class SkillsController : ControllerBase
         _db.Skills.Add(skill);
         await _db.SaveChangesAsync();
 
-        _metrics.SkillsCreated.Add(1);
+        _metrics.RecordProfileMutation(TelemetryTags.Sections.Skill, TelemetryTags.Actions.Create, userId);
         return CreatedAtAction(nameof(GetById), new { id = skill.Id }, skill);
     }
 
@@ -95,6 +95,7 @@ public class SkillsController : ControllerBase
         existing.ProficiencyLevel = skill.ProficiencyLevel;
 
         await _db.SaveChangesAsync();
+        _metrics.RecordProfileMutation(TelemetryTags.Sections.Skill, TelemetryTags.Actions.Update, userId);
         return Ok(existing);
     }
 
@@ -117,6 +118,7 @@ public class SkillsController : ControllerBase
 
         _db.Skills.Remove(skill);
         await _db.SaveChangesAsync();
+        _metrics.RecordProfileMutation(TelemetryTags.Sections.Skill, TelemetryTags.Actions.Delete, userId);
         return NoContent();
     }
 }

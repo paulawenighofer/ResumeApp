@@ -69,7 +69,7 @@ public class EducationsController : ControllerBase
         _db.Educations.Add(education);
         await _db.SaveChangesAsync();
 
-        _metrics.EducationsCreated.Add(1);
+        _metrics.RecordProfileMutation(TelemetryTags.Sections.Education, TelemetryTags.Actions.Create, userId);
         return CreatedAtAction(nameof(GetById), new { id = education.Id }, education);
     }
 
@@ -99,6 +99,7 @@ public class EducationsController : ControllerBase
         existing.Description = education.Description;
 
         await _db.SaveChangesAsync();
+        _metrics.RecordProfileMutation(TelemetryTags.Sections.Education, TelemetryTags.Actions.Update, userId);
         return Ok(existing);
     }
 
@@ -121,6 +122,7 @@ public class EducationsController : ControllerBase
 
         _db.Educations.Remove(education);
         await _db.SaveChangesAsync();
+        _metrics.RecordProfileMutation(TelemetryTags.Sections.Education, TelemetryTags.Actions.Delete, userId);
         return NoContent();
     }
 }
