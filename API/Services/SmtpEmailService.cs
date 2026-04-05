@@ -8,11 +8,13 @@ namespace API.Services
     {
         private readonly IConfiguration _config;
         private readonly ApiMetrics _metrics;
+        private readonly ILogger<SmtpEmailService> _logger;
 
-        public SmtpEmailService(IConfiguration config, ApiMetrics metrics)
+        public SmtpEmailService(IConfiguration config, ApiMetrics metrics, ILogger<SmtpEmailService> logger)
         {
             _config = config;
             _metrics = metrics;
+            _logger = logger;
         }
 
         public async Task SendOtpAsync(string toEmail, string code)
@@ -46,42 +48,47 @@ namespace API.Services
         private async Task SendAsync(string toEmail, string subject, string htmlBody, string template)
         {
             var stopwatch = Stopwatch.StartNew();
-            var host = _config["Smtp:Host"]!;
-            var port = int.Parse(_config["Smtp:Port"]!);
-            var username = _config["Smtp:Username"]!;
-            var password = _config["Smtp:Password"]!;
-            var from = _config["Smtp:From"]!;
-            var senderName = _config["Smtp:SenderName"];
-
-            var enableSsl = bool.Parse(_config["Smtp:EnableSsl"] ?? "true");
-
-            using var client = new SmtpClient(host, port)
-            {
-                Credentials = new NetworkCredential(username, password),
-                EnableSsl = enableSsl
-            };
-
-            using var message = new MailMessage
-            {
-                Subject = subject,
-                Body = htmlBody,
-                IsBodyHtml = true,
-                From = string.IsNullOrWhiteSpace(senderName)
-                    ? new MailAddress(from)
-                    : new MailAddress(from, senderName)
-            };
-
-            message.To.Add(toEmail);
 
             try
             {
+                var host = _config["Smtp:Host"]!;
+                var port = int.Parse(_config["Smtp:Port"]!);
+                var username = _config["Smtp:Username"]!;
+                var password = _config["Smtp:Password"]!;
+                var from = _config["Smtp:From"]!;
+                var senderName = _config["Smtp:SenderName"];
+
+                var enableSsl = bool.Parse(_config["Smtp:EnableSsl"] ?? "true");
+
+                using var client = new SmtpClient(host, port)
+                {
+                    Credentials = new NetworkCredential(username, password),
+                    EnableSsl = enableSsl
+                };
+
+                using var message = new MailMessage
+                {
+                    Subject = subject,
+                    Body = htmlBody,
+                    IsBodyHtml = true,
+                    From = string.IsNullOrWhiteSpace(senderName)
+                        ? new MailAddress(from)
+                        : new MailAddress(from, senderName)
+                };
+
+                message.To.Add(toEmail);
                 await client.SendMailAsync(message);
                 stopwatch.Stop();
                 _metrics.RecordEmailSend(template, TelemetryTags.Outcomes.Success, stopwatch.Elapsed.TotalMilliseconds);
             }
-            catch
+            catch (Exception ex)
             {
                 stopwatch.Stop();
+                _logger.LogError(
+                    ex,
+                    "Transactional email send failed for template {Template} to {Recipient}",
+                    template,
+                    toEmail);
                 _metrics.RecordEmailSend(template, TelemetryTags.Outcomes.Failure, stopwatch.Elapsed.TotalMilliseconds);
                 throw;
             }

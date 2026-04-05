@@ -1,5 +1,7 @@
 using System.Diagnostics;
 using System.Security.Claims;
+using API.Services;
+using Microsoft.AspNetCore.Routing;
 
 namespace API.Middleware;
 
@@ -14,7 +16,7 @@ public class RequestLoggingMiddleware
         _logger = logger;
     }
 
-    public async Task InvokeAsync(HttpContext context)
+    public async Task InvokeAsync(HttpContext context, ApiMetrics metrics)
     {
         if (context.Request.Path.StartsWithSegments("/metrics"))
         {
@@ -35,6 +37,7 @@ public class RequestLoggingMiddleware
             await _next(context);
             var elapsedMs = Stopwatch.GetElapsedTime(start).TotalMilliseconds;
             var status = context.Response.StatusCode;
+            RecordRequestMetric(context, metrics, status);
 
             if (status >= 500)
                 _logger.LogError(
@@ -52,6 +55,7 @@ public class RequestLoggingMiddleware
         catch (Exception ex)
         {
             var elapsedMs = Stopwatch.GetElapsedTime(start).TotalMilliseconds;
+            RecordRequestMetric(context, metrics, StatusCodes.Status500InternalServerError);
             _logger.LogError(
                 ex,
                 "Unhandled exception {Method} {Path} in {ElapsedMs:0.000} ms {UserId}",
@@ -61,5 +65,40 @@ public class RequestLoggingMiddleware
                 userId ?? "anonymous");
             throw;
         }
+    }
+
+    private static void RecordRequestMetric(HttpContext context, ApiMetrics metrics, int statusCode)
+    {
+        if (!ShouldTrackRequest(context))
+        {
+            return;
+        }
+
+        metrics.RecordHttpRequest(
+            context.Request.Scheme,
+            context.Request.Method,
+            GetNormalizedRoute(context),
+            statusCode);
+    }
+
+    private static bool ShouldTrackRequest(HttpContext context)
+    {
+        var path = context.Request.Path;
+        return path.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase)
+               && !path.StartsWithSegments("/api/openapi", StringComparison.OrdinalIgnoreCase)
+               && !path.StartsWithSegments("/api/scalar", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string GetNormalizedRoute(HttpContext context)
+    {
+        if (context.GetEndpoint() is RouteEndpoint routeEndpoint
+            && !string.IsNullOrWhiteSpace(routeEndpoint.RoutePattern.RawText))
+        {
+            return $"/{routeEndpoint.RoutePattern.RawText.TrimStart('/')}";
+        }
+
+        return string.IsNullOrWhiteSpace(context.Request.Path.Value)
+            ? "/api"
+            : context.Request.Path.Value!;
     }
 }

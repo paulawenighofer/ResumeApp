@@ -13,6 +13,7 @@ public sealed class ApiMetrics : IDisposable
     private readonly string _uploadsRoot;
 
     private readonly Counter<long> _registrations;
+    private readonly Counter<long> _httpRequests;
     private readonly Counter<long> _loginAttempts;
     private readonly Counter<long> _otpVerifications;
     private readonly Counter<long> _passwordResetRequests;
@@ -34,6 +35,10 @@ public sealed class ApiMetrics : IDisposable
         _registrations = _meter.CreateCounter<long>(
             "resumeapp_auth_registrations_total",
             description: "Count of user registration attempts by outcome");
+
+        _httpRequests = _meter.CreateCounter<long>(
+            "resumeapp_http_requests_total",
+            description: "Count of completed API HTTP requests by scheme, method, route, and status code");
 
         _loginAttempts = _meter.CreateCounter<long>(
             "resumeapp_auth_login_attempts_total",
@@ -93,6 +98,13 @@ public sealed class ApiMetrics : IDisposable
 
     public void RecordRegistration(string outcome) =>
         _registrations.Add(1, CreateTags(("outcome", outcome)));
+
+    public void RecordHttpRequest(string scheme, string method, string route, int statusCode) =>
+        _httpRequests.Add(1, CreateTags(
+            ("scheme", scheme),
+            ("method", method),
+            ("route", route),
+            ("status_code", statusCode.ToString())));
 
     public void RecordLoginAttempt(string outcome) =>
         _loginAttempts.Add(1, CreateTags(("outcome", outcome)));
