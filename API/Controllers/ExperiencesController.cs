@@ -69,7 +69,7 @@ public class ExperiencesController : ControllerBase
         _db.Experiences.Add(experience);
         await _db.SaveChangesAsync();
 
-        _metrics.ExperiencesCreated.Add(1);
+        _metrics.RecordProfileMutation(TelemetryTags.Sections.Experience, TelemetryTags.Actions.Create, userId);
         return CreatedAtAction(nameof(GetById), new { id = experience.Id }, experience);
     }
 
@@ -99,6 +99,7 @@ public class ExperiencesController : ControllerBase
         existing.Responsibilities = experience.Responsibilities;
 
         await _db.SaveChangesAsync();
+        _metrics.RecordProfileMutation(TelemetryTags.Sections.Experience, TelemetryTags.Actions.Update, userId);
         return Ok(existing);
     }
 
@@ -121,6 +122,7 @@ public class ExperiencesController : ControllerBase
 
         _db.Experiences.Remove(experience);
         await _db.SaveChangesAsync();
+        _metrics.RecordProfileMutation(TelemetryTags.Sections.Experience, TelemetryTags.Actions.Delete, userId);
         return NoContent();
     }
 }

@@ -63,7 +63,7 @@ public class SocialAuthController : ControllerBase
     {
         var redirectUri = GetCallbackUri("google");
         var token = await _socialAuth.HandleGoogleCallbackAsync(code, redirectUri);
-        if (token != null) _metrics.SocialLogins.Add(1, new KeyValuePair<string, object?>("provider", "google"));
+        _metrics.RecordSocialLogin(TelemetryTags.Providers.Google, token is null ? TelemetryTags.Outcomes.Failure : TelemetryTags.Outcomes.Success);
         return BuildCallbackRedirect(token, state, "google_auth_failed");
     }
 
@@ -86,7 +86,7 @@ public class SocialAuthController : ControllerBase
     {
         var redirectUri = GetCallbackUri("linkedin");
         var token = await _socialAuth.HandleLinkedInCallbackAsync(code, redirectUri);
-        if (token != null) _metrics.SocialLogins.Add(1, new KeyValuePair<string, object?>("provider", "linkedin"));
+        _metrics.RecordSocialLogin(TelemetryTags.Providers.LinkedIn, token is null ? TelemetryTags.Outcomes.Failure : TelemetryTags.Outcomes.Success);
         return BuildCallbackRedirect(token, state, "linkedin_auth_failed");
     }
 
@@ -109,7 +109,7 @@ public class SocialAuthController : ControllerBase
     {
         var redirectUri = GetCallbackUri("github");
         var token = await _socialAuth.HandleGitHubCallbackAsync(code, redirectUri);
-        if (token != null) _metrics.SocialLogins.Add(1, new KeyValuePair<string, object?>("provider", "github"));
+        _metrics.RecordSocialLogin(TelemetryTags.Providers.GitHub, token is null ? TelemetryTags.Outcomes.Failure : TelemetryTags.Outcomes.Success);
         return BuildCallbackRedirect(token, state, "github_auth_failed");
     }
 

@@ -17,8 +17,9 @@
   },
   "editable": true,
   "fiscalYearStartMonth": 0,
-  "graphTooltip": 0,
+  "graphTooltip": 1,
   "links": [],
+  "liveNow": true,
   "panels": [
     {
       "datasource": {
@@ -28,231 +29,35 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 2,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "showValues": false,
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": 0
+                "color": "green"
               },
               {
-                "color": "red",
-                "value": 80
+                "color": "orange",
+                "value": 1
               }
             ]
-          },
-          "unit": "reqps"
+          }
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 12,
+        "h": 5,
+        "w": 6,
         "x": 0,
         "y": 0
       },
       "id": 1,
       "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "hideZeros": false,
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "12.4.2",
-      "targets": [
-        {
-          "expr": "rate(http_server_request_duration_seconds_count[1m])",
-          "legendFormat": "{{http_request_method}} {{http_route}} {{http_response_status_code}}",
-          "refId": "A"
-        }
-      ],
-      "title": "HTTP — Request Rate (req/s)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "showValues": false,
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "s"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 0
-      },
-      "id": 2,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "hideZeros": false,
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "12.4.2",
-      "targets": [
-        {
-          "expr": "histogram_quantile(0.99, sum(rate(http_server_request_duration_seconds_bucket[5m])) by (le, http_route))",
-          "legendFormat": "P99 {{http_route}}",
-          "refId": "A"
-        },
-        {
-          "expr": "histogram_quantile(0.50, sum(rate(http_server_request_duration_seconds_bucket[5m])) by (le, http_route))",
-          "legendFormat": "P50 {{http_route}}",
-          "refId": "B"
-        }
-      ],
-      "title": "HTTP — P99 / P50 Latency",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "yellow",
-                "value": 10
-              },
-              {
-                "color": "red",
-                "value": 50
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 0,
-        "y": 8
-      },
-      "id": 3,
-      "options": {
         "colorMode": "value",
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
-        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -260,18 +65,16 @@
           "fields": "",
           "values": false
         },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
+        "textMode": "auto"
       },
       "pluginVersion": "12.4.2",
       "targets": [
         {
-          "expr": "sum(http_server_active_requests)",
+          "expr": "sum(increase(resumeapp_auth_registrations_total{outcome=\"success\"}[1d]))",
           "refId": "A"
         }
       ],
-      "title": "HTTP — Active In-Flight Requests",
+      "title": "Sign-ups Today",
       "type": "stat"
     },
     {
@@ -281,127 +84,40 @@
       },
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "showValues": false,
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "reqps"
+          "unit": "short"
         },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "5xx"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "red",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "4xx"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "orange",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          }
-        ]
+        "overrides": []
       },
       "gridPos": {
-        "h": 4,
+        "h": 5,
         "w": 6,
         "x": 6,
-        "y": 8
+        "y": 0
       },
-      "id": 4,
+      "id": 2,
       "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
         },
-        "tooltip": {
-          "hideZeros": false,
-          "mode": "single",
-          "sort": "none"
-        }
+        "textMode": "auto"
       },
       "pluginVersion": "12.4.2",
       "targets": [
         {
-          "expr": "sum(rate(http_server_request_duration_seconds_count{http_response_status_code=~\"4..\"}[1m]))",
-          "legendFormat": "4xx",
+          "expr": "sum(resumeapp_active_users)",
           "refId": "A"
-        },
-        {
-          "expr": "sum(rate(http_server_request_duration_seconds_count{http_response_status_code=~\"5..\"}[1m]))",
-          "legendFormat": "5xx",
-          "refId": "B"
         }
       ],
-      "title": "HTTP — Error Rate (4xx / 5xx)",
-      "type": "timeseries"
+      "title": "Active Users Right Now",
+      "type": "stat"
     },
     {
       "datasource": {
@@ -410,42 +126,63 @@
       },
       "fieldConfig": {
         "defaults": {
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          }
+          "unit": "short"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
-        "w": 12,
+        "h": 5,
+        "w": 6,
         "x": 12,
-        "y": 8
+        "y": 0
       },
-      "id": 5,
+      "id": 3,
       "options": {
-        "displayMode": "gradient",
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": false
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
         },
-        "maxVizHeight": 300,
-        "minVizHeight": 16,
-        "minVizWidth": 8,
-        "namePlacement": "auto",
+        "textMode": "auto"
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "expr": "sum(increase(resumeapp_email_sends_total{outcome=\"success\"}[1d]))",
+          "refId": "A"
+        }
+      ],
+      "title": "Emails Sent Today",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "decbytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
+      "id": 4,
+      "options": {
+        "displayMode": "lcd",
+        "minVizHeight": 10,
+        "minVizWidth": 0,
         "orientation": "horizontal",
         "reduceOptions": {
           "calcs": [
@@ -455,18 +192,16 @@
           "values": false
         },
         "showUnfilled": true,
-        "sizing": "auto",
         "valueMode": "color"
       },
       "pluginVersion": "12.4.2",
       "targets": [
         {
-          "expr": "sum(rate(http_server_request_duration_seconds_count[5m])) by (http_route)",
-          "legendFormat": "{{http_route}}",
+          "expr": "sum(resumeapp_storage_upload_bytes)",
           "refId": "A"
         }
       ],
-      "title": "HTTP — Request Rate by Route",
+      "title": "Storage Used For Uploads",
       "type": "bargauge"
     },
     {
@@ -475,91 +210,70 @@
         "uid": "${DS_PROMETHEUS}"
       },
       "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "showValues": false,
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "reqps"
-        },
+        "defaults": {},
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
-        "w": 8,
+        "h": 8,
+        "w": 12,
         "x": 0,
-        "y": 12
+        "y": 5
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "expr": "sum by (outcome) (increase(resumeapp_auth_login_attempts_total[1d]))",
+          "legendFormat": "{{outcome}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Login Success vs Failure",
+      "type": "barchart"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 5
       },
       "id": 6,
       "options": {
         "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
+          "displayMode": "table",
+          "placement": "bottom"
         },
         "tooltip": {
-          "hideZeros": false,
-          "mode": "single",
-          "sort": "none"
+          "mode": "single"
         }
       },
       "pluginVersion": "12.4.2",
       "targets": [
         {
-          "expr": "rate(resumeapp_auth_registrations_total[5m])",
-          "legendFormat": "{{result}}",
+          "expr": "sum by (provider, outcome) (increase(resumeapp_auth_social_logins_total[7d]))",
+          "legendFormat": "{{provider}} {{outcome}}",
           "refId": "A"
         }
       ],
-      "title": "Auth — Registration Rate",
+      "title": "Social Logins By Provider",
       "type": "timeseries"
     },
     {
@@ -568,91 +282,34 @@
         "uid": "${DS_PROMETHEUS}"
       },
       "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "showValues": false,
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "reqps"
-        },
+        "defaults": {},
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
+        "h": 8,
         "w": 8,
-        "x": 8,
-        "y": 12
+        "x": 0,
+        "y": 13
       },
       "id": 7,
       "options": {
         "legend": {
-          "calcs": [],
           "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
+          "placement": "bottom"
         },
         "tooltip": {
-          "hideZeros": false,
-          "mode": "single",
-          "sort": "none"
+          "mode": "single"
         }
       },
       "pluginVersion": "12.4.2",
       "targets": [
         {
-          "expr": "rate(resumeapp_auth_login_attempts_total[5m])",
-          "legendFormat": "{{result}}",
+          "expr": "sum(increase(resumeapp_auth_otp_verifications_total{outcome=\"failure\"}[1d]))",
+          "legendFormat": "failures",
           "refId": "A"
         }
       ],
-      "title": "Auth — Login Attempts",
+      "title": "OTP Verification Failures",
       "type": "timeseries"
     },
     {
@@ -661,91 +318,70 @@
         "uid": "${DS_PROMETHEUS}"
       },
       "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "showValues": false,
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "reqps"
-        },
+        "defaults": {},
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
+        "h": 8,
         "w": 8,
-        "x": 16,
-        "y": 12
+        "x": 8,
+        "y": 13
       },
       "id": 8,
       "options": {
         "legend": {
-          "calcs": [],
           "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
+          "placement": "bottom"
         },
         "tooltip": {
-          "hideZeros": false,
-          "mode": "single",
-          "sort": "none"
+          "mode": "single"
         }
       },
       "pluginVersion": "12.4.2",
       "targets": [
         {
-          "expr": "rate(resumeapp_auth_otp_verifications_total[5m])",
-          "legendFormat": "{{result}}",
+          "expr": "sum(increase(resumeapp_auth_password_reset_requests_total[1d]))",
+          "legendFormat": "requests",
           "refId": "A"
         }
       ],
-      "title": "Auth — OTP Verifications",
+      "title": "Password Reset Requests Per Day",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 13
+      },
+      "id": 9,
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "expr": "sum by (section, action) (increase(resumeapp_profile_mutations_total[1d]))",
+          "legendFormat": "{{section}} {{action}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Profile CRUD Activity",
       "type": "timeseries"
     },
     {
@@ -755,64 +391,36 @@
       },
       "fieldConfig": {
         "defaults": {
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          }
+          "unit": "decbytes"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
+        "h": 8,
         "w": 12,
         "x": 0,
-        "y": 18
+        "y": 21
       },
-      "id": 9,
+      "id": 10,
       "options": {
-        "displayMode": "gradient",
         "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": false
+          "displayMode": "table",
+          "placement": "bottom"
         },
-        "maxVizHeight": 300,
-        "minVizHeight": 16,
-        "minVizWidth": 8,
-        "namePlacement": "auto",
-        "orientation": "horizontal",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showUnfilled": true,
-        "sizing": "auto",
-        "valueMode": "color"
+        "tooltip": {
+          "mode": "single"
+        }
       },
       "pluginVersion": "12.4.2",
       "targets": [
         {
-          "expr": "sum(rate(resumeapp_auth_social_logins_total[5m])) by (provider)",
-          "legendFormat": "{{provider}}",
+          "expr": "sum by (category) (increase(resumeapp_upload_bytes[1d]))",
+          "legendFormat": "{{category}}",
           "refId": "A"
         }
       ],
-      "title": "Auth — Social Logins by Provider",
-      "type": "bargauge"
+      "title": "Upload Bytes Per Day",
+      "type": "barchart"
     },
     {
       "datasource": {
@@ -820,106 +428,34 @@
         "uid": "${DS_PROMETHEUS}"
       },
       "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "showValues": false,
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "reqps"
-        },
+        "defaults": {},
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
+        "h": 8,
         "w": 12,
         "x": 12,
-        "y": 18
+        "y": 21
       },
-      "id": 10,
+      "id": 11,
       "options": {
         "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
+          "displayMode": "table",
+          "placement": "bottom"
         },
         "tooltip": {
-          "hideZeros": false,
-          "mode": "single",
-          "sort": "none"
+          "mode": "single"
         }
       },
       "pluginVersion": "12.4.2",
       "targets": [
         {
-          "expr": "rate(resumeapp_data_educations_created_total[5m])",
-          "legendFormat": "educations",
+          "expr": "histogram_quantile(0.5, sum by (le, category) (rate(resumeapp_upload_duration_ms_bucket[5m])))",
+          "legendFormat": "{{category}} p50",
           "refId": "A"
-        },
-        {
-          "expr": "rate(resumeapp_data_experiences_created_total[5m])",
-          "legendFormat": "experiences",
-          "refId": "B"
-        },
-        {
-          "expr": "rate(resumeapp_data_skills_created_total[5m])",
-          "legendFormat": "skills",
-          "refId": "C"
-        },
-        {
-          "expr": "rate(resumeapp_data_projects_created_total[5m])",
-          "legendFormat": "projects",
-          "refId": "D"
         }
       ],
-      "title": "Data — Resume Entries Created",
+      "title": "Upload Duration Trend",
       "type": "timeseries"
     },
     {
@@ -927,35 +463,24 @@
         "type": "loki",
         "uid": "${DS_LOKI}"
       },
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
-      },
       "gridPos": {
-        "h": 10,
-        "w": 12,
+        "h": 8,
+        "w": 8,
         "x": 0,
-        "y": 24
+        "y": 29
       },
-      "id": 11,
+      "id": 12,
       "options": {
         "dedupStrategy": "none",
-        "enableInfiniteScrolling": false,
         "enableLogDetails": true,
-        "showControls": false,
+        "prettifyLogMessage": true,
         "showLabels": false,
-        "showTime": true,
         "sortOrder": "Descending",
-        "unwrappedColumns": false,
         "wrapLogMessage": true
       },
       "pluginVersion": "12.4.2",
       "targets": [
         {
-          "datasource": {
-            "type": "loki",
-            "uid": "${DS_LOKI}"
-          },
           "expr": "{service_name=\"ResumeApp.API\", level=\"info\"}",
           "refId": "A"
         }
@@ -968,35 +493,24 @@
         "type": "loki",
         "uid": "${DS_LOKI}"
       },
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
-      },
       "gridPos": {
-        "h": 10,
-        "w": 12,
-        "x": 12,
-        "y": 24
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 29
       },
-      "id": 12,
+      "id": 13,
       "options": {
         "dedupStrategy": "none",
-        "enableInfiniteScrolling": false,
         "enableLogDetails": true,
-        "showControls": false,
+        "prettifyLogMessage": true,
         "showLabels": false,
-        "showTime": true,
         "sortOrder": "Descending",
-        "unwrappedColumns": false,
         "wrapLogMessage": true
       },
       "pluginVersion": "12.4.2",
       "targets": [
         {
-          "datasource": {
-            "type": "loki",
-            "uid": "${DS_LOKI}"
-          },
           "expr": "{service_name=\"ResumeApp.API\", level=\"warn\"}",
           "refId": "A"
         }
@@ -1009,35 +523,24 @@
         "type": "loki",
         "uid": "${DS_LOKI}"
       },
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
-      },
       "gridPos": {
-        "h": 10,
-        "w": 12,
-        "x": 0,
-        "y": 34
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 29
       },
-      "id": 13,
+      "id": 14,
       "options": {
         "dedupStrategy": "none",
-        "enableInfiniteScrolling": false,
         "enableLogDetails": true,
-        "showControls": false,
+        "prettifyLogMessage": true,
         "showLabels": false,
-        "showTime": true,
         "sortOrder": "Descending",
-        "unwrappedColumns": false,
         "wrapLogMessage": true
       },
       "pluginVersion": "12.4.2",
       "targets": [
         {
-          "datasource": {
-            "type": "loki",
-            "uid": "${DS_LOKI}"
-          },
           "expr": "{service_name=\"ResumeApp.API\", level=\"error\"}",
           "refId": "A"
         }
@@ -1046,52 +549,29 @@
       "type": "logs"
     },
     {
-      "datasource": {
-        "type": "loki",
-        "uid": "${DS_LOKI}"
-      },
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
-      },
       "gridPos": {
-        "h": 10,
-        "w": 12,
-        "x": 12,
-        "y": 34
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 37
       },
-      "id": 14,
+      "id": 15,
       "options": {
-        "dedupStrategy": "none",
-        "enableInfiniteScrolling": false,
-        "enableLogDetails": true,
-        "showControls": false,
-        "showLabels": false,
-        "showTime": true,
-        "sortOrder": "Descending",
-        "unwrappedColumns": false,
-        "wrapLogMessage": true
+        "content": "Deferred until the matching backend features exist: AI generations per day, AI response time, failed AI generations, resume download count, and average edits per resume.",
+        "mode": "markdown"
       },
       "pluginVersion": "12.4.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "${DS_LOKI}"
-          },
-          "expr": "{service_name=\"ResumeApp.API\", level=\"debug\"}",
-          "refId": "A"
-        }
-      ],
-      "title": "Debug Logs",
-      "type": "logs"
+      "title": "Deferred Panels",
+      "type": "text"
     }
   ],
   "preload": false,
   "refresh": "10s",
   "schemaVersion": 42,
   "tags": [
-    "resumeapp"
+    "resumeapp",
+    "observability",
+    "otel"
   ],
   "templating": {
     "list": [
@@ -1112,7 +592,6 @@
           "text": "Loki",
           "value": "P8E80F9AEF21F6940"
         },
-        "description": "",
         "name": "DS_LOKI",
         "options": [],
         "query": "loki",
@@ -1123,13 +602,13 @@
     ]
   },
   "time": {
-    "from": "now-1h",
+    "from": "now-24h",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "ResumeApp Observability",
   "uid": "resumeapp-observability",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }

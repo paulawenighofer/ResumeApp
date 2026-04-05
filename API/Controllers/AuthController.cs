@@ -106,7 +106,7 @@ namespace API.Controllers
             {
                 // Common errors: "Email already taken", "Password too weak"
                 // Identity provides descriptive error messages we can forward to the client
-                _metrics.UserRegistrations.Add(1, new KeyValuePair<string, object?>("result", "failure"));
+                _metrics.RecordRegistration(TelemetryTags.Outcomes.Failure);
                 return BadRequest(new { errors = result.Errors.Select(e => e.Description) });
             }
 
@@ -119,11 +119,11 @@ namespace API.Controllers
             {
                 // Don't leave a half-registered account if OTP email could not be sent.
                 await _userManager.DeleteAsync(user);
-                _metrics.UserRegistrations.Add(1, new KeyValuePair<string, object?>("result", "failure"));
+                _metrics.RecordRegistration(TelemetryTags.Outcomes.Failure);
                 return StatusCode(500, new { message = $"Failed to send verification email: {ex.Message}" });
             }
 
-            _metrics.UserRegistrations.Add(1, new KeyValuePair<string, object?>("result", "success"));
+            _metrics.RecordRegistration(TelemetryTags.Outcomes.Success);
             return Ok(new RegisterPendingResponseDto
             {
                 Email = user.Email!,
@@ -147,7 +147,10 @@ namespace API.Controllers
 
             var user = await _userManager.FindByEmailAsync(dto.Email);
             if (user == null)
+            {
+                _metrics.RecordOtpVerification(TelemetryTags.Outcomes.Failure);
                 return BadRequest(new { message = "Invalid request." });
+            }
 
             // Fetch the most recent email-verification OTP for this user
             var otp = await _db.OtpVerifications
@@ -158,7 +161,7 @@ namespace API.Controllers
             // Verify the submitted code against the stored BCrypt hash
             if (otp == null || otp.ExpiresAt < DateTime.UtcNow || !OtpHasher.Verify(dto.Code, otp.Code))
             {
-                _metrics.OtpVerifications.Add(1, new KeyValuePair<string, object?>("result", "failure"));
+                _metrics.RecordOtpVerification(TelemetryTags.Outcomes.Failure);
                 return BadRequest(new { message = "Invalid or expired code." });
             }
 
@@ -168,7 +171,7 @@ namespace API.Controllers
             _db.OtpVerifications.Remove(otp);
             await _db.SaveChangesAsync();
 
-            _metrics.OtpVerifications.Add(1, new KeyValuePair<string, object?>("result", "success"));
+            _metrics.RecordOtpVerification(TelemetryTags.Outcomes.Success);
 
             // Now issue the JWT — user is fully verified and logged in
             var token = _tokenService.GenerateToken(user);
@@ -222,7 +225,10 @@ namespace API.Controllers
             // Try to find the user by email
             var user = await _userManager.FindByEmailAsync(dto.Email);
             if (user == null)
+            {
+                _metrics.RecordLoginAttempt(TelemetryTags.Outcomes.Failure);
                 return Unauthorized(new { message = "Invalid email or password" });
+            }
 
             // CheckPasswordSignInAsync does ALL of this:
             // 1. Retrieves the stored password hash from the database
@@ -235,13 +241,13 @@ namespace API.Controllers
 
             if (result.IsLockedOut)
             {
-                _metrics.LoginAttempts.Add(1, new KeyValuePair<string, object?>("result", "locked_out"));
+                _metrics.RecordLoginAttempt(TelemetryTags.Outcomes.LockedOut);
                 return StatusCode(423, new { message = "Account locked. Try again later." });
             }
 
             if (!result.Succeeded)
             {
-                _metrics.LoginAttempts.Add(1, new KeyValuePair<string, object?>("result", "failure"));
+                _metrics.RecordLoginAttempt(TelemetryTags.Outcomes.Failure);
                 return Unauthorized(new { message = "Invalid email or password" });
             }
 
@@ -251,11 +257,11 @@ namespace API.Controllers
             if (!user.EmailConfirmed)
             {
                 await SendOtpToUserAsync(user, OtpPurpose.EmailVerification);
-                _metrics.LoginAttempts.Add(1, new KeyValuePair<string, object?>("result", "unverified"));
+                _metrics.RecordLoginAttempt(TelemetryTags.Outcomes.Unverified);
                 return StatusCode(403, new { requiresVerification = true, email = user.Email });
             }
 
-            _metrics.LoginAttempts.Add(1, new KeyValuePair<string, object?>("result", "success"));
+            _metrics.RecordLoginAttempt(TelemetryTags.Outcomes.Success);
 
             // Password correct and email verified — generate token
             var token = _tokenService.GenerateToken(user);
@@ -299,7 +305,7 @@ namespace API.Controllers
             if (user != null)
             {
                 await SendOtpToUserAsync(user, OtpPurpose.PasswordReset);
-                _metrics.PasswordResets.Add(1, new KeyValuePair<string, object?>("result", "requested"));
+                _metrics.RecordPasswordResetRequested();
             }
 
             return Ok(new { message = "If that email is registered, a reset code has been sent." });
