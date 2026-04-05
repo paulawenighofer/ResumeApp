@@ -1,10 +1,19 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using ResumeApp.Services;
+using System.Text.Json;
 
 namespace ResumeApp.ViewModels;
 
 public partial class GenerateResumeViewModel : ObservableObject
 {
+    private readonly IPdfService _pdfService;
+
+    public GenerateResumeViewModel(IPdfService pdfService)
+    {
+        _pdfService = pdfService;
+    }
+
     [ObservableProperty] private string jobTitle = string.Empty;
     [ObservableProperty] private string targetCompany = string.Empty;
     [ObservableProperty] private string jobDescription = string.Empty;
@@ -37,10 +46,70 @@ public partial class GenerateResumeViewModel : ObservableObject
         IsBusy = true;
         HasStatus = false;
 
-        await Task.Delay(1500); // Placeholder for API call
+        try
+        {
+            if (!string.Equals(SelectedResumeFormat, "PDF", StringComparison.OrdinalIgnoreCase))
+            {
+                StatusMessage = "Only PDF export is wired up right now. Please choose PDF and try again.";
+                HasStatus = true;
+                return;
+            }
 
-        IsBusy = false;
-        StatusMessage = "Resume generation is coming soon! Your settings have been saved.";
-        HasStatus = true;
+            var payload = new
+            {
+                targetJob = new
+                {
+                    title = JobTitle.Trim(),
+                    company = string.IsNullOrWhiteSpace(TargetCompany) ? null : TargetCompany.Trim(),
+                    description = string.IsNullOrWhiteSpace(JobDescription) ? null : JobDescription.Trim(),
+                    experienceLevel = SelectedExperienceLevel,
+                    outputFormat = SelectedResumeFormat
+                },
+                content = new
+                {
+                    personalSummary = string.IsNullOrWhiteSpace(PersonalSummary)
+                        ? $"Professional candidate targeting a {JobTitle.Trim()} role."
+                        : PersonalSummary.Trim(),
+                    sections = new
+                    {
+                        education = IncludeEducation,
+                        experience = IncludeExperience,
+                        skills = IncludeSkills,
+                        projects = IncludeProjects
+                    }
+                },
+                generatedAtUtc = DateTime.UtcNow
+            };
+
+            var json = JsonSerializer.Serialize(payload, new JsonSerializerOptions
+            {
+                WriteIndented = true
+            });
+
+            var export = await _pdfService.CreatePdfFromJsonAsync(json, BuildFileName());
+            StatusMessage = $"PDF created successfully: {export.FileName}";
+            HasStatus = true;
+        }
+        catch (JsonException)
+        {
+            StatusMessage = "The resume data could not be converted into valid JSON.";
+            HasStatus = true;
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"PDF export failed: {ex.Message}";
+            HasStatus = true;
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private string BuildFileName()
+    {
+        var titlePart = string.IsNullOrWhiteSpace(JobTitle) ? "resume" : JobTitle.Trim().Replace(' ', '-');
+        var companyPart = string.IsNullOrWhiteSpace(TargetCompany) ? string.Empty : $"-{TargetCompany.Trim().Replace(' ', '-')}";
+        return $"{titlePart}{companyPart}-{DateTime.Now:yyyyMMdd-HHmmss}";
     }
 }

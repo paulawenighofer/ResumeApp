@@ -11,15 +11,13 @@
     <ScrollView>
         <VerticalStackLayout Padding="24,16" Spacing="20">
 
-            <!-- Header -->
-            <Label Text="✨ Generate Resume"
+            <Label Text="Generate Resume"
                    FontSize="24"
                    FontFamily="OpenSansSemibold"
                    TextColor="{StaticResource TextPrimary}" />
-            <Label Text="Fill in the details below and let AI build you a tailored resume."
+            <Label Text="Fill in the details below and export the form data as a PDF."
                    Style="{StaticResource SubtitleStyle}" />
 
-            <!-- Target job -->
             <Border Style="{StaticResource CardStyle}">
                 <VerticalStackLayout Spacing="12">
                     <Label Text="Target Job"
@@ -37,7 +35,6 @@
                 </VerticalStackLayout>
             </Border>
 
-            <!-- Job description -->
             <Border Style="{StaticResource CardStyle}">
                 <VerticalStackLayout Spacing="12">
                     <Label Text="Job Description"
@@ -52,7 +49,6 @@
                 </VerticalStackLayout>
             </Border>
 
-            <!-- Preferences -->
             <Border Style="{StaticResource CardStyle}">
                 <VerticalStackLayout Spacing="12">
                     <Label Text="Preferences"
@@ -70,14 +66,13 @@
                 </VerticalStackLayout>
             </Border>
 
-            <!-- Personal summary -->
             <Border Style="{StaticResource CardStyle}">
                 <VerticalStackLayout Spacing="12">
                     <Label Text="Personal Summary (optional)"
                            FontFamily="OpenSansSemibold"
                            FontSize="15"
                            TextColor="{StaticResource TextPrimary}" />
-                    <Editor Placeholder="Write a short professional summary or let AI generate one..."
+                    <Editor Placeholder="Write a short professional summary."
                             AutoSize="TextChanges"
                             MinimumHeightRequest="80"
                             Text="{Binding PersonalSummary}"
@@ -85,7 +80,6 @@
                 </VerticalStackLayout>
             </Border>
 
-            <!-- Sections to include -->
             <Border Style="{StaticResource CardStyle}">
                 <VerticalStackLayout Spacing="14">
                     <Label Text="Include Sections"
@@ -112,7 +106,6 @@
                 </VerticalStackLayout>
             </Border>
 
-            <!-- Status message -->
             <Border Style="{StaticResource CardStyle}"
                     BackgroundColor="#EDE9FE"
                     IsVisible="{Binding HasStatus}">
@@ -122,8 +115,7 @@
                        HorizontalTextAlignment="Center" />
             </Border>
 
-            <!-- Generate button -->
-            <Button Text="🚀  Generate with AI"
+            <Button Text="Generate PDF"
                     Command="{Binding GenerateCommand}"
                     Style="{StaticResource VioletButtonStyle}"
                     Margin="0,4,0,0" />

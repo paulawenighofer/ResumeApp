@@ -26,6 +26,7 @@
                   ContentTemplate="{DataTemplate views:ResetPasswordPage}"
                   Shell.NavBarIsVisible="False"
                   Shell.TabBarIsVisible="False" />
+    
 
     <!-- Main app — custom BottomNavBar embedded in each root page; Shell TabBar hidden -->
     <TabBar Route="main">
