@@ -4,11 +4,6 @@ namespace Test.Unit;
 
 public class OtpHasherTests
 {
-    [Fact]
-    public void Failing_Test()
-    {
-        Assert.True(false);
-    }
 
     [Fact]
     public void Hash_DoesNotReturnPlainCode()
