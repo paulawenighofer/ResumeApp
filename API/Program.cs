@@ -112,7 +112,7 @@ builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})   
+})
 // Configure JWT validation
 .AddJwtBearer(options =>
 {
@@ -203,7 +203,7 @@ builder.Services.AddRateLimiter(options =>
     };
 });
 
-builder.Services.AddControllers(   );
+builder.Services.AddControllers();
 
 // =============================================
 // SECTION 6: OPENTELEMETRY
