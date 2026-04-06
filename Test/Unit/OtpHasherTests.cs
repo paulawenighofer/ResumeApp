@@ -5,6 +5,12 @@ namespace Test.Unit;
 public class OtpHasherTests
 {
     [Fact]
+    public void Failing_Test()
+    {
+        Assert.True(false);
+    }
+
+    [Fact]
     public void Hash_DoesNotReturnPlainCode()
     {
         var hash = OtpHasher.Hash("123456");
