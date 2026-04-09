@@ -86,3 +86,9 @@ jobs:
         run: |
           kubectl rollout restart deployment/grafana -n resumeapp
           kubectl rollout restart deployment/otel-collector -n resumeapp
+
+      - name: Run on failure
+        if: failure()
+        run: |
+          curl -d "App Deployment Failed for Resume APP - Please fix it" ntfy.sh/resume-app-pb
+        
