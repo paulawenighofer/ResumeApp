@@ -37,10 +37,27 @@ public sealed class PdfService : IPdfService
         }
 
         var fileName = $"{safeFileName}.pdf";
-        var filePath = Path.Combine(FileSystem.Current.AppDataDirectory, fileName);
+        var outputDirectory = ResolveOutputDirectory();
+        Directory.CreateDirectory(outputDirectory);
+        var filePath = Path.Combine(outputDirectory, fileName);
 
         await File.WriteAllBytesAsync(filePath, pdfBytes, cancellationToken);
         return new PdfExportResult(filePath, fileName);
+    }
+
+    private static string ResolveOutputDirectory()
+    {
+        var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        if (!string.IsNullOrWhiteSpace(userProfile))
+        {
+            var downloadsDirectory = Path.Combine(userProfile, "Downloads");
+            if (Directory.Exists(downloadsDirectory))
+            {
+                return downloadsDirectory;
+            }
+        }
+
+        return FileSystem.Current.AppDataDirectory;
     }
 
     private static List<List<string>> Paginate(IReadOnlyList<string> lines)
