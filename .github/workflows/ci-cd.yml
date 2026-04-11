@@ -5,7 +5,7 @@ on:
       - main
   workflow_dispatch:
 jobs:
-  Deploy On Kubernetes:
+  deploy-on-kubernetes:
     runs-on: self-hosted
     steps:
       - name: Check out repository code
