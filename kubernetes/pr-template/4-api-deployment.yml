@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: resumeapp-api
+  namespace: $PR_NAMESPACE
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: resumeapp-api
+  template:
+    metadata:
+      labels:
+        app: resumeapp-api
+    spec:
+      containers:
+        - name: resumeapp-api
+          image: paulawenighofer/resumeapp:$IMAGE_TAG
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ASPNETCORE_URLS
+              value: http://+:8080
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Development
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://otel-collector-service:4317
+            - name: OTEL_SERVICE_NAME
+              value: ResumeApp
+          envFrom:
+            - secretRef:
+                name: $PR_NAMESPACE-secrets

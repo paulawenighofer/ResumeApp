@@ -1,0 +1,143 @@
+name: PR Environment
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  deploy-pr-environment:
+    name: Deploy PR Environment
+    runs-on: self-hosted
+    env:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_NAMESPACE: resumeapp-pr-${{ github.event.pull_request.number }}
+      PR_HOSTNAME: pr-${{ github.event.pull_request.number }}.resume-app-pb.duckdns.org
+      PR_GRAFANA_HOST: pr-${{ github.event.pull_request.number }}-grafana.resume-app-pb.duckdns.org
+      PR_PROMETHEUS_HOST: pr-${{ github.event.pull_request.number }}-prometheus.resume-app-pb.duckdns.org
+      IMAGE_TAG: pr-${{ github.event.pull_request.number }}
+      KUBECONFIG: /home/bishwas/.kube/config
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v5
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Linting
+        run: |
+          nix-shell -p dotnetCorePackages.sdk_9_0 \
+           --run "dotnet restore API/API.csproj && dotnet restore Test/Test.csproj && dotnet format API/API.csproj --verify-no-changes --no-restore && dotnet format Test/Test.csproj --verify-no-changes --no-restore"
+
+      - name: Testing
+        run: |
+          nix-shell -p dotnetCorePackages.sdk_9_0 \
+           --run "dotnet restore Test/Test.csproj && dotnet test Test/Test.csproj --no-restore"
+
+      - name: Build and push PR Docker image
+        run: |
+          docker build -t paulawenighofer/resumeapp:$IMAGE_TAG .
+          docker push paulawenighofer/resumeapp:$IMAGE_TAG
+
+      - name: Apply namespace
+        run: |
+          cat kubernetes/pr-template/0-namespace.yml | envsubst | kubectl apply -f -
+
+      - name: Create Kubernetes secret
+        run: |
+          PR_DB_CONNECTION="Host=resumeapp-postgres-service;Port=5432;Database=${{ secrets.POSTGRES_DB }};Username=${{ secrets.POSTGRES_USER }};Password=${{ secrets.POSTGRES_PASSWORD }}"
+          kubectl create secret generic ${PR_NAMESPACE}-secrets \
+            --namespace=${PR_NAMESPACE} \
+            --from-literal=ConnectionStrings__DefaultConnection="${PR_DB_CONNECTION}" \
+            --from-literal=Jwt__Key="${{ secrets.JWT_KEY }}" \
+            --from-literal=Jwt__Issuer="${{ secrets.JWT_ISSUER }}" \
+            --from-literal=Jwt__Audience="${{ secrets.JWT_AUDIENCE }}" \
+            --from-literal=Jwt__ExpirationInMinutes="1" \
+            --from-literal=Google__ClientId="${{ secrets.GOOGLE__CLIENTID }}" \
+            --from-literal=Google__ClientSecret="${{ secrets.GOOGLE_CLIENTSECRET }}" \
+            --from-literal=LinkedIn__ClientId="${{ secrets.LINKEDIN_CLIENTID }}" \
+            --from-literal=LinkedIn__ClientSecret="${{ secrets.LINKEDIN_CLIENTSECRET }}" \
+            --from-literal=GitHub__ClientId="${{ secrets.GH_CLIENT_ID }}" \
+            --from-literal=GitHub__ClientSecret="${{ secrets.GH_CLIENT_SECRET }}" \
+            --from-literal=AppScheme="myresumebuilder" \
+            --from-literal=ApiBaseUrl="http://${PR_HOSTNAME}" \
+            --from-literal=POSTGRES_USER="${{ secrets.POSTGRES_USER }}" \
+            --from-literal=POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}" \
+            --from-literal=POSTGRES_DB="${{ secrets.POSTGRES_DB }}" \
+            --from-literal=Smtp__Username="${{ secrets.SMTP_USERNAME }}" \
+            --from-literal=Smtp__Password="${{ secrets.SMTP_PASSWORD }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Deploy PR manifests
+        run: |
+          for file in ./kubernetes/pr-template/*.yml; do
+            echo "$file"
+            cat "$file" | envsubst | kubectl apply -f -
+          done
+
+      - name: Update Grafana dashboard configmap
+        run: |
+          kubectl delete -n ${PR_NAMESPACE} configmap grafana-dashboard-config-configmap || true
+          kubectl create -n ${PR_NAMESPACE} configmap grafana-dashboard-config-configmap --from-file=configs/grafana-dashboard.json
+
+      - name: Restart API to pull new image
+        run: |
+          kubectl rollout restart deployment/resumeapp-api -n ${PR_NAMESPACE}
+          kubectl rollout status deployment/resumeapp-api -n ${PR_NAMESPACE} --timeout=120s
+
+      - name: Restart observability pods to pick up new configmaps
+        run: |
+          kubectl rollout restart deployment/grafana -n ${PR_NAMESPACE}
+          kubectl rollout restart deployment/otel-collector -n ${PR_NAMESPACE}
+
+      - name: Echo PR environment URLs
+        run: |
+          echo "=========================================="
+          echo "  PR Environment URLs"
+          echo "=========================================="
+          echo "  API:        http://${PR_HOSTNAME}"
+          echo "  Grafana:    http://${PR_GRAFANA_HOST}"
+          echo "  Prometheus: http://${PR_PROMETHEUS_HOST}"
+          echo "  Namespace:  ${PR_NAMESPACE}"
+          echo "=========================================="
+
+      - name: Post or update PR comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          MARKER="<!-- pr-env-bot -->"
+          COMMENT_BODY="${MARKER}
+          ### PR Environment Deployed
+
+          | Service | URL |
+          |---|---|
+          | API | http://${PR_HOSTNAME} |
+          | Grafana | http://${PR_GRAFANA_HOST} |
+          | Prometheus | http://${PR_PROMETHEUS_HOST} |
+
+          **Namespace:** \`${PR_NAMESPACE}\`
+          **Commit:** \`${{ github.event.pull_request.head.sha }}\`
+          _Updated: $(date -u '+%Y-%m-%d %H:%M UTC')_"
+
+          EXISTING_COMMENT_ID=$(gh api \
+            repos/${{ github.repository }}/issues/${PR_NUMBER}/comments \
+            --jq ".[] | select(.body | startswith(\"${MARKER}\")) | .id" \
+            | head -1)
+
+          if [ -n "$EXISTING_COMMENT_ID" ]; then
+            gh api --method PATCH \
+              repos/${{ github.repository }}/issues/comments/${EXISTING_COMMENT_ID} \
+              -f body="$COMMENT_BODY"
+            echo "Updated existing comment ${EXISTING_COMMENT_ID}"
+          else
+            gh pr comment ${PR_NUMBER} --body "$COMMENT_BODY"
+            echo "Created new comment"
+          fi
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          curl -d "PR #${PR_NUMBER} environment deployment failed" ntfy.sh/resume-app-pb

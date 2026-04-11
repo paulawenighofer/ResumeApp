@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: resumeapp-web-ingress
+  namespace: $PR_NAMESPACE
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: $PR_HOSTNAME
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: resumeapp-api-service
+                port:
+                  number: 80
