@@ -95,8 +95,6 @@ jobs:
 
       - name: Echo PR environment URLs
         run: |
-          REPO_NAME=$(echo "${{ github.repository }}" | cut -d'/' -f2)
-          REPO_OWNER=$(echo "${{ github.repository }}" | cut -d'/' -f1)
           echo "=========================================="
           echo "  PR Environment URLs"
           echo "=========================================="
@@ -104,8 +102,7 @@ jobs:
           echo "  Grafana:    http://${PR_GRAFANA_HOST}"
           echo "  Prometheus: http://${PR_PROMETHEUS_HOST}"
           echo "  Namespace:  ${PR_NAMESPACE}"
-          echo "=========================================="
-          echo "  PR URL: https://github.com/${REPO_OWNER}/${REPO_NAME}/pull/${PR_NUMBER}"
+          echo "  PR:         ${{ github.event.pull_request.html_url }}"
           echo "=========================================="
 
       - name: Post or update PR comment
@@ -134,13 +131,17 @@ jobs:
           if [ -n "$EXISTING_COMMENT_ID" ]; then
             gh api --method PATCH \
               repos/${{ github.repository }}/issues/comments/${EXISTING_COMMENT_ID} \
-              -f body="$COMMENT_BODY"
-            echo "Updated existing comment ${EXISTING_COMMENT_ID}"
+              -f body="$COMMENT_BODY" \
+              --silent
+            echo "Updated comment: ${{ github.event.pull_request.html_url }}#issuecomment-${EXISTING_COMMENT_ID}"
           else
-            gh pr comment ${PR_NUMBER} \
-              --repo ${{ github.repository }} \
-              --body "$COMMENT_BODY"
-            echo "Created new comment"
+            NEW_COMMENT_ID=$(gh api \
+              --method POST \
+              repos/${{ github.repository }}/issues/${PR_NUMBER}/comments \
+              -f body="$COMMENT_BODY" \
+              --jq ".id" \
+              --silent)
+            echo "Created comment: ${{ github.event.pull_request.html_url }}#issuecomment-${NEW_COMMENT_ID}"
           fi
 
       - name: Notify on failure
