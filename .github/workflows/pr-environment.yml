@@ -106,7 +106,7 @@ jobs:
 
       - name: Post or update PR comment
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           MARKER="<!-- pr-env-bot -->"
           COMMENT_BODY="${MARKER}
