@@ -123,17 +123,21 @@ jobs:
           _Updated: $(date -u '+%Y-%m-%d %H:%M UTC')_"
 
           EXISTING_COMMENT_ID=$(gh api \
+            --repo ${{ github.repository }} \
             repos/${{ github.repository }}/issues/${PR_NUMBER}/comments \
             --jq ".[] | select(.body | startswith(\"${MARKER}\")) | .id" \
             | head -1)
 
           if [ -n "$EXISTING_COMMENT_ID" ]; then
             gh api --method PATCH \
+              --repo ${{ github.repository }} \
               repos/${{ github.repository }}/issues/comments/${EXISTING_COMMENT_ID} \
               -f body="$COMMENT_BODY"
             echo "Updated existing comment ${EXISTING_COMMENT_ID}"
           else
-            gh pr comment ${PR_NUMBER} --body "$COMMENT_BODY"
+            gh pr comment ${PR_NUMBER} \
+              --repo ${{ github.repository }} \
+              --body "$COMMENT_BODY"
             echo "Created new comment"
           fi
 
