@@ -140,8 +140,7 @@ jobs:
               --method POST \
               repos/${{ github.repository }}/issues/${PR_NUMBER}/comments \
               -f body="$COMMENT_BODY" \
-              --jq ".id" \
-              --silent)
+              --jq ".id")
             echo "Created comment: ${{ github.event.pull_request.html_url }}#issuecomment-${NEW_COMMENT_ID}"
           fi
 
@@ -176,7 +175,7 @@ jobs:
           TOKEN=$(curl -s -X POST \
             -H "Content-Type: application/json" \
             -d "{\"username\":\"${{ secrets.DOCKER_USERNAME }}\",\"password\":\"${{ secrets.DOCKER_TOKEN }}\"}" \
-            https://hub.docker.com/v2/users/login/ | jq -r .token)
+            https://hub.docker.com/v2/users/login/ | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
           curl -s -X DELETE \
             -H "Authorization: JWT ${TOKEN}" \
             "https://hub.docker.com/v2/repositories/paulawenighofer/resumeapp/tags/${IMAGE_TAG}/"
