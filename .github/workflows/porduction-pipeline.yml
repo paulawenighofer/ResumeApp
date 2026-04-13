@@ -6,8 +6,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
+  build-and-deploy-on-azure:
+    runs-on: self-hosted
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -20,22 +20,25 @@ jobs:
 
       - name: Build and Push to Docker Hub
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/resumeapp:${{ github.run_number }} .
-          docker push ${{ secrets.DOCKER_USERNAME }}/resumeapp:${{ github.run_number }}
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/resumeapp-prod:${{ github.run_number }} .
+          docker push ${{ secrets.DOCKER_USERNAME }}/resumeapp-prod:${{ github.run_number }}
 
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          client_id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
 
       - name: Deploy to Azure Container App
         uses: azure/container-apps-deploy-action@v1
         with:
           resourceGroup: ${{ secrets.AZURE_RESOURCE_GROUP }}
           containerAppName: ${{ secrets.AZURE_CONTAINER_APP_NAME }}
-          imageToDeploy: ${{ secrets.DOCKER_USERNAME }}/resumeapp:${{ github.run_number }}
+          imageToDeploy: ${{ secrets.DOCKER_USERNAME }}/resumeapp-prod:${{ github.run_number }}
 
       - name: Notify on failure
         if: failure()
         run: |
-          curl -d "Production Deployment Failed for Resume APP - Please fix it" ntfy.sh/resume-app-pb
+          curl -d "Production Deployment on Azure Failed for Resume APP - Please fix it" ntfy.sh/resume-app-pb
