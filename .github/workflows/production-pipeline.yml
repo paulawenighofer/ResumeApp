@@ -1,4 +1,4 @@
-name: Pipeline for Building
+name: Pipeline for Building on Production
 on:
   push:
     branches:
@@ -23,8 +23,8 @@ jobs:
 
       - name: Build and Push to Docker Hub
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/resumeapp-prod:${{ github.run_number }} .
-          docker push ${{ secrets.DOCKER_USERNAME }}/resumeapp-prod:${{ github.run_number }}
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/resumeapp:-prod${{ github.run_number }} .
+          docker push ${{ secrets.DOCKER_USERNAME }}/resumeapp:-prod${{ github.run_number }}
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -39,7 +39,7 @@ jobs:
         with:
           resourceGroup: ${{ secrets.AZURE_RESOURCE_GROUP }}
           containerAppName: ${{ secrets.AZURE_CONTAINER_APP_NAME }}
-          imageToDeploy: ${{ secrets.DOCKER_USERNAME }}/resumeapp-prod:${{ github.run_number }}
+          imageToDeploy: ${{ secrets.DOCKER_USERNAME }}/resumeapp:-prod${{ github.run_number }}
 
       - name: Notify on failure
         if: failure()
