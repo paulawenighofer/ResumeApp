@@ -2,12 +2,13 @@ name: PR Environment
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, closed]
 
 jobs:
   deploy-pr-environment:
     name: Deploy PR Environment
     runs-on: self-hosted
+    if: github.event.action != 'closed'
     env:
       PR_NUMBER: ${{ github.event.pull_request.number }}
       PR_NAMESPACE: resumeapp-pr-${{ github.event.pull_request.number }}
@@ -148,3 +149,48 @@ jobs:
         if: failure()
         run: |
           curl -d "PR #${PR_NUMBER} environment deployment failed" ntfy.sh/resume-app-pb
+
+  cleanup-pr-environment:
+    name: Cleanup PR Environment
+    runs-on: self-hosted
+    if: github.event.action == 'closed'
+    env:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_NAMESPACE: resumeapp-pr-${{ github.event.pull_request.number }}
+      IMAGE_TAG: pr-${{ github.event.pull_request.number }}
+      KUBECONFIG: /home/bishwas/.kube/config
+
+    steps:
+      - name: Delete Kubernetes namespace
+        run: |
+          kubectl delete namespace ${PR_NAMESPACE} --ignore-not-found=true
+          echo "Triggered deletion of namespace ${PR_NAMESPACE}"
+
+      - name: Wait for namespace to be fully terminated
+        run: |
+          kubectl wait --for=delete namespace/${PR_NAMESPACE} --timeout=60s || true
+          echo "Namespace ${PR_NAMESPACE} fully terminated"
+
+      - name: Delete Docker Hub image tag
+        run: |
+          TOKEN=$(curl -s -X POST \
+            -H "Content-Type: application/json" \
+            -d "{\"username\":\"${{ secrets.DOCKER_USERNAME }}\",\"password\":\"${{ secrets.DOCKER_TOKEN }}\"}" \
+            https://hub.docker.com/v2/users/login/ | jq -r .token)
+          curl -s -X DELETE \
+            -H "Authorization: JWT ${TOKEN}" \
+            "https://hub.docker.com/v2/repositories/paulawenighofer/resumeapp/tags/${IMAGE_TAG}/"
+          echo "Deleted Docker Hub image tag ${IMAGE_TAG}"
+
+      - name: Post cleanup comment
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          gh pr comment ${PR_NUMBER} \
+            --repo ${{ github.repository }} \
+            --body "PR environment \`${PR_NAMESPACE}\` has been torn down. All Kubernetes resources and Docker image \`${IMAGE_TAG}\` deleted."
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          curl -d "PR #${PR_NUMBER} environment cleanup failed" ntfy.sh/resume-app-pb
