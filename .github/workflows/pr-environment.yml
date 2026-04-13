@@ -140,8 +140,7 @@ jobs:
               --method POST \
               repos/${{ github.repository }}/issues/${PR_NUMBER}/comments \
               -f body="$COMMENT_BODY" \
-              --jq ".id" \
-              --silent)
+              --jq ".id")
             echo "Created comment: ${{ github.event.pull_request.html_url }}#issuecomment-${NEW_COMMENT_ID}"
           fi
 
