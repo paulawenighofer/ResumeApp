@@ -1,94 +1,94 @@
-name: Pipelines for alex's kubernetes hosting
-on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
-jobs:
-  Kube-deploy:
-    runs-on: self-hosted
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v5
+# name: Pipelines for alex's kubernetes hosting
+# on:
+#   push:
+#     branches:
+#       - main
+#   workflow_dispatch:
+# jobs:
+#   deploy-on-kubernetes:
+#     runs-on: self-hosted
+#     steps:
+#       - name: Check out repository code
+#         uses: actions/checkout@v5
  
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_TOKEN }}
+#       - name: Login to Docker Hub
+#         uses: docker/login-action@v3
+#         with:
+#           username: ${{ secrets.DOCKER_USERNAME }}
+#           password: ${{ secrets.DOCKER_TOKEN }}
  
         
-      - name: linting
-        run: |
-          nix-shell -p dotnetCorePackages.sdk_9_0 \
-           --run "dotnet restore API/API.csproj && dotnet restore Test/Test.csproj && dotnet format API/API.csproj --verify-no-changes --no-restore && dotnet format Test/Test.csproj --verify-no-changes --no-restore"
+#       - name: linting
+#         run: |
+#           nix-shell -p dotnetCorePackages.sdk_9_0 \
+#            --run "dotnet restore API/API.csproj && dotnet restore Test/Test.csproj && dotnet format API/API.csproj --verify-no-changes --no-restore && dotnet format Test/Test.csproj --verify-no-changes --no-restore"
  
-      - name: testing
-        run: |
-          nix-shell -p dotnetCorePackages.sdk_9_0 \
-           --run "dotnet restore Test/Test.csproj && dotnet test Test/Test.csproj --no-restore"
+#       - name: testing
+#         run: |
+#           nix-shell -p dotnetCorePackages.sdk_9_0 \
+#            --run "dotnet restore Test/Test.csproj && dotnet test Test/Test.csproj --no-restore"
  
-      - name: Building and Pushing to Docker Hub
-        run: |
-            docker build -t paulawenighofer/resumeapp:$GITHUB_RUN_NUMBER .
-            docker push paulawenighofer/resumeapp:$GITHUB_RUN_NUMBER
+#       - name: Building and Pushing to Docker Hub
+#         run: |
+#             docker build -t paulawenighofer/resumeapp:$GITHUB_RUN_NUMBER .
+#             docker push paulawenighofer/resumeapp:$GITHUB_RUN_NUMBER
  
-      - name: Apply Namespace
-        env:
-            KUBECONFIG: /home/bishwas/.kube/config
-        run: kubectl apply -f kubernetes/0-namespace.yml
+#       - name: Apply Namespace
+#         env:
+#             KUBECONFIG: /home/bishwas/.kube/config
+#         run: kubectl apply -f kubernetes/0-namespace.yml
 
-      - name: Create Kubernetes Secret
-        env:
-            KUBECONFIG: /home/bishwas/.kube/config
-        run: |
-          kubectl create secret generic resume-app-secrets \
-            --namespace=resumeapp \
-            --from-literal=ConnectionStrings__DefaultConnection="${{ secrets.DB_CONNECTION }}" \
-            --from-literal=Jwt__Key="${{ secrets.JWT_KEY }}" \
-            --from-literal=Jwt__Issuer="${{ secrets.JWT_ISSUER }}" \
-            --from-literal=Jwt__Audience="${{ secrets.JWT_AUDIENCE }}" \
-            --from-literal=Jwt__ExpirationInMinutes="1" \
-            --from-literal=Google__ClientId="${{ secrets.GOOGLE__CLIENTID }}" \
-            --from-literal=Google__ClientSecret="${{ secrets.GOOGLE_CLIENTSECRET }}" \
-            --from-literal=LinkedIn__ClientId="${{ secrets.LINKEDIN_CLIENTID }}" \
-            --from-literal=LinkedIn__ClientSecret="${{ secrets.LINKEDIN_CLIENTSECRET }}" \
-            --from-literal=GitHub__ClientId="${{ secrets.GH_CLIENT_ID }}" \
-            --from-literal=GitHub__ClientSecret="${{ secrets.GH_CLIENT_SECRET }}" \
-            --from-literal=AppScheme="myresumebuilder" \
-            --from-literal=ApiBaseUrl="https://resume-app-pb.duckdns.org" \
-            --from-literal=POSTGRES_USER="${{ secrets.POSTGRES_USER }}" \
-            --from-literal=POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}" \
-            --from-literal=POSTGRES_DB="${{ secrets.POSTGRES_DB }}" \
-            --from-literal=Smtp__Username="${{ secrets.SMTP_USERNAME }}" \
-            --from-literal=Smtp__Password="${{ secrets.SMTP_PASSWORD }}" \
-            --dry-run=client -o yaml | kubectl apply -f -
+#       - name: Create Kubernetes Secret
+#         env:
+#             KUBECONFIG: /home/bishwas/.kube/config
+#         run: |
+#           kubectl create secret generic resume-app-secrets \
+#             --namespace=resumeapp \
+#             --from-literal=ConnectionStrings__DefaultConnection="${{ secrets.DB_CONNECTION }}" \
+#             --from-literal=Jwt__Key="${{ secrets.JWT_KEY }}" \
+#             --from-literal=Jwt__Issuer="${{ secrets.JWT_ISSUER }}" \
+#             --from-literal=Jwt__Audience="${{ secrets.JWT_AUDIENCE }}" \
+#             --from-literal=Jwt__ExpirationInMinutes="1" \
+#             --from-literal=Google__ClientId="${{ secrets.GOOGLE__CLIENTID }}" \
+#             --from-literal=Google__ClientSecret="${{ secrets.GOOGLE_CLIENTSECRET }}" \
+#             --from-literal=LinkedIn__ClientId="${{ secrets.LINKEDIN_CLIENTID }}" \
+#             --from-literal=LinkedIn__ClientSecret="${{ secrets.LINKEDIN_CLIENTSECRET }}" \
+#             --from-literal=GitHub__ClientId="${{ secrets.GH_CLIENT_ID }}" \
+#             --from-literal=GitHub__ClientSecret="${{ secrets.GH_CLIENT_SECRET }}" \
+#             --from-literal=AppScheme="myresumebuilder" \
+#             --from-literal=ApiBaseUrl="https://resume-app-pb.duckdns.org" \
+#             --from-literal=POSTGRES_USER="${{ secrets.POSTGRES_USER }}" \
+#             --from-literal=POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}" \
+#             --from-literal=POSTGRES_DB="${{ secrets.POSTGRES_DB }}" \
+#             --from-literal=Smtp__Username="${{ secrets.SMTP_USERNAME }}" \
+#             --from-literal=Smtp__Password="${{ secrets.SMTP_PASSWORD }}" \
+#             --dry-run=client -o yaml | kubectl apply -f -
 
-      - name: Deploy Manifests
-        env:
-            KUBECONFIG: /home/bishwas/.kube/config
-        run: |
-          for file in ./kubernetes/*.yml; do
-            echo "$file"
-            cat "$file" | envsubst | kubectl apply -f -
-          done
+#       - name: Deploy Manifests
+#         env:
+#             KUBECONFIG: /home/bishwas/.kube/config
+#         run: |
+#           for file in ./kubernetes/*.yml; do
+#             echo "$file"
+#             cat "$file" | envsubst | kubectl apply -f -
+#           done
 
-      - name: Update grafana dashboard configmap
-        env:
-            KUBECONFIG: /home/bishwas/.kube/config
-        run: |
-          kubectl delete -n resumeapp configmap grafana-dashboard-config-configmap || true
-          kubectl create -n resumeapp configmap grafana-dashboard-config-configmap --from-file=configs/grafana-dashboard.json
+#       - name: Update grafana dashboard configmap
+#         env:
+#             KUBECONFIG: /home/bishwas/.kube/config
+#         run: |
+#           kubectl delete -n resumeapp configmap grafana-dashboard-config-configmap || true
+#           kubectl create -n resumeapp configmap grafana-dashboard-config-configmap --from-file=configs/grafana-dashboard.json
 
-      - name: Restart observability pods to pick up new configmaps
-        env:
-            KUBECONFIG: /home/bishwas/.kube/config
-        run: |
-          kubectl rollout restart deployment/grafana -n resumeapp
-          kubectl rollout restart deployment/otel-collector -n resumeapp
+#       - name: Restart observability pods to pick up new configmaps
+#         env:
+#             KUBECONFIG: /home/bishwas/.kube/config
+#         run: |
+#           kubectl rollout restart deployment/grafana -n resumeapp
+#           kubectl rollout restart deployment/otel-collector -n resumeapp
 
-      - name: Run on failure
-        if: failure()
-        run: |
-          curl -d "App Deployment Failed for Resume APP - Please fix it" ntfy.sh/resume-app-pb
+#       - name: Run on failure
+#         if: failure()
+#         run: |
+#           curl -d "App Deployment Failed for Resume APP - Please fix it" ntfy.sh/resume-app-pb
         
