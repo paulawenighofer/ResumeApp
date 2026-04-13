@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: $PR_NAMESPACE
+  labels:
+    managed-by: pr-environment
+    pr-number: "$PR_NUMBER"

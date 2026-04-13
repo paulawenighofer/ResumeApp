@@ -14,7 +14,6 @@ namespace Shared.Models
             get; set;
         }
 
-        [Required]
         public string UserId { get; set; } = string.Empty;
 
         // What job this resume was tailored for
