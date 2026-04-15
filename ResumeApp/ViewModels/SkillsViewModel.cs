@@ -2,15 +2,14 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ResumeApp.Models;
 using ResumeApp.Services;
-using ResumeApp.Views;
 using System.Collections.ObjectModel;
 
 namespace ResumeApp.ViewModels;
 
 public partial class SkillsViewModel : ObservableObject
 {
-    private readonly IApiService _apiService;
     private readonly ILocalStorageService _localStorageService;
+    private readonly ISyncCoordinator _syncCoordinator;
 
     [ObservableProperty]
     private string skillInput = string.Empty;
@@ -65,11 +64,11 @@ public partial class SkillsViewModel : ObservableObject
         "Team Leadership"
     ];
 
-    public SkillsViewModel(IApiService apiService, ILocalStorageService localStorageService)
+    public SkillsViewModel(ILocalStorageService localStorageService, ISyncCoordinator syncCoordinator)
     {
-        _apiService = apiService;
         _localStorageService = localStorageService;
-        _ = LoadDraftsAndEntriesAsync();
+        _syncCoordinator = syncCoordinator;
+        _ = LoadEntriesAsync();
     }
 
     [RelayCommand]
@@ -91,24 +90,21 @@ public partial class SkillsViewModel : ObservableObject
             return;
         }
 
+        var existing = SkillEntries.FirstOrDefault(x => x.Id == _editingSkillId);
         var skill = new SkillEntry
         {
-            Id = _editingSkillId ?? Guid.NewGuid().ToString(),
+            Id = existing?.Id ?? Guid.NewGuid().ToString(),
+            UpdatedAt = existing?.UpdatedAt,
+            Version = existing?.Version,
+            Deleted = false,
             Name = SkillInput.Trim(),
             ProficiencyLevel = SelectedProficiencyLevel,
             Category = SelectedCategory
         };
 
-        if (IsEditing && _editingSkillId is not null)
-        {
-            ReplaceSkill(skill);
-        }
-        else
-        {
-            SkillEntries.Add(skill);
-        }
-
-        await _localStorageService.SaveSkillsDraftAsync(SkillEntries.ToList());
+        await _localStorageService.SaveItemAsync(skill);
+        await RefreshEntriesAsync();
+        _ = _syncCoordinator.SyncSkillsAsync();
         ResetEditor();
     }
 
@@ -139,7 +135,7 @@ public partial class SkillsViewModel : ObservableObject
             return;
         }
 
-        SkillEntries.Add(new SkillEntry
+        await _localStorageService.SaveItemAsync(new SkillEntry
         {
             Id = Guid.NewGuid().ToString(),
             Name = skillName,
@@ -147,19 +143,21 @@ public partial class SkillsViewModel : ObservableObject
             Category = SelectedCategory
         });
 
-        await _localStorageService.SaveSkillsDraftAsync(SkillEntries.ToList());
+        await RefreshEntriesAsync();
+        _ = _syncCoordinator.SyncSkillsAsync();
     }
 
     [RelayCommand]
     private async Task DeleteSkill(SkillEntry? skill)
     {
-        if (skill is null || !SkillEntries.Contains(skill))
+        if (skill is null)
         {
             return;
         }
 
-        SkillEntries.Remove(skill);
-        await _localStorageService.SaveSkillsDraftAsync(SkillEntries.ToList());
+        await _localStorageService.DeleteItemAsync(skill);
+        await RefreshEntriesAsync();
+        _ = _syncCoordinator.SyncSkillsAsync();
         if (_editingSkillId == skill.Id)
         {
             ResetEditor();
@@ -189,33 +187,7 @@ public partial class SkillsViewModel : ObservableObject
                 return;
             }
 
-            await _localStorageService.SaveSkillsDraftAsync(SkillEntries.ToList());
-
-            var syncFailed = false;
-
-            foreach (var skill in SkillEntries)
-            {
-                var success = int.TryParse(skill.Id, out _)
-                    ? await _apiService.UpdateSkillAsync(skill)
-                    : await _apiService.PostSkillAsync(skill);
-
-                if (!success)
-                {
-                    syncFailed = true;
-                    break;
-                }
-            }
-
-            if (!syncFailed)
-            {
-                await _localStorageService.ClearSkillsDraftAsync();
-            }
-
-            if (syncFailed)
-            {
-                ShowError("Skills saved locally. Backend sync failed — it will retry automatically.");
-            }
-
+            await _syncCoordinator.SyncSkillsAsync();
             await Shell.Current.GoToAsync("..");
         }
         catch (Exception ex)
@@ -228,19 +200,21 @@ public partial class SkillsViewModel : ObservableObject
         }
     }
 
-    private async Task LoadDraftsAndEntriesAsync()
+    private async Task LoadEntriesAsync()
     {
-        var drafts = await _localStorageService.LoadSkillsDraftAsync();
-        if (drafts.Count > 0)
+        await _localStorageService.InitializeAsync();
+        await RefreshEntriesAsync();
+        _ = Task.Run(async () =>
         {
-            SkillEntries = new ObservableCollection<SkillEntry>(drafts);
-        }
+            await _syncCoordinator.SyncSkillsAsync();
+            await MainThread.InvokeOnMainThreadAsync(RefreshEntriesAsync);
+        });
+    }
 
-        var entries = await _apiService.GetSkillsAsync();
-        if (entries.Count > 0)
-        {
-            SkillEntries = new ObservableCollection<SkillEntry>(entries);
-        }
+    private async Task RefreshEntriesAsync()
+    {
+        var entries = await _localStorageService.LoadItemsAsync<SkillEntry>();
+        SkillEntries = new ObservableCollection<SkillEntry>(entries);
     }
 
     private void ShowError(string message)
@@ -269,18 +243,6 @@ public partial class SkillsViewModel : ObservableObject
 
         await AddSkill();
         return !HasError;
-    }
-
-    private void ReplaceSkill(SkillEntry skill)
-    {
-        var index = SkillEntries
-            .Select((item, idx) => new { item, idx })
-            .FirstOrDefault(x => x.item.Id == skill.Id)?.idx ?? -1;
-
-        if (index >= 0)
-        {
-            SkillEntries[index] = skill;
-        }
     }
 
     private void ResetEditor()

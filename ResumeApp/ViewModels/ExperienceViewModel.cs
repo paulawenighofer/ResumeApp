@@ -2,15 +2,14 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ResumeApp.Models;
 using ResumeApp.Services;
-using ResumeApp.Views;
 using System.Collections.ObjectModel;
 
 namespace ResumeApp.ViewModels;
 
 public partial class ExperienceViewModel : ObservableObject
 {
-    private readonly IApiService _apiService;
     private readonly ILocalStorageService _localStorageService;
+    private readonly ISyncCoordinator _syncCoordinator;
 
     [ObservableProperty]
     private ExperienceEntry currentExperience = new();
@@ -43,11 +42,11 @@ public partial class ExperienceViewModel : ObservableObject
         "Temporary"
     ];
 
-    public ExperienceViewModel(IApiService apiService, ILocalStorageService localStorageService)
+    public ExperienceViewModel(ILocalStorageService localStorageService, ISyncCoordinator syncCoordinator)
     {
-        _apiService = apiService;
         _localStorageService = localStorageService;
-        _ = LoadDraftsAndEntriesAsync();
+        _syncCoordinator = syncCoordinator;
+        _ = LoadEntriesAsync();
     }
 
     [RelayCommand]
@@ -69,9 +68,13 @@ public partial class ExperienceViewModel : ObservableObject
             return;
         }
 
+        var existing = ExperienceEntries.FirstOrDefault(x => x.Id == _editingExperienceId);
         var entry = new ExperienceEntry
         {
-            Id = _editingExperienceId ?? Guid.NewGuid().ToString(),
+            Id = existing?.Id ?? Guid.NewGuid().ToString(),
+            UpdatedAt = existing?.UpdatedAt,
+            Version = existing?.Version,
+            Deleted = false,
             Company = CurrentExperience.Company.Trim(),
             JobTitle = CurrentExperience.JobTitle.Trim(),
             EmploymentType = CurrentExperience.EmploymentType,
@@ -83,16 +86,9 @@ public partial class ExperienceViewModel : ObservableObject
             Technologies = CurrentExperience.Technologies
         };
 
-        if (IsEditing && _editingExperienceId is not null)
-        {
-            ReplaceExperience(entry);
-        }
-        else
-        {
-            ExperienceEntries.Add(entry);
-        }
-
-        await _localStorageService.SaveExperienceDraftAsync(ExperienceEntries.ToList());
+        await _localStorageService.SaveItemAsync(entry);
+        await RefreshEntriesAsync();
+        _ = _syncCoordinator.SyncExperienceAsync();
         ResetEditor();
     }
 
@@ -110,6 +106,9 @@ public partial class ExperienceViewModel : ObservableObject
         CurrentExperience = new ExperienceEntry
         {
             Id = entry.Id,
+            UpdatedAt = entry.UpdatedAt,
+            Version = entry.Version,
+            Deleted = entry.Deleted,
             Company = entry.Company,
             JobTitle = entry.JobTitle,
             EmploymentType = entry.EmploymentType,
@@ -128,13 +127,14 @@ public partial class ExperienceViewModel : ObservableObject
     [RelayCommand]
     private async Task DeleteExperience(ExperienceEntry? entry)
     {
-        if (entry is null || !ExperienceEntries.Contains(entry))
+        if (entry is null)
         {
             return;
         }
 
-        ExperienceEntries.Remove(entry);
-        await _localStorageService.SaveExperienceDraftAsync(ExperienceEntries.ToList());
+        await _localStorageService.DeleteItemAsync(entry);
+        await RefreshEntriesAsync();
+        _ = _syncCoordinator.SyncExperienceAsync();
         if (_editingExperienceId == entry.Id)
         {
             ResetEditor();
@@ -164,33 +164,7 @@ public partial class ExperienceViewModel : ObservableObject
                 return;
             }
 
-            await _localStorageService.SaveExperienceDraftAsync(ExperienceEntries.ToList());
-
-            var syncFailed = false;
-
-            foreach (var entry in ExperienceEntries)
-            {
-                var success = int.TryParse(entry.Id, out _)
-                    ? await _apiService.UpdateExperienceAsync(entry)
-                    : await _apiService.PostExperienceAsync(entry);
-
-                if (!success)
-                {
-                    syncFailed = true;
-                    break;
-                }
-            }
-
-            if (!syncFailed)
-            {
-                await _localStorageService.ClearExperienceDraftAsync();
-            }
-
-            if (syncFailed)
-            {
-                ShowError("Experience was saved locally, but the backend sync failed. You can continue and sync again later.");
-            }
-
+            await _syncCoordinator.SyncExperienceAsync();
             await Shell.Current.GoToAsync("..");
         }
         catch (Exception ex)
@@ -203,19 +177,21 @@ public partial class ExperienceViewModel : ObservableObject
         }
     }
 
-    private async Task LoadDraftsAndEntriesAsync()
+    private async Task LoadEntriesAsync()
     {
-        var drafts = await _localStorageService.LoadExperienceDraftAsync();
-        if (drafts.Count > 0)
+        await _localStorageService.InitializeAsync();
+        await RefreshEntriesAsync();
+        _ = Task.Run(async () =>
         {
-            ExperienceEntries = new ObservableCollection<ExperienceEntry>(drafts);
-        }
+            await _syncCoordinator.SyncExperienceAsync();
+            await MainThread.InvokeOnMainThreadAsync(RefreshEntriesAsync);
+        });
+    }
 
-        var entries = await _apiService.GetExperienceAsync();
-        if (entries.Count > 0)
-        {
-            ExperienceEntries = new ObservableCollection<ExperienceEntry>(entries);
-        }
+    private async Task RefreshEntriesAsync()
+    {
+        var entries = await _localStorageService.LoadItemsAsync<ExperienceEntry>();
+        ExperienceEntries = new ObservableCollection<ExperienceEntry>(entries);
     }
 
     private void ShowError(string message)
@@ -257,18 +233,6 @@ public partial class ExperienceViewModel : ObservableObject
 
         await AddExperience();
         return !HasError;
-    }
-
-    private void ReplaceExperience(ExperienceEntry entry)
-    {
-        var index = ExperienceEntries
-            .Select((item, idx) => new { item, idx })
-            .FirstOrDefault(x => x.item.Id == entry.Id)?.idx ?? -1;
-
-        if (index >= 0)
-        {
-            ExperienceEntries[index] = entry;
-        }
     }
 
     private void ResetEditor()

@@ -1,6 +1,8 @@
 using CommunityToolkit.Maui;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using ResumeApp.Data;
 using ResumeApp.Services;
 using ResumeApp.ViewModels;
 using ResumeApp.Views;
@@ -37,8 +39,15 @@ public static class MauiProgram
         });
 
         builder.Services.AddSingleton<AuthService>();
+        builder.Services.AddSingleton<DatasyncAuthProvider>();
+        builder.Services.AddDbContextFactory<OfflineAppDbContext>((sp, options) =>
+        {
+            var dbPath = Path.Combine(FileSystem.AppDataDirectory, "resumeapp-offline.db");
+            options.UseSqlite($"Data Source={dbPath}");
+        });
         builder.Services.AddSingleton<IApiService, ApiService>();
         builder.Services.AddSingleton<ILocalStorageService, LocalStorageService>();
+        builder.Services.AddSingleton<ISyncCoordinator, SyncCoordinator>();
         builder.Services.AddTransient<LoginViewModel>();
         builder.Services.AddTransient<LoginPage>();
         builder.Services.AddTransient<RegisterViewModel>();
@@ -59,6 +68,8 @@ public static class MauiProgram
         builder.Services.AddTransient<SkillsPage>();
         builder.Services.AddTransient<ProjectsViewModel>();
         builder.Services.AddTransient<ProjectsPage>();
+        builder.Services.AddTransient<CertificationsViewModel>();
+        builder.Services.AddTransient<CertificationsPage>();
         builder.Services.AddTransient<ProfileViewModel>();
         builder.Services.AddTransient<ProfilePage>();
         builder.Services.AddTransient<ResumeListViewModel>();

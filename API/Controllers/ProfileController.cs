@@ -13,15 +13,15 @@ namespace API.Controllers;
 [Route("api/profile")]
 public class ProfileController : ControllerBase
 {
-    private readonly IWebHostEnvironment _environment;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ApiMetrics _metrics;
+    private readonly IFileStorageService _fileStorage;
 
-    public ProfileController(IWebHostEnvironment environment, UserManager<ApplicationUser> userManager, ApiMetrics metrics)
+    public ProfileController(UserManager<ApplicationUser> userManager, ApiMetrics metrics, IFileStorageService fileStorage)
     {
-        _environment = environment;
         _userManager = userManager;
         _metrics = metrics;
+        _fileStorage = fileStorage;
     }
 
     [HttpPost("image")]
@@ -41,20 +41,9 @@ public class ProfileController : ControllerBase
         }
 
         var stopwatch = Stopwatch.StartNew();
-        var webRoot = string.IsNullOrWhiteSpace(_environment.WebRootPath)
-            ? Path.Combine(_environment.ContentRootPath, "wwwroot")
-            : _environment.WebRootPath;
-        var uploadsFolder = Path.Combine(webRoot, "uploads", "profiles");
-        Directory.CreateDirectory(uploadsFolder);
-
         var extension = Path.GetExtension(file.FileName);
         var fileName = $"{userId}_{Guid.NewGuid():N}{extension}";
-        var fullPath = Path.Combine(uploadsFolder, fileName);
-
-        await using (var stream = System.IO.File.Create(fullPath))
-        {
-            await file.CopyToAsync(stream);
-        }
+        await using var uploadStream = file.OpenReadStream();
 
         var user = await _userManager.FindByIdAsync(userId);
         if (user is null)
@@ -62,8 +51,7 @@ public class ProfileController : ControllerBase
             return Unauthorized();
         }
 
-        var publicPath = $"/uploads/profiles/{fileName}";
-        user.ProfileImageUrl = $"{Request.Scheme}://{Request.Host}{publicPath}";
+        user.ProfileImageUrl = await _fileStorage.SaveAsync(uploadStream, fileName, "profiles", Request);
         await _userManager.UpdateAsync(user);
         stopwatch.Stop();
         _metrics.RecordUpload(TelemetryTags.Sections.ProfileImage, TelemetryTags.Outcomes.Success, 1, file.Length, stopwatch.Elapsed.TotalMilliseconds, userId);

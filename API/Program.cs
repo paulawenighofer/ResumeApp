@@ -1,6 +1,7 @@
 using API.Data;
 using API.Middleware;
 using API.Services;
+using CommunityToolkit.Datasync.Server;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
@@ -15,19 +16,16 @@ using Scalar.AspNetCore;
 using Shared.Models;
 using System.Security.Claims;
 using System.Text;
-using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var telemetryServiceName = "ResumeApp.API";
 var telemetryServiceVersion = "1.0.0";
-var otlpEndpoint = Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT")
-    ?? string.Empty;
+var otlpEndpoint = Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT") ?? string.Empty;
 var hasOtlpEndpoint = !string.IsNullOrWhiteSpace(otlpEndpoint);
 var resourceBuilder = ResourceBuilder.CreateDefault()
     .AddService(serviceName: telemetryServiceName, serviceVersion: telemetryServiceVersion);
 
-// Configure logging to send to OpenTelemetry
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
@@ -36,12 +34,7 @@ builder.Logging.AddOpenTelemetry(options =>
     options.IncludeFormattedMessage = true;
     options.IncludeScopes = true;
     options.SetResourceBuilder(resourceBuilder);
-
-    if (!hasOtlpEndpoint)
-    {
-        return;
-    }
-
+    if (!hasOtlpEndpoint) return;
     options.AddOtlpExporter(options =>
     {
         options.Endpoint = new Uri(otlpEndpoint);
@@ -50,7 +43,6 @@ builder.Logging.AddOpenTelemetry(options =>
 });
 builder.Logging.SetMinimumLevel(LogLevel.Information);
 
-// Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -65,80 +57,50 @@ builder.Services.AddSwaggerGen(options =>
         Description = "Paste a JWT bearer token to call protected endpoints."
     };
 
-    options.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "ResumeApp API",
-        Version = "v1"
-    });
-
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "ResumeApp API", Version = "v1" });
     options.AddSecurityDefinition("BearerAuth", bearerScheme);
-
 });
 builder.Services.AddSingleton<InMemoryResumeStore>();
 
-// =============================================
-// SECTION 1: DATABASE
-// =============================================
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// =============================================
-// SECTION 2: IDENTITY (User Management)
-// =============================================
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
-    // If the password doesn't meet these rules, registration fails
-    // with a descriptive error message.
-    options.Password.RequireDigit = true;           // Must have a number
-    options.Password.RequiredLength = 8;            // At least 8 characters
-    options.Password.RequireNonAlphanumeric = false; // No special chars needed (keep it simple for MVP)
-    options.Password.RequireUppercase = true;        // Must have uppercase
-    options.Password.RequireLowercase = true;        // Must have lowercase
-
-    // Lockout — if someone tries 5 wrong passwords, lock the account for 5 minutes.
+    options.Password.RequireDigit = true;
+    options.Password.RequiredLength = 8;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireLowercase = true;
     options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
     options.Lockout.MaxFailedAccessAttempts = 5;
-
-    // Every email must be unique — no two users can register with the same email
     options.User.RequireUniqueEmail = true;
 })
-// This line connects Identity to our database context.
 .AddEntityFrameworkStores<AppDbContext>()
-// Adds token providers for things like email confirmation and password reset.
 .AddDefaultTokenProviders();
-
 
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
-// Configure JWT validation
 .AddJwtBearer(options =>
 {
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuer = true,           // Check the Issuer claim matches
-        ValidateAudience = true,         // Check the Audience claim matches
-        ValidateLifetime = true,         // Check the token hasn't expired
-        ValidateIssuerSigningKey = true,  // Verify the signature is genuine
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
-        // This is the key used to verify token signatures.
-        // It must match the key used to CREATE tokens (in TokenService).
-        IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
     };
-    // Validate SecurityStamp on every authenticated request.
-    // When logout-all is called, UpdateSecurityStampAsync rotates the stamp,
-    // so all tokens issued before that moment fail this check immediately.
     options.Events = new JwtBearerEvents
     {
         OnTokenValidated = async context =>
         {
-            var userManager = context.HttpContext.RequestServices
-                .GetRequiredService<UserManager<ApplicationUser>>();
-
+            var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<ApplicationUser>>();
             var userId = context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
             var stampClaim = context.Principal?.FindFirstValue("security_stamp");
 
@@ -155,28 +117,16 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// =============================================
-// SECTION 4: OTHER SERVICES
-// =============================================
-// creating new HttpClient instances manually (for better performance in http requests)
 builder.Services.AddHttpClient();
-// Register our custom TokenService so we can inject it into controllers
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<TokenService>();
-// Register our social auth service
 builder.Services.AddScoped<SocialAuthService>();
-// Register the email service — sends OTP codes and password-reset links via SMTP
 builder.Services.AddScoped<IEmailService, SmtpEmailService>();
 builder.Services.AddSingleton<UserActivityTracker>();
+builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
+builder.Services.AddDatasyncServices();
+builder.Services.AddScoped(typeof(IAccessControlProvider<>), typeof(CurrentUserAccessControlProvider<>));
 
-// =============================================
-// SECTION 5: RATE LIMITING
-// =============================================
-// Protects OTP endpoints against brute-force attacks.
-// "otp-verify"  — applied to verify-otp and reset-password: 5 attempts per 15 min per IP.
-//   With 1,000,000 possible codes an attacker would need ~200,000 windows to brute-force
-//   a single code, making automated attacks impractical within the 10-minute OTP window.
-// "otp-send"    — applied to forgot-password and resend-otp: 3 sends per 10 min per IP.
-//   Prevents email flooding / SMS-bombing style abuse.
 builder.Services.AddRateLimiter(options =>
 {
     options.AddSlidingWindowLimiter("otp-verify", opt =>
@@ -198,28 +148,18 @@ builder.Services.AddRateLimiter(options =>
     options.OnRejected = async (ctx, token) =>
     {
         ctx.HttpContext.Response.StatusCode = 429;
-        await ctx.HttpContext.Response.WriteAsJsonAsync(
-            new { message = "Too many attempts. Please try again later." }, token);
+        await ctx.HttpContext.Response.WriteAsJsonAsync(new { message = "Too many attempts. Please try again later." }, token);
     };
 });
 
 builder.Services.AddControllers();
-
-// =============================================
-// SECTION 6: OPENTELEMETRY
-// =============================================
 builder.Services.AddSingleton<ApiMetrics>();
 
-// Configure OpenTelemetry tracing and metrics
 builder.Services.AddOpenTelemetry()
     .ConfigureResource(resource => resource.AddService(serviceName: telemetryServiceName, serviceVersion: telemetryServiceVersion))
     .WithTracing(tracing =>
     {
-        tracing
-            .AddAspNetCoreInstrumentation()
-            .AddHttpClientInstrumentation()
-            .AddEntityFrameworkCoreInstrumentation();
-
+        tracing.AddAspNetCoreInstrumentation().AddHttpClientInstrumentation().AddEntityFrameworkCoreInstrumentation();
         if (hasOtlpEndpoint)
         {
             tracing.AddOtlpExporter(options =>
@@ -231,12 +171,7 @@ builder.Services.AddOpenTelemetry()
     })
     .WithMetrics(metrics =>
     {
-        metrics
-            .AddMeter(ApiMetrics.MeterName)
-            .AddAspNetCoreInstrumentation()
-            .AddHttpClientInstrumentation()
-            .AddRuntimeInstrumentation();
-
+        metrics.AddMeter(ApiMetrics.MeterName).AddAspNetCoreInstrumentation().AddHttpClientInstrumentation().AddRuntimeInstrumentation();
         if (hasOtlpEndpoint)
         {
             metrics.AddOtlpExporter(options =>
@@ -247,10 +182,8 @@ builder.Services.AddOpenTelemetry()
         }
     });
 
-
 var app = builder.Build();
 
-// Auto-apply migrations on startup so the DB is always in sync
 if (!app.Environment.IsEnvironment("Testing"))
 {
     using var scope = app.Services.CreateScope();
@@ -277,7 +210,6 @@ if (app.Environment.IsDevelopment())
         .AllowAnonymous();
 }
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
@@ -293,10 +225,8 @@ app.UseAuthorization();
 app.UseRateLimiter();
 
 app.MapControllers();
-
 app.MapStaticAssets();
 app.MapRazorPages().WithStaticAssets();
-
 app.MapGet("/api/", () => "Hello World!");
 
 app.Run();

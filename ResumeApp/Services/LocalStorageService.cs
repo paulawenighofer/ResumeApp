@@ -1,30 +1,75 @@
-using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using ResumeApp.Data;
 using ResumeApp.Models;
 
 namespace ResumeApp.Services;
 
 public class LocalStorageService : ILocalStorageService
 {
-    private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web);
-
-    private const string EducationKey = "draft_education";
-    private const string ExperienceKey = "draft_experience";
-    private const string SkillsKey = "draft_skills";
-    private const string ProjectsKey = "draft_projects";
     private const string ProfileImageKey = "profile_image_path";
+    private readonly IDbContextFactory<OfflineAppDbContext> _contextFactory;
 
-    public Task SaveEducationDraftAsync(List<EducationEntry> entries) => SaveAsync(EducationKey, entries);
-    public Task<List<EducationEntry>> LoadEducationDraftAsync() => LoadAsync<EducationEntry>(EducationKey);
-    public Task ClearEducationDraftAsync() => RemoveAsync(EducationKey);
-    public Task SaveExperienceDraftAsync(List<ExperienceEntry> entries) => SaveAsync(ExperienceKey, entries);
-    public Task<List<ExperienceEntry>> LoadExperienceDraftAsync() => LoadAsync<ExperienceEntry>(ExperienceKey);
-    public Task ClearExperienceDraftAsync() => RemoveAsync(ExperienceKey);
-    public Task SaveSkillsDraftAsync(List<SkillEntry> entries) => SaveAsync(SkillsKey, entries);
-    public Task<List<SkillEntry>> LoadSkillsDraftAsync() => LoadAsync<SkillEntry>(SkillsKey);
-    public Task ClearSkillsDraftAsync() => RemoveAsync(SkillsKey);
-    public Task SaveProjectsDraftAsync(List<ProjectEntry> entries) => SaveAsync(ProjectsKey, entries);
-    public Task<List<ProjectEntry>> LoadProjectsDraftAsync() => LoadAsync<ProjectEntry>(ProjectsKey);
-    public Task ClearProjectsDraftAsync() => RemoveAsync(ProjectsKey);
+    public LocalStorageService(IDbContextFactory<OfflineAppDbContext> contextFactory)
+    {
+        _contextFactory = contextFactory;
+    }
+
+    public async Task InitializeAsync()
+    {
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        await context.Database.EnsureCreatedAsync();
+    }
+
+    public async Task<List<T>> LoadItemsAsync<T>(bool includeDeleted = false) where T : class, ILocalSyncEntity, new()
+    {
+        await InitializeAsync();
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        var items = await context.Set<T>().AsNoTracking().ToListAsync();
+        return items
+            .Where(x => includeDeleted || !x.Deleted)
+            .OrderByDescending(x => x.UpdatedAt ?? DateTimeOffset.MinValue)
+            .ToList();
+    }
+
+    public async Task SaveItemAsync<T>(T item) where T : class, ILocalSyncEntity, new()
+    {
+        await InitializeAsync();
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        var existing = await context.Set<T>().FindAsync(item.Id);
+        if (existing is null)
+        {
+            await context.Set<T>().AddAsync(item);
+        }
+        else
+        {
+            context.Entry(existing).CurrentValues.SetValues(item);
+        }
+
+        await context.SaveChangesAsync();
+    }
+
+    public async Task SaveItemsAsync<T>(IEnumerable<T> items) where T : class, ILocalSyncEntity, new()
+    {
+        foreach (var item in items)
+        {
+            await SaveItemAsync(item);
+        }
+    }
+
+    public async Task DeleteItemAsync<T>(T item) where T : class, ILocalSyncEntity, new()
+    {
+        await InitializeAsync();
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        var existing = await context.Set<T>().FindAsync(item.Id);
+        if (existing is null)
+        {
+            return;
+        }
+
+        context.Remove(existing);
+        await context.SaveChangesAsync();
+    }
 
     public Task SaveProfileImagePathAsync(string? imagePath)
     {
@@ -44,37 +89,4 @@ public class LocalStorageService : ILocalStorageService
         => Task.FromResult<string?>(Preferences.Default.ContainsKey(ProfileImageKey)
             ? Preferences.Default.Get(ProfileImageKey, string.Empty)
             : null);
-
-    private static Task SaveAsync<T>(string key, List<T> items)
-    {
-        Preferences.Default.Set(key, JsonSerializer.Serialize(items, SerializerOptions));
-        return Task.CompletedTask;
-    }
-
-    private static Task<List<T>> LoadAsync<T>(string key)
-    {
-        var json = Preferences.Default.ContainsKey(key)
-            ? Preferences.Default.Get(key, string.Empty)
-            : null;
-        if (string.IsNullOrWhiteSpace(json))
-        {
-            return Task.FromResult(new List<T>());
-        }
-
-        try
-        {
-            return Task.FromResult(JsonSerializer.Deserialize<List<T>>(json, SerializerOptions) ?? new List<T>());
-        }
-        catch
-        {
-            Preferences.Default.Remove(key);
-            return Task.FromResult(new List<T>());
-        }
-    }
-
-    private static Task RemoveAsync(string key)
-    {
-        Preferences.Default.Remove(key);
-        return Task.CompletedTask;
-    }
 }

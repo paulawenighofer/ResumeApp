@@ -73,21 +73,11 @@ public partial class ProfileViewModel : ObservableObject
         }
     }
 
-    [RelayCommand]
-    private async Task GoToEducation() =>
-        await Shell.Current.GoToAsync(nameof(EducationPage));
-
-    [RelayCommand]
-    private async Task GoToExperience() =>
-        await Shell.Current.GoToAsync(nameof(ExperiencePage));
-
-    [RelayCommand]
-    private async Task GoToSkills() =>
-        await Shell.Current.GoToAsync(nameof(SkillsPage));
-
-    [RelayCommand]
-    private async Task GoToProjects() =>
-        await Shell.Current.GoToAsync(nameof(ProjectsPage));
+    [RelayCommand] private Task GoToEducation() => Shell.Current.GoToAsync(nameof(EducationPage));
+    [RelayCommand] private Task GoToExperience() => Shell.Current.GoToAsync(nameof(ExperiencePage));
+    [RelayCommand] private Task GoToSkills() => Shell.Current.GoToAsync(nameof(SkillsPage));
+    [RelayCommand] private Task GoToProjects() => Shell.Current.GoToAsync(nameof(ProjectsPage));
+    [RelayCommand] private Task GoToCertifications() => Shell.Current.GoToAsync(nameof(CertificationsPage));
 
     [RelayCommand]
     private async Task Logout()

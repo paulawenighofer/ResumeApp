@@ -10,128 +10,26 @@
 
     <ScrollView>
         <VerticalStackLayout Padding="24,16" Spacing="20">
-
-            <!-- Header -->
-            <Label Text="✨ Generate Resume"
-                   FontSize="24"
-                   FontFamily="OpenSansSemibold"
-                   TextColor="{StaticResource TextPrimary}" />
-            <Label Text="Fill in the details below and let AI build you a tailored resume."
-                   Style="{StaticResource SubtitleStyle}" />
-
-            <!-- Target job -->
+            <Label Text="Generate Resume" FontSize="24" FontFamily="OpenSansSemibold" />
             <Border Style="{StaticResource CardStyle}">
                 <VerticalStackLayout Spacing="12">
-                    <Label Text="Target Job"
-                           FontFamily="OpenSansSemibold"
-                           FontSize="15"
-                           TextColor="{StaticResource TextPrimary}" />
-
-                    <Entry Placeholder="Job title"
-                           Text="{Binding JobTitle}"
-                           PlaceholderColor="{StaticResource InactiveIcon}" />
-
-                    <Entry Placeholder="Target company (optional)"
-                           Text="{Binding TargetCompany}"
-                           PlaceholderColor="{StaticResource InactiveIcon}" />
+                    <Entry Placeholder="Job title" Text="{Binding JobTitle}" />
+                    <Entry Placeholder="Target company (optional)" Text="{Binding TargetCompany}" />
+                    <Editor Placeholder="Paste the job description here..." AutoSize="TextChanges" MinimumHeightRequest="100" Text="{Binding JobDescription}" />
+                    <Picker Title="Experience level" ItemsSource="{Binding ExperienceLevels}" SelectedItem="{Binding SelectedExperienceLevel}" />
+                    <Picker Title="Output format" ItemsSource="{Binding ResumeFormats}" SelectedItem="{Binding SelectedResumeFormat}" />
+                    <Editor Placeholder="Write a short professional summary..." AutoSize="TextChanges" MinimumHeightRequest="80" Text="{Binding PersonalSummary}" />
+                    <Button Text="Attach generated file (optional)" Command="{Binding PickResumeFileCommand}" Style="{StaticResource OutlineButtonStyle}" />
+                    <Label Text="{Binding SelectedFilePath}" FontSize="12" TextColor="{StaticResource TextSecondary}" />
                 </VerticalStackLayout>
             </Border>
 
-            <!-- Job description -->
-            <Border Style="{StaticResource CardStyle}">
-                <VerticalStackLayout Spacing="12">
-                    <Label Text="Job Description"
-                           FontFamily="OpenSansSemibold"
-                           FontSize="15"
-                           TextColor="{StaticResource TextPrimary}" />
-                    <Editor Placeholder="Paste the job description here for a tailored resume..."
-                            AutoSize="TextChanges"
-                            MinimumHeightRequest="100"
-                            Text="{Binding JobDescription}"
-                            PlaceholderColor="{StaticResource InactiveIcon}" />
-                </VerticalStackLayout>
+            <Border Style="{StaticResource CardStyle}" BackgroundColor="#EDE9FE" IsVisible="{Binding HasStatus}">
+                <Label Text="{Binding StatusMessage}" TextColor="{StaticResource PrimaryViolet}" HorizontalTextAlignment="Center" />
             </Border>
 
-            <!-- Preferences -->
-            <Border Style="{StaticResource CardStyle}">
-                <VerticalStackLayout Spacing="12">
-                    <Label Text="Preferences"
-                           FontFamily="OpenSansSemibold"
-                           FontSize="15"
-                           TextColor="{StaticResource TextPrimary}" />
-
-                    <Picker Title="Experience level"
-                            ItemsSource="{Binding ExperienceLevels}"
-                            SelectedItem="{Binding SelectedExperienceLevel}" />
-
-                    <Picker Title="Output format"
-                            ItemsSource="{Binding ResumeFormats}"
-                            SelectedItem="{Binding SelectedResumeFormat}" />
-                </VerticalStackLayout>
-            </Border>
-
-            <!-- Personal summary -->
-            <Border Style="{StaticResource CardStyle}">
-                <VerticalStackLayout Spacing="12">
-                    <Label Text="Personal Summary (optional)"
-                           FontFamily="OpenSansSemibold"
-                           FontSize="15"
-                           TextColor="{StaticResource TextPrimary}" />
-                    <Editor Placeholder="Write a short professional summary or let AI generate one..."
-                            AutoSize="TextChanges"
-                            MinimumHeightRequest="80"
-                            Text="{Binding PersonalSummary}"
-                            PlaceholderColor="{StaticResource InactiveIcon}" />
-                </VerticalStackLayout>
-            </Border>
-
-            <!-- Sections to include -->
-            <Border Style="{StaticResource CardStyle}">
-                <VerticalStackLayout Spacing="14">
-                    <Label Text="Include Sections"
-                           FontFamily="OpenSansSemibold"
-                           FontSize="15"
-                           TextColor="{StaticResource TextPrimary}" />
-
-                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
-                        <CheckBox Grid.Column="0" IsChecked="{Binding IncludeEducation}" Color="{StaticResource PrimaryViolet}" />
-                        <Label Grid.Column="1" Text="Education" VerticalOptions="Center" TextColor="{StaticResource TextPrimary}" />
-                    </Grid>
-                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
-                        <CheckBox Grid.Column="0" IsChecked="{Binding IncludeExperience}" Color="{StaticResource PrimaryViolet}" />
-                        <Label Grid.Column="1" Text="Work Experience" VerticalOptions="Center" TextColor="{StaticResource TextPrimary}" />
-                    </Grid>
-                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
-                        <CheckBox Grid.Column="0" IsChecked="{Binding IncludeSkills}" Color="{StaticResource PrimaryViolet}" />
-                        <Label Grid.Column="1" Text="Skills" VerticalOptions="Center" TextColor="{StaticResource TextPrimary}" />
-                    </Grid>
-                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
-                        <CheckBox Grid.Column="0" IsChecked="{Binding IncludeProjects}" Color="{StaticResource PrimaryViolet}" />
-                        <Label Grid.Column="1" Text="Projects" VerticalOptions="Center" TextColor="{StaticResource TextPrimary}" />
-                    </Grid>
-                </VerticalStackLayout>
-            </Border>
-
-            <!-- Status message -->
-            <Border Style="{StaticResource CardStyle}"
-                    BackgroundColor="#EDE9FE"
-                    IsVisible="{Binding HasStatus}">
-                <Label Text="{Binding StatusMessage}"
-                       TextColor="{StaticResource PrimaryViolet}"
-                       FontSize="14"
-                       HorizontalTextAlignment="Center" />
-            </Border>
-
-            <!-- Generate button -->
-            <Button Text="🚀  Generate with AI"
-                    Command="{Binding GenerateCommand}"
-                    Style="{StaticResource VioletButtonStyle}"
-                    Margin="0,4,0,0" />
-
-            <ActivityIndicator IsRunning="{Binding IsBusy}"
-                               IsVisible="{Binding IsBusy}"
-                               Color="{StaticResource PrimaryViolet}" />
-
+            <Button Text="Save Resume Draft" Command="{Binding GenerateCommand}" Style="{StaticResource VioletButtonStyle}" />
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" Color="{StaticResource PrimaryViolet}" />
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

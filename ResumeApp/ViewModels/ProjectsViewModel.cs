@@ -8,8 +8,8 @@ namespace ResumeApp.ViewModels;
 
 public partial class ProjectsViewModel : ObservableObject
 {
-    private readonly IApiService _apiService;
     private readonly ILocalStorageService _localStorageService;
+    private readonly ISyncCoordinator _syncCoordinator;
 
     [ObservableProperty]
     private ProjectEntry currentProject = new();
@@ -43,11 +43,11 @@ public partial class ProjectsViewModel : ObservableObject
         "Freelance"
     ];
 
-    public ProjectsViewModel(IApiService apiService, ILocalStorageService localStorageService)
+    public ProjectsViewModel(ILocalStorageService localStorageService, ISyncCoordinator syncCoordinator)
     {
-        _apiService = apiService;
         _localStorageService = localStorageService;
-        _ = LoadDraftsAndEntriesAsync();
+        _syncCoordinator = syncCoordinator;
+        _ = LoadEntriesAsync();
     }
 
     [RelayCommand]
@@ -68,9 +68,13 @@ public partial class ProjectsViewModel : ObservableObject
             return;
         }
 
+        var existing = ProjectEntries.FirstOrDefault(x => x.Id == _editingProjectId);
         var entry = new ProjectEntry
         {
-            Id = _editingProjectId ?? Guid.NewGuid().ToString(),
+            Id = existing?.Id ?? Guid.NewGuid().ToString(),
+            UpdatedAt = existing?.UpdatedAt,
+            Version = existing?.Version,
+            Deleted = false,
             Name = CurrentProject.Name.Trim(),
             ProjectType = CurrentProject.ProjectType,
             Description = CurrentProject.Description.Trim(),
@@ -81,16 +85,9 @@ public partial class ProjectsViewModel : ObservableObject
             ImagePaths = [.. CurrentProject.ImagePaths]
         };
 
-        if (IsEditing && _editingProjectId is not null)
-        {
-            ReplaceProject(entry);
-        }
-        else
-        {
-            ProjectEntries.Add(entry);
-        }
-
-        await _localStorageService.SaveProjectsDraftAsync(ProjectEntries.ToList());
+        await _localStorageService.SaveItemAsync(entry);
+        await RefreshEntriesAsync();
+        _ = _syncCoordinator.SyncProjectsAsync();
         ResetEditor();
     }
 
@@ -108,6 +105,9 @@ public partial class ProjectsViewModel : ObservableObject
         CurrentProject = new ProjectEntry
         {
             Id = entry.Id,
+            UpdatedAt = entry.UpdatedAt,
+            Version = entry.Version,
+            Deleted = entry.Deleted,
             Name = entry.Name,
             ProjectType = entry.ProjectType,
             Description = entry.Description,
@@ -125,13 +125,14 @@ public partial class ProjectsViewModel : ObservableObject
     [RelayCommand]
     private async Task DeleteProject(ProjectEntry? entry)
     {
-        if (entry is null || !ProjectEntries.Contains(entry))
+        if (entry is null)
         {
             return;
         }
 
-        ProjectEntries.Remove(entry);
-        await _localStorageService.SaveProjectsDraftAsync(ProjectEntries.ToList());
+        await _localStorageService.DeleteItemAsync(entry);
+        await RefreshEntriesAsync();
+        _ = _syncCoordinator.SyncProjectsAsync();
         if (_editingProjectId == entry.Id)
         {
             ResetEditor();
@@ -190,38 +191,7 @@ public partial class ProjectsViewModel : ObservableObject
                 return;
             }
 
-            await _localStorageService.SaveProjectsDraftAsync(ProjectEntries.ToList());
-
-            var syncFailed = false;
-
-            foreach (var project in ProjectEntries)
-            {
-                var success = int.TryParse(project.Id, out _)
-                    ? await _apiService.UpdateProjectAsync(project)
-                    : await _apiService.PostProjectAsync(project);
-
-                if (!success)
-                {
-                    syncFailed = true;
-                    break;
-                }
-
-                if (project.ImagePaths.Count > 0)
-                {
-                    await _apiService.UploadProjectImagesAsync(project.Id, project.ImagePaths);
-                }
-            }
-
-            if (!syncFailed)
-            {
-                await _localStorageService.ClearProjectsDraftAsync();
-            }
-
-            if (syncFailed)
-            {
-                ShowError("Projects were saved locally, but the backend sync failed. You can continue and sync again later.");
-            }
-
+            await _syncCoordinator.SyncProjectsAsync();
             await Shell.Current.GoToAsync("..");
         }
         catch (Exception ex)
@@ -234,19 +204,21 @@ public partial class ProjectsViewModel : ObservableObject
         }
     }
 
-    private async Task LoadDraftsAndEntriesAsync()
+    private async Task LoadEntriesAsync()
     {
-        var drafts = await _localStorageService.LoadProjectsDraftAsync();
-        if (drafts.Count > 0)
+        await _localStorageService.InitializeAsync();
+        await RefreshEntriesAsync();
+        _ = Task.Run(async () =>
         {
-            ProjectEntries = new ObservableCollection<ProjectEntry>(drafts);
-        }
+            await _syncCoordinator.SyncProjectsAsync();
+            await MainThread.InvokeOnMainThreadAsync(RefreshEntriesAsync);
+        });
+    }
 
-        var entries = await _apiService.GetProjectsAsync();
-        if (entries.Count > 0)
-        {
-            ProjectEntries = new ObservableCollection<ProjectEntry>(entries);
-        }
+    private async Task RefreshEntriesAsync()
+    {
+        var entries = await _localStorageService.LoadItemsAsync<ProjectEntry>();
+        ProjectEntries = new ObservableCollection<ProjectEntry>(entries);
     }
 
     private void ShowError(string message)
@@ -287,18 +259,6 @@ public partial class ProjectsViewModel : ObservableObject
 
         await AddProject();
         return !HasError;
-    }
-
-    private void ReplaceProject(ProjectEntry entry)
-    {
-        var index = ProjectEntries
-            .Select((item, idx) => new { item, idx })
-            .FirstOrDefault(x => x.item.Id == entry.Id)?.idx ?? -1;
-
-        if (index >= 0)
-        {
-            ProjectEntries[index] = entry;
-        }
     }
 
     private void ResetEditor()

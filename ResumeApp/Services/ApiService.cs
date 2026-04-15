@@ -1,7 +1,5 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using ResumeApp.Models;
-using Shared.Models;
 
 namespace ResumeApp.Services;
 
@@ -12,210 +10,6 @@ public class ApiService : IApiService
     public ApiService(HttpClient httpClient)
     {
         _httpClient = httpClient;
-    }
-
-    public async Task<List<EducationEntry>> GetEducationAsync()
-    {
-        var response = await SendAsync(HttpMethod.Get, "api/educations");
-        if (response is null || !response.IsSuccessStatusCode)
-        {
-            return [];
-        }
-
-        var items = await response.Content.ReadFromJsonAsync<List<Education>>();
-        return items?.Select(MapEducation).ToList() ?? [];
-    }
-
-    public async Task<bool> PostEducationAsync(EducationEntry entry)
-    {
-        var payload = new Education
-        {
-            Institution = entry.School,
-            Degree = entry.Degree,
-            FieldOfStudy = entry.FieldOfStudy,
-            StartDate = ToUtcDate(entry.StartDate),
-            EndDate = ToUtcDate(entry.EndDate),
-            GPA = decimal.TryParse(entry.GPA, out var gpa) ? gpa : null,
-            Description = entry.Description
-        };
-
-        var response = await SendAsync(HttpMethod.Post, "api/educations", JsonContent.Create(payload));
-        if (response is null || !response.IsSuccessStatusCode)
-        {
-            return false;
-        }
-
-        var education = await response.Content.ReadFromJsonAsync<Education>();
-        if (education is not null)
-        {
-            entry.Id = education.Id.ToString();
-        }
-
-        return true;
-    }
-
-    public async Task<bool> UpdateEducationAsync(EducationEntry entry)
-    {
-        if (!int.TryParse(entry.Id, out var id))
-        {
-            return await PostEducationAsync(entry);
-        }
-
-        var payload = new Education
-        {
-            Institution = entry.School,
-            Degree = entry.Degree,
-            FieldOfStudy = entry.FieldOfStudy,
-            StartDate = ToUtcDate(entry.StartDate),
-            EndDate = ToUtcDate(entry.EndDate),
-            GPA = decimal.TryParse(entry.GPA, out var gpa) ? gpa : null,
-            Description = entry.Description
-        };
-
-        var updated = await SendJsonAsync(HttpMethod.Put, $"api/educations/{id}", payload);
-        return updated || await PostEducationAsync(entry);
-    }
-
-    public async Task<List<ExperienceEntry>> GetExperienceAsync()
-    {
-        var response = await SendAsync(HttpMethod.Get, "api/experiences");
-        if (response is null || !response.IsSuccessStatusCode)
-        {
-            return [];
-        }
-
-        var items = await response.Content.ReadFromJsonAsync<List<Experience>>();
-        return items?.Select(MapExperience).ToList() ?? [];
-    }
-
-    public async Task<bool> PostExperienceAsync(ExperienceEntry entry)
-        => await SendJsonAsync(HttpMethod.Post, "api/experiences", new Experience
-        {
-            Company = entry.Company,
-            JobTitle = entry.JobTitle,
-            Location = entry.Location,
-            StartDate = entry.StartDate,
-            EndDate = entry.IsCurrentJob ? null : entry.EndDate,
-            IsCurrentJob = entry.IsCurrentJob,
-            Responsibilities = entry.Description
-        });
-
-    public async Task<bool> UpdateExperienceAsync(ExperienceEntry entry)
-    {
-        if (!int.TryParse(entry.Id, out var id))
-        {
-            return await PostExperienceAsync(entry);
-        }
-
-        var payload = new Experience
-        {
-            Company = entry.Company,
-            JobTitle = entry.JobTitle,
-            Location = entry.Location,
-            StartDate = entry.StartDate,
-            EndDate = entry.IsCurrentJob ? null : entry.EndDate,
-            IsCurrentJob = entry.IsCurrentJob,
-            Responsibilities = entry.Description
-        };
-
-        var updated = await SendJsonAsync(HttpMethod.Put, $"api/experiences/{id}", payload);
-        return updated || await PostExperienceAsync(entry);
-    }
-
-    public async Task<List<SkillEntry>> GetSkillsAsync()
-    {
-        var response = await SendAsync(HttpMethod.Get, "api/skills");
-        if (response is null || !response.IsSuccessStatusCode)
-        {
-            return [];
-        }
-
-        var items = await response.Content.ReadFromJsonAsync<List<Skill>>();
-        return items?.Select(MapSkill).ToList() ?? [];
-    }
-
-    public async Task<bool> PostSkillAsync(SkillEntry entry)
-        => await SendJsonAsync(HttpMethod.Post, "api/skills", new Skill
-        {
-            Name = entry.Name,
-            Category = entry.Category,
-            ProficiencyLevel = entry.ProficiencyScore
-        });
-
-    public async Task<bool> UpdateSkillAsync(SkillEntry entry)
-    {
-        if (!int.TryParse(entry.Id, out var id))
-        {
-            return await PostSkillAsync(entry);
-        }
-
-        var payload = new Skill
-        {
-            Name = entry.Name,
-            Category = entry.Category,
-            ProficiencyLevel = entry.ProficiencyScore
-        };
-
-        var updated = await SendJsonAsync(HttpMethod.Put, $"api/skills/{id}", payload);
-        return updated || await PostSkillAsync(entry);
-    }
-
-    public async Task<List<ProjectEntry>> GetProjectsAsync()
-    {
-        var response = await SendAsync(HttpMethod.Get, "api/projects");
-        if (response is null || !response.IsSuccessStatusCode)
-        {
-            return [];
-        }
-
-        var items = await response.Content.ReadFromJsonAsync<List<ResumeProject>>();
-        return items?.Select(MapProject).ToList() ?? [];
-    }
-
-    public async Task<bool> PostProjectAsync(ProjectEntry entry)
-    {
-        var response = await SendAsync(HttpMethod.Post, "api/projects", JsonContent.Create(new ResumeProject
-        {
-            Name = entry.Name,
-            Description = entry.Description,
-            Url = entry.ProjectUrl,
-            StartDate = DateOnly.FromDateTime(entry.StartDate),
-            EndDate = DateOnly.FromDateTime(entry.EndDate)
-        }));
-
-        if (response is null || !response.IsSuccessStatusCode)
-        {
-            return false;
-        }
-
-        var project = await response.Content.ReadFromJsonAsync<ResumeProject>();
-        if (project is not null)
-        {
-            entry.Id = project.Id.ToString();
-        }
-
-        return true;
-    }
-
-    public async Task<bool> UpdateProjectAsync(ProjectEntry entry)
-    {
-        if (!int.TryParse(entry.Id, out var id))
-        {
-            return await PostProjectAsync(entry);
-        }
-
-        var payload = new ResumeProject
-        {
-            Name = entry.Name,
-            Description = entry.Description,
-            Url = entry.ProjectUrl,
-            StartDate = DateOnly.FromDateTime(entry.StartDate),
-            EndDate = DateOnly.FromDateTime(entry.EndDate)
-        };
-
-        var response = await SendAsync(HttpMethod.Put, $"api/projects/{id}", JsonContent.Create(payload));
-
-        return response?.IsSuccessStatusCode == true || await PostProjectAsync(entry);
     }
 
     public async Task<bool> UploadProjectImagesAsync(string projectId, IReadOnlyCollection<string> imagePaths)
@@ -243,10 +37,17 @@ public class ApiService : IApiService
         return result?.ImageUrl;
     }
 
-    private async Task<bool> SendJsonAsync(HttpMethod method, string url, object payload)
+    public async Task<string?> UploadResumeFileAsync(string resumeId, string filePath)
     {
-        var response = await SendAsync(method, url, JsonContent.Create(payload));
-        return response?.IsSuccessStatusCode == true;
+        var content = BuildMultipartContent([filePath], "file");
+        var response = await SendAsync(HttpMethod.Post, $"api/resumes/{resumeId}/file", content);
+        if (response is null || !response.IsSuccessStatusCode)
+        {
+            return null;
+        }
+
+        var result = await response.Content.ReadFromJsonAsync<FileUploadResponse>();
+        return result?.FileUrl;
     }
 
     private async Task<HttpResponseMessage?> SendAsync(HttpMethod method, string url, HttpContent? content = null)
@@ -291,63 +92,18 @@ public class ApiService : IApiService
         ".png" => "image/png",
         ".gif" => "image/gif",
         ".webp" => "image/webp",
+        ".pdf" => "application/pdf",
+        ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         _ => "image/jpeg"
-    };
-
-    private static DateTime ToUtcDate(DateTime value)
-        => DateTime.SpecifyKind(value.Date, DateTimeKind.Utc);
-
-    private static EducationEntry MapEducation(Education education) => new()
-    {
-        Id = education.Id.ToString(),
-        School = education.Institution,
-        Degree = education.Degree,
-        FieldOfStudy = education.FieldOfStudy ?? string.Empty,
-        StartDate = education.StartDate,
-        EndDate = education.EndDate ?? education.StartDate,
-        GPA = education.GPA?.ToString(),
-        Description = education.Description
-    };
-
-    private static ExperienceEntry MapExperience(Experience experience) => new()
-    {
-        Id = experience.Id.ToString(),
-        Company = experience.Company,
-        JobTitle = experience.JobTitle,
-        Location = experience.Location ?? string.Empty,
-        StartDate = experience.StartDate,
-        EndDate = experience.EndDate ?? DateTime.Now,
-        IsCurrentJob = experience.IsCurrentJob,
-        Description = experience.Responsibilities ?? string.Empty
-    };
-
-    private static SkillEntry MapSkill(Skill skill) => new()
-    {
-        Id = skill.Id.ToString(),
-        Name = skill.Name,
-        Category = skill.Category ?? "Other",
-        ProficiencyLevel = skill.ProficiencyLevel switch
-        {
-            1 => "Beginner",
-            2 => "Intermediate",
-            3 => "Advanced",
-            4 => "Expert",
-            _ => "Intermediate"
-        }
-    };
-
-    private static ProjectEntry MapProject(ResumeProject project) => new()
-    {
-        Id = project.Id.ToString(),
-        Name = project.Name,
-        Description = project.Description ?? string.Empty,
-        ProjectUrl = project.Url,
-        StartDate = project.StartDate?.ToDateTime(TimeOnly.MinValue) ?? DateTime.Now,
-        EndDate = project.EndDate?.ToDateTime(TimeOnly.MinValue) ?? DateTime.Now
     };
 
     private sealed class ImageUploadResponse
     {
         public string? ImageUrl { get; set; }
+    }
+
+    private sealed class FileUploadResponse
+    {
+        public string? FileUrl { get; set; }
     }
 }

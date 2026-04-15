@@ -9,43 +9,30 @@
 
         <ScrollView Grid.Row="0">
             <VerticalStackLayout Padding="24,56,24,16" Spacing="20">
-
-                <!-- Header -->
                 <Label Text="Profile"
                        FontSize="28"
                        FontFamily="OpenSansSemibold"
                        TextColor="{StaticResource TextPrimary}" />
 
-                <!-- Profile card -->
                 <Border Style="{StaticResource CardStyle}">
                     <Grid ColumnDefinitions="72,*" ColumnSpacing="16">
-
-                        <!-- Avatar -->
                         <Border WidthRequest="72"
                                 HeightRequest="72"
                                 StrokeThickness="0"
                                 StrokeShape="RoundRectangle 36"
                                 BackgroundColor="{StaticResource Secondary}">
                             <Grid>
-                                <Image Source="{Binding ProfileImageSource}"
-                                       Aspect="AspectFill"
-                                       IsVisible="{Binding ProfileImagePath, Converter={StaticResource inverseBoolean}}" />
-                                <Label Text="👤"
-                                       FontSize="30"
+                                <Image Source="{Binding ProfileImageSource}" Aspect="AspectFill" />
+                                <Label Text="User"
                                        HorizontalOptions="Center"
                                        VerticalOptions="Center"
-                                       IsVisible="{Binding ProfileImagePath, Converter={StaticResource inverseBoolean}}" />
+                                       IsVisible="{Binding ProfileImageSource, Converter={StaticResource inverseBoolean}}" />
                             </Grid>
                         </Border>
 
                         <VerticalStackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center">
-                            <Label Text="{Binding UserName}"
-                                   FontSize="18"
-                                   FontFamily="OpenSansSemibold"
-                                   TextColor="{StaticResource TextPrimary}" />
-                            <Label Text="{Binding UserEmail}"
-                                   FontSize="13"
-                                   TextColor="{StaticResource TextSecondary}" />
+                            <Label Text="{Binding UserName}" FontSize="18" FontFamily="OpenSansSemibold" />
+                            <Label Text="{Binding UserEmail}" FontSize="13" TextColor="{StaticResource TextSecondary}" />
                             <Button Text="Change photo"
                                     Command="{Binding PickProfileImageCommand}"
                                     Style="{StaticResource OutlineButtonStyle}"
@@ -58,126 +45,35 @@
                     </Grid>
                 </Border>
 
-                <!-- Resume sections -->
-                <Label Text="Resume Sections"
-                       Style="{StaticResource SectionHeaderStyle}" />
+                <Label Text="Resume Sections" Style="{StaticResource SectionHeaderStyle}" />
 
-                <!-- Education -->
                 <Border Style="{StaticResource CardStyle}" Padding="16">
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Command="{Binding GoToEducationCommand}" />
-                    </Border.GestureRecognizers>
-                    <Grid ColumnDefinitions="40,*,24">
-                        <Border WidthRequest="40" HeightRequest="40"
-                                StrokeThickness="0"
-                                StrokeShape="RoundRectangle 12"
-                                BackgroundColor="#EDE9FE">
-                            <Label Text="🎓" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center" />
-                        </Border>
-                        <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center" Margin="12,0,0,0">
-                            <Label Text="Education"
-                                   FontSize="16"
-                                   FontFamily="OpenSansSemibold"
-                                   TextColor="{StaticResource TextPrimary}" />
-                            <Label Text="Schools, degrees &amp; certifications"
-                                   Style="{StaticResource SubtitleStyle}"
-                                   FontSize="12" />
-                        </VerticalStackLayout>
-                        <Label Grid.Column="2" Text="›"
-                               FontSize="20"
-                               TextColor="{StaticResource InactiveIcon}"
-                               VerticalOptions="Center" />
-                    </Grid>
+                    <Border.GestureRecognizers><TapGestureRecognizer Command="{Binding GoToEducationCommand}" /></Border.GestureRecognizers>
+                    <Label Text="Education" FontSize="16" FontFamily="OpenSansSemibold" />
                 </Border>
 
-                <!-- Experience -->
                 <Border Style="{StaticResource CardStyle}" Padding="16">
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Command="{Binding GoToExperienceCommand}" />
-                    </Border.GestureRecognizers>
-                    <Grid ColumnDefinitions="40,*,24">
-                        <Border WidthRequest="40" HeightRequest="40"
-                                StrokeThickness="0"
-                                StrokeShape="RoundRectangle 12"
-                                BackgroundColor="#DBEAFE">
-                            <Label Text="💼" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center" />
-                        </Border>
-                        <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center" Margin="12,0,0,0">
-                            <Label Text="Experience"
-                                   FontSize="16"
-                                   FontFamily="OpenSansSemibold"
-                                   TextColor="{StaticResource TextPrimary}" />
-                            <Label Text="Work history &amp; internships"
-                                   Style="{StaticResource SubtitleStyle}"
-                                   FontSize="12" />
-                        </VerticalStackLayout>
-                        <Label Grid.Column="2" Text="›"
-                               FontSize="20"
-                               TextColor="{StaticResource InactiveIcon}"
-                               VerticalOptions="Center" />
-                    </Grid>
+                    <Border.GestureRecognizers><TapGestureRecognizer Command="{Binding GoToExperienceCommand}" /></Border.GestureRecognizers>
+                    <Label Text="Experience" FontSize="16" FontFamily="OpenSansSemibold" />
                 </Border>
 
-                <!-- Skills -->
                 <Border Style="{StaticResource CardStyle}" Padding="16">
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Command="{Binding GoToSkillsCommand}" />
-                    </Border.GestureRecognizers>
-                    <Grid ColumnDefinitions="40,*,24">
-                        <Border WidthRequest="40" HeightRequest="40"
-                                StrokeThickness="0"
-                                StrokeShape="RoundRectangle 12"
-                                BackgroundColor="#D1FAE5">
-                            <Label Text="⭐" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center" />
-                        </Border>
-                        <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center" Margin="12,0,0,0">
-                            <Label Text="Skills"
-                                   FontSize="16"
-                                   FontFamily="OpenSansSemibold"
-                                   TextColor="{StaticResource TextPrimary}" />
-                            <Label Text="Technical &amp; soft skills"
-                                   Style="{StaticResource SubtitleStyle}"
-                                   FontSize="12" />
-                        </VerticalStackLayout>
-                        <Label Grid.Column="2" Text="›"
-                               FontSize="20"
-                               TextColor="{StaticResource InactiveIcon}"
-                               VerticalOptions="Center" />
-                    </Grid>
+                    <Border.GestureRecognizers><TapGestureRecognizer Command="{Binding GoToSkillsCommand}" /></Border.GestureRecognizers>
+                    <Label Text="Skills" FontSize="16" FontFamily="OpenSansSemibold" />
                 </Border>
 
-                <!-- Projects -->
                 <Border Style="{StaticResource CardStyle}" Padding="16">
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Command="{Binding GoToProjectsCommand}" />
-                    </Border.GestureRecognizers>
-                    <Grid ColumnDefinitions="40,*,24">
-                        <Border WidthRequest="40" HeightRequest="40"
-                                StrokeThickness="0"
-                                StrokeShape="RoundRectangle 12"
-                                BackgroundColor="#FEF3C7">
-                            <Label Text="🚀" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center" />
-                        </Border>
-                        <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center" Margin="12,0,0,0">
-                            <Label Text="Projects"
-                                   FontSize="16"
-                                   FontFamily="OpenSansSemibold"
-                                   TextColor="{StaticResource TextPrimary}" />
-                            <Label Text="Portfolio &amp; side projects"
-                                   Style="{StaticResource SubtitleStyle}"
-                                   FontSize="12" />
-                        </VerticalStackLayout>
-                        <Label Grid.Column="2" Text="›"
-                               FontSize="20"
-                               TextColor="{StaticResource InactiveIcon}"
-                               VerticalOptions="Center" />
-                    </Grid>
+                    <Border.GestureRecognizers><TapGestureRecognizer Command="{Binding GoToProjectsCommand}" /></Border.GestureRecognizers>
+                    <Label Text="Projects" FontSize="16" FontFamily="OpenSansSemibold" />
                 </Border>
 
+                <Border Style="{StaticResource CardStyle}" Padding="16">
+                    <Border.GestureRecognizers><TapGestureRecognizer Command="{Binding GoToCertificationsCommand}" /></Border.GestureRecognizers>
+                    <Label Text="Certifications" FontSize="16" FontFamily="OpenSansSemibold" />
+                </Border>
             </VerticalStackLayout>
         </ScrollView>
 
-        <!-- Bottom nav bar -->
         <controls:BottomNavBar Grid.Row="1" VerticalOptions="End" />
     </Grid>
 </ContentPage>

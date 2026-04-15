@@ -2,15 +2,14 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ResumeApp.Models;
 using ResumeApp.Services;
-using ResumeApp.Views;
 using System.Collections.ObjectModel;
 
 namespace ResumeApp.ViewModels;
 
 public partial class EducationViewModel : ObservableObject
 {
-    private readonly IApiService _apiService;
     private readonly ILocalStorageService _localStorageService;
+    private readonly ISyncCoordinator _syncCoordinator;
 
     [ObservableProperty]
     private EducationEntry currentEducation = new();
@@ -45,11 +44,11 @@ public partial class EducationViewModel : ObservableObject
         "Other"
     ];
 
-    public EducationViewModel(IApiService apiService, ILocalStorageService localStorageService)
+    public EducationViewModel(ILocalStorageService localStorageService, ISyncCoordinator syncCoordinator)
     {
-        _apiService = apiService;
         _localStorageService = localStorageService;
-        _ = LoadDraftsAndEntriesAsync();
+        _syncCoordinator = syncCoordinator;
+        _ = LoadEntriesAsync();
     }
 
     [RelayCommand]
@@ -71,9 +70,13 @@ public partial class EducationViewModel : ObservableObject
             return;
         }
 
+        var existing = EducationEntries.FirstOrDefault(x => x.Id == _editingEducationId);
         var entry = new EducationEntry
         {
-            Id = _editingEducationId ?? Guid.NewGuid().ToString(),
+            Id = existing?.Id ?? Guid.NewGuid().ToString(),
+            UpdatedAt = existing?.UpdatedAt,
+            Version = existing?.Version,
+            Deleted = false,
             School = CurrentEducation.School.Trim(),
             Degree = CurrentEducation.Degree,
             FieldOfStudy = CurrentEducation.FieldOfStudy.Trim(),
@@ -83,16 +86,9 @@ public partial class EducationViewModel : ObservableObject
             Description = CurrentEducation.Description
         };
 
-        if (IsEditing && _editingEducationId is not null)
-        {
-            ReplaceEducation(entry);
-        }
-        else
-        {
-            EducationEntries.Add(entry);
-        }
-
-        await _localStorageService.SaveEducationDraftAsync(EducationEntries.ToList());
+        await _localStorageService.SaveItemAsync(entry);
+        await RefreshEntriesAsync();
+        _ = _syncCoordinator.SyncEducationAsync();
         ResetEditor();
     }
 
@@ -110,6 +106,9 @@ public partial class EducationViewModel : ObservableObject
         CurrentEducation = new EducationEntry
         {
             Id = entry.Id,
+            UpdatedAt = entry.UpdatedAt,
+            Version = entry.Version,
+            Deleted = entry.Deleted,
             School = entry.School,
             Degree = entry.Degree,
             FieldOfStudy = entry.FieldOfStudy,
@@ -126,13 +125,14 @@ public partial class EducationViewModel : ObservableObject
     [RelayCommand]
     private async Task DeleteEducation(EducationEntry? entry)
     {
-        if (entry is null || !EducationEntries.Contains(entry))
+        if (entry is null)
         {
             return;
         }
 
-        EducationEntries.Remove(entry);
-        await _localStorageService.SaveEducationDraftAsync(EducationEntries.ToList());
+        await _localStorageService.DeleteItemAsync(entry);
+        await RefreshEntriesAsync();
+        _ = _syncCoordinator.SyncEducationAsync();
         if (_editingEducationId == entry.Id)
         {
             ResetEditor();
@@ -162,34 +162,7 @@ public partial class EducationViewModel : ObservableObject
                 return;
             }
 
-            await _localStorageService.SaveEducationDraftAsync(EducationEntries.ToList());
-
-            var syncFailed = false;
-
-            foreach (var entry in EducationEntries)
-            {
-                var success = int.TryParse(entry.Id, out _)
-                    ? await _apiService.UpdateEducationAsync(entry)
-                    : await _apiService.PostEducationAsync(entry);
-
-                if (!success)
-                {
-                    syncFailed = true;
-                    break;
-                }
-            }
-
-            if (!syncFailed)
-            {
-                await _localStorageService.ClearEducationDraftAsync();
-            }
-
-            if (syncFailed)
-            {
-                ShowError("Education saved locally. Backend sync failed — it will retry automatically.");
-                return;
-            }
-
+            await _syncCoordinator.SyncEducationAsync();
             await Shell.Current.GoToAsync("..");
         }
         catch (Exception ex)
@@ -202,19 +175,21 @@ public partial class EducationViewModel : ObservableObject
         }
     }
 
-    private async Task LoadDraftsAndEntriesAsync()
+    private async Task LoadEntriesAsync()
     {
-        var drafts = await _localStorageService.LoadEducationDraftAsync();
-        if (drafts.Count > 0)
+        await _localStorageService.InitializeAsync();
+        await RefreshEntriesAsync();
+        _ = Task.Run(async () =>
         {
-            EducationEntries = new ObservableCollection<EducationEntry>(drafts);
-        }
+            await _syncCoordinator.SyncEducationAsync();
+            await MainThread.InvokeOnMainThreadAsync(RefreshEntriesAsync);
+        });
+    }
 
-        var entries = await _apiService.GetEducationAsync();
-        if (entries.Count > 0)
-        {
-            EducationEntries = new ObservableCollection<EducationEntry>(entries);
-        }
+    private async Task RefreshEntriesAsync()
+    {
+        var entries = await _localStorageService.LoadItemsAsync<EducationEntry>();
+        EducationEntries = new ObservableCollection<EducationEntry>(entries);
     }
 
     private void ShowError(string message)
@@ -256,18 +231,6 @@ public partial class EducationViewModel : ObservableObject
 
         await AddEducation();
         return !HasError;
-    }
-
-    private void ReplaceEducation(EducationEntry entry)
-    {
-        var index = EducationEntries
-            .Select((item, idx) => new { item, idx })
-            .FirstOrDefault(x => x.item.Id == entry.Id)?.idx ?? -1;
-
-        if (index >= 0)
-        {
-            EducationEntries[index] = entry;
-        }
     }
 
     private void ResetEditor()

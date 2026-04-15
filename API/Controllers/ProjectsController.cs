@@ -1,4 +1,5 @@
 using API.Data;
+using API.Models.Sync;
 using API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -70,6 +71,7 @@ public class ProjectsController : ControllerBase
             UserId = userId,
             Title = project.Name,
             Description = project.Description,
+            TechnologiesUsed = project.Technologies,
             ProjectUrl = project.Url,
             StartDate = project.StartDate?.ToDateTime(TimeOnly.MinValue),
             EndDate = project.EndDate?.ToDateTime(TimeOnly.MinValue)
@@ -86,6 +88,7 @@ public class ProjectsController : ControllerBase
             UserId = entity.UserId,
             Name = entity.Title,
             Description = entity.Description,
+            Technologies = entity.TechnologiesUsed,
             Url = entity.ProjectUrl,
             StartDate = entity.StartDate is null ? null : DateOnly.FromDateTime(entity.StartDate.Value),
             EndDate = entity.EndDate is null ? null : DateOnly.FromDateTime(entity.EndDate.Value)
@@ -113,6 +116,7 @@ public class ProjectsController : ControllerBase
 
         entity.Title = project.Name;
         entity.Description = project.Description;
+        entity.TechnologiesUsed = project.Technologies;
         entity.ProjectUrl = project.Url;
         entity.StartDate = project.StartDate?.ToDateTime(TimeOnly.MinValue);
         entity.EndDate = project.EndDate?.ToDateTime(TimeOnly.MinValue);
@@ -146,9 +150,9 @@ public class ProjectsController : ControllerBase
         return NoContent();
     }
 
-    [HttpPost("{id:int}/images")]
+    [HttpPost("{id}/images")]
     [RequestSizeLimit(25_000_000)]
-    public async Task<IActionResult> UploadImages(int id, [FromForm] List<IFormFile> files, [FromServices] IWebHostEnvironment environment)
+    public async Task<IActionResult> UploadImages(string id, [FromForm] List<IFormFile> files, [FromServices] IWebHostEnvironment environment)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrWhiteSpace(userId))
@@ -156,7 +160,7 @@ public class ProjectsController : ControllerBase
             return Unauthorized();
         }
 
-        var project = await _db.Projects
+        var project = await _db.SyncProjects
             .FirstOrDefaultAsync(x => x.Id == id && x.UserId == userId);
 
         if (project is null)
@@ -174,7 +178,7 @@ public class ProjectsController : ControllerBase
         var webRoot = string.IsNullOrWhiteSpace(environment.WebRootPath)
             ? Path.Combine(environment.ContentRootPath, "wwwroot")
             : environment.WebRootPath;
-        var uploadsFolder = Path.Combine(webRoot, "uploads", "projects", id.ToString());
+        var uploadsFolder = Path.Combine(webRoot, "uploads", "projects", id);
         Directory.CreateDirectory(uploadsFolder);
 
         var uploadedUrls = new List<string>();
@@ -193,6 +197,9 @@ public class ProjectsController : ControllerBase
             uploadedUrls.Add($"{Request.Scheme}://{Request.Host}/uploads/projects/{id}/{fileName}");
         }
 
+        project.ImagePathsJson = System.Text.Json.JsonSerializer.Serialize(uploadedUrls);
+        await _db.SaveChangesAsync();
+
         stopwatch.Stop();
         _metrics.RecordUpload(TelemetryTags.Sections.ProjectImage, TelemetryTags.Outcomes.Success, uploadedUrls.Count, totalBytes, stopwatch.Elapsed.TotalMilliseconds, userId);
         return Ok(new { images = uploadedUrls });
@@ -204,6 +211,7 @@ public class ProjectsController : ControllerBase
         UserId = project.UserId,
         Name = project.Title,
         Description = project.Description,
+        Technologies = project.TechnologiesUsed,
         Url = project.ProjectUrl,
         StartDate = project.StartDate.HasValue
             ? DateOnly.FromDateTime(project.StartDate.Value)

@@ -3,87 +3,54 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:ResumeApp.Views.Controls"
              x:Class="ResumeApp.Views.ResumeListPage"
+             x:Name="ResumeListPageRoot"
              Shell.NavBarIsVisible="False">
 
     <Grid RowDefinitions="*,80">
-
         <ScrollView Grid.Row="0">
             <VerticalStackLayout Padding="24,56,24,16" Spacing="20">
-
-                <!-- Header -->
                 <Grid ColumnDefinitions="*,Auto">
                     <VerticalStackLayout Grid.Column="0" Spacing="2">
-                        <Label Text="My Resumes"
-                               FontSize="28"
-                               FontFamily="OpenSansSemibold"
-                               TextColor="{StaticResource TextPrimary}" />
-                        <Label Text="Tailored &amp; AI-powered"
-                               Style="{StaticResource SubtitleStyle}" />
+                        <Label Text="My Resumes" FontSize="28" FontFamily="OpenSansSemibold" />
+                        <Label Text="Stored locally and synced when online" Style="{StaticResource SubtitleStyle}" />
                     </VerticalStackLayout>
-
                     <Button Grid.Column="1"
                             Text="+ New"
                             Command="{Binding GenerateResumeCommand}"
                             BackgroundColor="{StaticResource PrimaryViolet}"
                             TextColor="White"
                             CornerRadius="12"
-                            Padding="16,10"
-                            HeightRequest="44"
-                            FontSize="14"
-                            VerticalOptions="Center" />
+                            Padding="16,10" />
                 </Grid>
 
-                <!-- Empty state -->
-                <Border Style="{StaticResource CardStyle}"
-                        Margin="0,20,0,0">
+                <CollectionView ItemsSource="{Binding Resumes}" IsVisible="{Binding HasResumes}">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="0,0,0,12" Padding="16" Style="{StaticResource CardStyle}">
+                                <VerticalStackLayout Spacing="6">
+                                    <Label Text="{Binding TargetJobTitle}" FontSize="18" FontFamily="OpenSansSemibold" />
+                                    <Label Text="{Binding TargetCompany}" Style="{StaticResource SubtitleStyle}" />
+                                    <Label Text="{Binding PdfBlobUrl}" FontSize="12" TextColor="{StaticResource TextSecondary}" />
+                                    <Button Text="Delete"
+                                            Command="{Binding Source={x:Reference ResumeListPageRoot}, Path=BindingContext.DeleteResumeCommand}"
+                                            CommandParameter="{Binding .}"
+                                            Style="{StaticResource DangerButtonStyle}" />
+                                </VerticalStackLayout>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <Border Style="{StaticResource CardStyle}" Margin="0,20,0,0" IsVisible="{Binding HasResumes, Converter={StaticResource inverseBoolean}}">
                     <VerticalStackLayout Spacing="16" HorizontalOptions="Center" Padding="16">
-                        <Label Text="📄"
-                               FontSize="48"
-                               HorizontalOptions="Center" />
-                        <Label Text="No resumes yet"
-                               FontSize="18"
-                               FontFamily="OpenSansSemibold"
-                               TextColor="{StaticResource TextPrimary}"
-                               HorizontalOptions="Center" />
-                        <Label Text="Generate your first AI-powered resume tailored to any job."
-                               Style="{StaticResource SubtitleStyle}"
-                               HorizontalTextAlignment="Center"
-                               HorizontalOptions="Center" />
-                        <Button Text="Generate Resume"
-                                Command="{Binding GenerateResumeCommand}"
-                                Style="{StaticResource VioletButtonStyle}"
-                                HorizontalOptions="Center"
-                                Padding="32,14" />
+                        <Label Text="No resumes yet" FontSize="18" FontFamily="OpenSansSemibold" HorizontalOptions="Center" />
+                        <Label Text="Create your first stored resume draft and keep it synced offline." Style="{StaticResource SubtitleStyle}" HorizontalTextAlignment="Center" />
+                        <Button Text="Generate Resume" Command="{Binding GenerateResumeCommand}" Style="{StaticResource VioletButtonStyle}" />
                     </VerticalStackLayout>
                 </Border>
-
-                <!-- Quick tips -->
-                <Label Text="Tips"
-                       Style="{StaticResource SectionHeaderStyle}"
-                       Margin="0,8,0,0" />
-
-                <Border Style="{StaticResource CardStyle}" Padding="16">
-                    <HorizontalStackLayout Spacing="12">
-                        <Label Text="💡" FontSize="24" VerticalOptions="Center" />
-                        <Label Text="Complete your profile sections first for better AI suggestions."
-                               Style="{StaticResource SubtitleStyle}"
-                               VerticalOptions="Center" />
-                    </HorizontalStackLayout>
-                </Border>
-
-                <Border Style="{StaticResource CardStyle}" Padding="16">
-                    <HorizontalStackLayout Spacing="12">
-                        <Label Text="🎯" FontSize="24" VerticalOptions="Center" />
-                        <Label Text="Tailor each resume to a specific job description for best results."
-                               Style="{StaticResource SubtitleStyle}"
-                               VerticalOptions="Center" />
-                    </HorizontalStackLayout>
-                </Border>
-
             </VerticalStackLayout>
         </ScrollView>
 
-        <!-- Bottom nav bar -->
         <controls:BottomNavBar Grid.Row="1" VerticalOptions="End" />
     </Grid>
 </ContentPage>

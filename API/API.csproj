@@ -9,6 +9,8 @@
 
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.1.0" />
+    <PackageReference Include="CommunityToolkit.Datasync.Server" Version="9.0.5" />
+    <PackageReference Include="CommunityToolkit.Datasync.Server.EntityFrameworkCore" Version="9.0.5" />
     <PackageReference Include="Google.Apis.Auth" Version="1.73.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="9.0.14" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.14" />
