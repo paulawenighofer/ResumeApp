@@ -22,6 +22,29 @@ spec:
           envFrom:
             - secretRef:
                 name: $PR_NAMESPACE-secrets
+          startupProbe:
+            tcpSocket:
+              port: 5432
+            periodSeconds: 5
+            failureThreshold: 12
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+            periodSeconds: 5
+            initialDelaySeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+            periodSeconds: 10
+            initialDelaySeconds: 20
+            failureThreshold: 3
           volumeMounts:
             - name: postgres-data
               mountPath: /var/lib/postgresql/data

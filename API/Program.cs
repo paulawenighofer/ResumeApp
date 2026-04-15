@@ -1,6 +1,7 @@
 using API.Data;
 using API.Middleware;
 using API.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
@@ -18,6 +19,7 @@ using System.Text;
 using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
+var startupCompleted = false;
 
 var telemetryServiceName = "ResumeApp.API";
 var telemetryServiceVersion = "1.0.0";
@@ -204,6 +206,7 @@ builder.Services.AddRateLimiter(options =>
 });
 
 builder.Services.AddControllers();
+builder.Services.AddHealthChecks();
 
 // =============================================
 // SECTION 6: OPENTELEMETRY
@@ -297,7 +300,32 @@ app.MapControllers();
 app.MapStaticAssets();
 app.MapRazorPages().WithStaticAssets();
 
+app.MapGet("/health/live", () => Results.Ok(new { status = "Healthy" })).AllowAnonymous();
+
+app.MapGet("/health/startup", () =>
+    startupCompleted
+        ? Results.Ok(new { status = "Started" })
+        : Results.StatusCode(StatusCodes.Status503ServiceUnavailable))
+    .AllowAnonymous();
+
+app.MapGet("/health/ready", async (AppDbContext db, CancellationToken cancellationToken) =>
+{
+    try
+    {
+        var canConnect = await db.Database.CanConnectAsync(cancellationToken);
+        return canConnect
+            ? Results.Ok(new { status = "Ready" })
+            : Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+    }
+    catch
+    {
+        return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+    }
+}).AllowAnonymous();
+
 app.MapGet("/api/", () => "Hello World!");
+
+app.Lifetime.ApplicationStarted.Register(() => startupCompleted = true);
 
 app.Run();
 

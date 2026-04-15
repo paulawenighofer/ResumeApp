@@ -5,6 +5,12 @@ metadata:
   namespace: resumeapp
 spec:
   replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  minReadySeconds: 5
   selector:
     matchLabels:
       app: otel-collector
@@ -22,6 +28,25 @@ spec:
             - containerPort: 4317
             - containerPort: 4318
             - containerPort: 8889
+            - containerPort: 13133
+          startupProbe:
+            httpGet:
+              path: /
+              port: 13133
+            periodSeconds: 5
+            failureThreshold: 12
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 13133
+            periodSeconds: 5
+            initialDelaySeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 13133
+            periodSeconds: 10
+            initialDelaySeconds: 15
           volumeMounts:
             - name: otel-config
               mountPath: /etc/otelcol-contrib/otel-config.yaml
