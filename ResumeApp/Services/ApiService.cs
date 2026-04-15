@@ -89,7 +89,8 @@ public class ApiService : IApiService
     }
 
     public async Task<bool> PostExperienceAsync(ExperienceEntry entry)
-        => await SendJsonAsync(HttpMethod.Post, "api/experiences", new Experience
+    {
+        var response = await SendAsync(HttpMethod.Post, "api/experiences", JsonContent.Create(new Experience
         {
             Company = entry.Company,
             JobTitle = entry.JobTitle,
@@ -98,7 +99,21 @@ public class ApiService : IApiService
             EndDate = entry.IsCurrentJob ? null : entry.EndDate,
             IsCurrentJob = entry.IsCurrentJob,
             Responsibilities = entry.Description
-        });
+        }));
+
+        if (response is null || !response.IsSuccessStatusCode)
+        {
+            return false;
+        }
+
+        var experience = await response.Content.ReadFromJsonAsync<Experience>();
+        if (experience is not null)
+        {
+            entry.Id = experience.Id.ToString();
+        }
+
+        return true;
+    }
 
     public async Task<bool> UpdateExperienceAsync(ExperienceEntry entry)
     {
@@ -135,12 +150,27 @@ public class ApiService : IApiService
     }
 
     public async Task<bool> PostSkillAsync(SkillEntry entry)
-        => await SendJsonAsync(HttpMethod.Post, "api/skills", new Skill
+    {
+        var response = await SendAsync(HttpMethod.Post, "api/skills", JsonContent.Create(new Skill
         {
             Name = entry.Name,
             Category = entry.Category,
             ProficiencyLevel = entry.ProficiencyScore
-        });
+        }));
+
+        if (response is null || !response.IsSuccessStatusCode)
+        {
+            return false;
+        }
+
+        var skill = await response.Content.ReadFromJsonAsync<Skill>();
+        if (skill is not null)
+        {
+            entry.Id = skill.Id.ToString();
+        }
+
+        return true;
+    }
 
     public async Task<bool> UpdateSkillAsync(SkillEntry entry)
     {

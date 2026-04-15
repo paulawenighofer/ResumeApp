@@ -20,7 +20,6 @@ namespace Shared.Models
         // EF Core sees "UserId" and knows it's a foreign key to ApplicationUser
         // because ApplicationUser's primary key is "Id" and this follows
         // the naming convention: {NavigationProperty}Id or {PrincipalClass}Id
-        [Required]
         public string UserId { get; set; } = string.Empty;
 
         [Required, MaxLength(200)]

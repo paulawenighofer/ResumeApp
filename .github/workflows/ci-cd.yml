@@ -1,15 +1,15 @@
-# name: Pipelines for alex's kubernetes hosting
-# on:
-#   push:
-#     branches:
-#       - main
-#   workflow_dispatch:
-# jobs:
-#   deploy-on-kubernetes:
-#     runs-on: self-hosted
-#     steps:
-#       - name: Check out repository code
-#         uses: actions/checkout@v5
+name: Pipelines for staging in alex's kubernetes hosting
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+jobs:
+  deploy-on-kubernetes:
+    runs-on: self-hosted
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v5
  
 #       - name: Login to Docker Hub
 #         uses: docker/login-action@v3
