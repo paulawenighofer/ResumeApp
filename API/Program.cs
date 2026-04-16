@@ -331,6 +331,19 @@ app.MapGet("/health/ready", async (AppDbContext db, IConfiguration config, ILogg
 
 app.MapGet("/api/", () => "Hello World!");
 
+app.MapGet("/api/feature-flags", () =>
+{
+    var aiCoachEnabled = string.Equals(
+        Environment.GetEnvironmentVariable("FEATURE_AI_COACH"),
+        "true",
+        StringComparison.OrdinalIgnoreCase);
+
+    return Results.Ok(new
+    {
+        aiCoachEnabled
+    });
+}).AllowAnonymous();
+
 app.Lifetime.ApplicationStarted.Register(() => startupCompleted = true);
 
 app.Run();

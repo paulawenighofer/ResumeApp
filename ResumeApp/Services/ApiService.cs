@@ -14,6 +14,18 @@ public class ApiService : IApiService
         _httpClient = httpClient;
     }
 
+    public async Task<bool> IsAiCoachEnabledAsync()
+    {
+        var response = await SendAsync(HttpMethod.Get, "api/feature-flags");
+        if (response is null || !response.IsSuccessStatusCode)
+        {
+            return false;
+        }
+
+        var flags = await response.Content.ReadFromJsonAsync<FeatureFlagsResponse>();
+        return flags?.AiCoachEnabled == true;
+    }
+
     public async Task<List<EducationEntry>> GetEducationAsync()
     {
         var response = await SendAsync(HttpMethod.Get, "api/educations");
@@ -379,5 +391,10 @@ public class ApiService : IApiService
     private sealed class ImageUploadResponse
     {
         public string? ImageUrl { get; set; }
+    }
+
+    private sealed class FeatureFlagsResponse
+    {
+        public bool AiCoachEnabled { get; set; }
     }
 }

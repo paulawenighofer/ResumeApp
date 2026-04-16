@@ -62,6 +62,36 @@
                     <Label Text="Quick Actions"
                            Style="{StaticResource SectionHeaderStyle}" />
 
+                    <Border Style="{StaticResource CardStyle}"
+                            Padding="16"
+                            IsVisible="{Binding IsAiCoachEnabled}">
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                            <Border WidthRequest="48"
+                                    HeightRequest="48"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 14"
+                                    BackgroundColor="#DCFCE7"
+                                    VerticalOptions="Start">
+                                <Label Text="AI"
+                                       FontSize="16"
+                                       FontFamily="OpenSansSemibold"
+                                       TextColor="#166534"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center" />
+                            </Border>
+
+                            <VerticalStackLayout Grid.Column="1" Spacing="6">
+                                <Label Text="AI Coach Beta"
+                                       FontSize="16"
+                                       FontFamily="OpenSansSemibold"
+                                       TextColor="{StaticResource TextPrimary}" />
+                                <Label Text="Production feature flag is on. Users can preview guided resume-improvement tips from the home screen."
+                                       Style="{StaticResource SubtitleStyle}"
+                                       FontSize="12" />
+                            </VerticalStackLayout>
+                        </Grid>
+                    </Border>
+
                     <!-- Build Resume card -->
                     <Border Style="{StaticResource CardStyle}" Padding="0">
                         <Border.Shadow>

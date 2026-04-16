@@ -4,6 +4,7 @@ namespace ResumeApp.Services;
 
 public interface IApiService
 {
+    Task<bool> IsAiCoachEnabledAsync();
     Task<List<EducationEntry>> GetEducationAsync();
     Task<bool> PostEducationAsync(EducationEntry entry);
     Task<bool> UpdateEducationAsync(EducationEntry entry);

@@ -23,6 +23,9 @@ public partial class MainPageViewModel : ObservableObject
     [ObservableProperty]
     private string profileImageUrl = "";
 
+    [ObservableProperty]
+    private bool isAiCoachEnabled;
+
     public string AppHeading { get; } = "AI Resume Builder";
 
     public string Greeting => $"Hi, {UserName} 👋";
@@ -47,6 +50,8 @@ public partial class MainPageViewModel : ObservableObject
 
     private async Task LoadUserInfoAsync()
     {
+        IsAiCoachEnabled = await _apiService.IsAiCoachEnabledAsync();
+
         var savedName = await SecureStorage.GetAsync("user_name");
         if (!string.IsNullOrWhiteSpace(savedName))
             UserName = savedName;
@@ -121,4 +126,9 @@ public partial class MainPageViewModel : ObservableObject
     [RelayCommand]
     private async Task GoToGenerateResume() =>
         await Shell.Current.GoToAsync(nameof(GenerateResumePage));
+
+    partial void OnUserNameChanged(string value)
+    {
+        OnPropertyChanged(nameof(Greeting));
+    }
 }

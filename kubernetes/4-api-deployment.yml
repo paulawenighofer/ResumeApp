@@ -34,6 +34,8 @@ spec:
               value: http://otel-collector-service:4317
             - name: OTEL_SERVICE_NAME
               value: ResumeApp
+            - name: FEATURE_AI_COACH
+              value: "false"
           envFrom:
             - secretRef:
                 name: resume-app-secrets
