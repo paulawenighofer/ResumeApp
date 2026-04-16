@@ -5,6 +5,12 @@ metadata:
   namespace: $PR_NAMESPACE
 spec:
   replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  minReadySeconds: 5
   selector:
     matchLabels:
       app: loki
@@ -20,6 +26,24 @@ spec:
             - containerPort: 3100
           args:
             - -config.file=/etc/loki/loki-config.yaml
+          startupProbe:
+            httpGet:
+              path: /ready
+              port: 3100
+            periodSeconds: 5
+            failureThreshold: 12
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 3100
+            periodSeconds: 5
+            initialDelaySeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /ready
+              port: 3100
+            periodSeconds: 10
+            initialDelaySeconds: 15
           volumeMounts:
             - name: loki-config
               mountPath: /etc/loki/loki-config.yaml

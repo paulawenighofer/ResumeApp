@@ -4,7 +4,13 @@ metadata:
   name: resumeapp-api
   namespace: $PR_NAMESPACE
 spec:
-  replicas: 1
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  minReadySeconds: 5
   selector:
     matchLabels:
       app: resumeapp-api
@@ -31,3 +37,23 @@ spec:
           envFrom:
             - secretRef:
                 name: $PR_NAMESPACE-secrets
+          startupProbe:
+            httpGet:
+              path: /health/startup
+              port: 8080
+            periodSeconds: 5
+            failureThreshold: 12
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            periodSeconds: 5
+            initialDelaySeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            periodSeconds: 10
+            initialDelaySeconds: 15
+            failureThreshold: 3
