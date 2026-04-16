@@ -172,6 +172,7 @@
                                    VerticalOptions="Center" />
                         </HorizontalStackLayout>
                     </Border>
+                    
 
                     <!-- GitHub -->
                     <Border Grid.Column="1"
@@ -204,7 +205,7 @@
                 <Label Text="Don't have an account? "
                        FontSize="14"
                        TextColor="{StaticResource TextSecondary}"
-                       VerticalOptions="Center" />
+                       VerticalOptions="Center" />              
                 <Label Text="Sign Up"
                        FontSize="14"
                        FontFamily="OpenSansSemibold"

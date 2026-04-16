@@ -308,8 +308,14 @@ app.MapGet("/health/startup", () =>
         : Results.StatusCode(StatusCodes.Status503ServiceUnavailable))
     .AllowAnonymous();
 
-app.MapGet("/health/ready", async (AppDbContext db, CancellationToken cancellationToken) =>
+app.MapGet("/health/ready", async (AppDbContext db, IConfiguration config, ILogger<Program> logger, CancellationToken cancellationToken) =>
 {
+    var connectionString = config.GetConnectionString("DefaultConnection");
+    var masked = connectionString != null
+        ? System.Text.RegularExpressions.Regex.Replace(connectionString, @"Password=[^;]*", "Password=***")
+        : "NOT SET";
+
+    logger.LogInformation("Connection string: {ConnectionString}", masked);
     try
     {
         var canConnect = await db.Database.CanConnectAsync(cancellationToken);
