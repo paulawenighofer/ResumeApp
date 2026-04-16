@@ -5,6 +5,12 @@ metadata:
   namespace: $PR_NAMESPACE
 spec:
   replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  minReadySeconds: 5
   selector:
     matchLabels:
       app: prometheus
@@ -18,6 +24,24 @@ spec:
           image: prom/prometheus
           ports:
             - containerPort: 9090
+          startupProbe:
+            httpGet:
+              path: /-/ready
+              port: 9090
+            periodSeconds: 5
+            failureThreshold: 12
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: 9090
+            periodSeconds: 5
+            initialDelaySeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: 9090
+            periodSeconds: 10
+            initialDelaySeconds: 15
           volumeMounts:
             - name: config
               mountPath: /etc/prometheus

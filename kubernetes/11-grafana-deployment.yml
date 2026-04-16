@@ -5,6 +5,12 @@ metadata:
   namespace: resumeapp
 spec:
   replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  minReadySeconds: 5
   selector:
     matchLabels:
       app: grafana
@@ -25,6 +31,24 @@ spec:
               value: "Admin"
             - name: GF_AUTH_DISABLE_LOGIN_FORM
               value: "true"
+          startupProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            periodSeconds: 5
+            failureThreshold: 12
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            periodSeconds: 5
+            initialDelaySeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            periodSeconds: 10
+            initialDelaySeconds: 15
           volumeMounts:
             - name: grafana-config
               mountPath: /etc/grafana/provisioning/datasources/datasource.yaml
