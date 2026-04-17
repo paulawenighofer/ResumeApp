@@ -48,7 +48,7 @@ jobs:
           az containerapp update \
             --name "${{ secrets.AZURE_CONTAINER_APP_NAME }}" \
             --resource-group "${{ secrets.AZURE_RESOURCE_GROUP }}" \
-            --set-env-vars Features__EmailOtpDelivery="${FEATURES_EMAIL_OTP_DELIVERY:-true}"
+            --set-env-vars FeatureFlags__EmailOtpDelivery="${FEATURES_EMAIL_OTP_DELIVERY:-true}"
 
       - name: Notify on failure
         if: failure()
