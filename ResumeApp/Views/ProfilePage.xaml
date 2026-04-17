@@ -30,7 +30,8 @@
                                 <Image Source="{Binding ProfileImageSource}"
                                        Aspect="AspectFill"
                                        IsVisible="{Binding ProfileImagePath, Converter={StaticResource inverseBoolean}}" />
-                                <Label Text="👤"
+                                <Label Text="&#xf007;"
+                                       FontFamily="FASolid"
                                        FontSize="30"
                                        HorizontalOptions="Center"
                                        VerticalOptions="Center"
@@ -72,7 +73,7 @@
                                 StrokeThickness="0"
                                 StrokeShape="RoundRectangle 12"
                                 BackgroundColor="#EDE9FE">
-                            <Label Text="🎓" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center" />
+                            <Label Text="&#xf19d;" FontFamily="FASolid" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center" />
                         </Border>
                         <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center" Margin="12,0,0,0">
                             <Label Text="Education"
@@ -83,8 +84,9 @@
                                    Style="{StaticResource SubtitleStyle}"
                                    FontSize="12" />
                         </VerticalStackLayout>
-                        <Label Grid.Column="2" Text="›"
-                               FontSize="20"
+                        <Label Grid.Column="2" Text="&#xf054;"
+                               FontFamily="FASolid"
+                               FontSize="16"
                                TextColor="{StaticResource InactiveIcon}"
                                VerticalOptions="Center" />
                     </Grid>
@@ -100,7 +102,7 @@
                                 StrokeThickness="0"
                                 StrokeShape="RoundRectangle 12"
                                 BackgroundColor="#E0F2FE">
-                            <Label Text="🏅" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center" />
+                            <Label Text="&#xf5a2;" FontFamily="FASolid" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center" />
                         </Border>
                         <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center" Margin="12,0,0,0">
                             <Label Text="Certifications"
@@ -111,8 +113,9 @@
                                    Style="{StaticResource SubtitleStyle}"
                                    FontSize="12" />
                         </VerticalStackLayout>
-                        <Label Grid.Column="2" Text="›"
-                               FontSize="20"
+                        <Label Grid.Column="2" Text="&#xf054;"
+                               FontFamily="FASolid"
+                               FontSize="16"
                                TextColor="{StaticResource InactiveIcon}"
                                VerticalOptions="Center" />
                     </Grid>
@@ -128,7 +131,7 @@
                                 StrokeThickness="0"
                                 StrokeShape="RoundRectangle 12"
                                 BackgroundColor="#DBEAFE">
-                            <Label Text="💼" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center" />
+                            <Label Text="&#xf0b1;" FontFamily="FASolid" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center" />
                         </Border>
                         <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center" Margin="12,0,0,0">
                             <Label Text="Experience"
@@ -139,8 +142,9 @@
                                    Style="{StaticResource SubtitleStyle}"
                                    FontSize="12" />
                         </VerticalStackLayout>
-                        <Label Grid.Column="2" Text="›"
-                               FontSize="20"
+                        <Label Grid.Column="2" Text="&#xf054;"
+                               FontFamily="FASolid"
+                               FontSize="16"
                                TextColor="{StaticResource InactiveIcon}"
                                VerticalOptions="Center" />
                     </Grid>
@@ -156,7 +160,7 @@
                                 StrokeThickness="0"
                                 StrokeShape="RoundRectangle 12"
                                 BackgroundColor="#D1FAE5">
-                            <Label Text="⭐" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center" />
+                            <Label Text="&#xf005;" FontFamily="FASolid" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center" />
                         </Border>
                         <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center" Margin="12,0,0,0">
                             <Label Text="Skills"
@@ -167,8 +171,9 @@
                                    Style="{StaticResource SubtitleStyle}"
                                    FontSize="12" />
                         </VerticalStackLayout>
-                        <Label Grid.Column="2" Text="›"
-                               FontSize="20"
+                        <Label Grid.Column="2" Text="&#xf054;"
+                               FontFamily="FASolid"
+                               FontSize="16"
                                TextColor="{StaticResource InactiveIcon}"
                                VerticalOptions="Center" />
                     </Grid>
@@ -184,7 +189,7 @@
                                 StrokeThickness="0"
                                 StrokeShape="RoundRectangle 12"
                                 BackgroundColor="#FEF3C7">
-                            <Label Text="🚀" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center" />
+                            <Label Text="&#xf135;" FontFamily="FASolid" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center" />
                         </Border>
                         <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center" Margin="12,0,0,0">
                             <Label Text="Projects"
@@ -195,8 +200,9 @@
                                    Style="{StaticResource SubtitleStyle}"
                                    FontSize="12" />
                         </VerticalStackLayout>
-                        <Label Grid.Column="2" Text="›"
-                               FontSize="20"
+                        <Label Grid.Column="2" Text="&#xf054;"
+                               FontFamily="FASolid"
+                               FontSize="16"
                                TextColor="{StaticResource InactiveIcon}"
                                VerticalOptions="Center" />
                     </Grid>

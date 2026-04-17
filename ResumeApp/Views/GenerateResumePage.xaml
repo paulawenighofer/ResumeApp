@@ -12,10 +12,16 @@
         <VerticalStackLayout Padding="24,16" Spacing="20">
 
             <!-- Header -->
-            <Label Text="✨ Generate Resume"
-                   FontSize="24"
+            <Label FontSize="24"
                    FontFamily="OpenSansSemibold"
-                   TextColor="{StaticResource TextPrimary}" />
+                   TextColor="{StaticResource TextPrimary}">
+                <Label.FormattedText>
+                    <FormattedString>
+                        <Span Text="&#xf0d0; " FontFamily="FASolid" />
+                        <Span Text="Generate Resume" />
+                    </FormattedString>
+                </Label.FormattedText>
+            </Label>
             <Label Text="Fill in the details below and let AI build you a tailored resume."
                    Style="{StaticResource SubtitleStyle}" />
 
@@ -123,10 +129,15 @@
             </Border>
 
             <!-- Generate button -->
-            <Button Text="🚀  Generate with AI"
+            <Button Text="Generate with AI"
                     Command="{Binding GenerateCommand}"
                     Style="{StaticResource VioletButtonStyle}"
-                    Margin="0,4,0,0" />
+                    ContentLayout="Left,12"
+                    Margin="0,4,0,0">
+                <Button.ImageSource>
+                    <FontImageSource FontFamily="FASolid" Glyph="&#xf135;" Color="White" Size="18" />
+                </Button.ImageSource>
+            </Button>
 
             <ActivityIndicator IsRunning="{Binding IsBusy}"
                                IsVisible="{Binding IsBusy}"

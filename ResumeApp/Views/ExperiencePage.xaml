@@ -9,10 +9,16 @@
     <ScrollView>
         <VerticalStackLayout Padding="24,16" Spacing="16">
 
-            <Label Text="💼 Experience"
-                   FontSize="26"
+            <Label FontSize="26"
                    FontFamily="OpenSansSemibold"
-                   TextColor="{StaticResource TextPrimary}" />
+                   TextColor="{StaticResource TextPrimary}">
+                <Label.FormattedText>
+                    <FormattedString>
+                        <Span Text="&#xf0b1; " FontFamily="FASolid" />
+                        <Span Text="Experience" />
+                    </FormattedString>
+                </Label.FormattedText>
+            </Label>
             <Label Text="Add your work history, roles, and achievements."
                    Style="{StaticResource SubtitleStyle}" />
 

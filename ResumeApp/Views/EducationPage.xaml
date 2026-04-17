@@ -9,10 +9,16 @@
     <ScrollView>
         <VerticalStackLayout Padding="24,16" Spacing="16">
 
-            <Label Text="🎓 Education"
-                   FontSize="26"
+            <Label FontSize="26"
                    FontFamily="OpenSansSemibold"
-                   TextColor="{StaticResource TextPrimary}" />
+                   TextColor="{StaticResource TextPrimary}">
+                <Label.FormattedText>
+                    <FormattedString>
+                        <Span Text="&#xf19d; " FontFamily="FASolid" />
+                        <Span Text="Education" />
+                    </FormattedString>
+                </Label.FormattedText>
+            </Label>
             <Label Text="Add your degrees, schools, and important details."
                    Style="{StaticResource SubtitleStyle}" />
 

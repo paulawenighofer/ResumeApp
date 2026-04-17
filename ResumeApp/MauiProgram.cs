@@ -18,6 +18,7 @@ public static class MauiProgram
             fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
             fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             fonts.AddFont("fa-brands-400.ttf", "FABrands");
+            fonts.AddFont("fa-solid-900.ttf", "FASolid");
         }).UseMauiCommunityToolkit();
 
         builder.Services.AddSingleton(sp =>

@@ -45,7 +45,8 @@
                             <Grid>
                                 <Image Source="{Binding ProfileImageSource}"
                                        Aspect="AspectFill" />
-                                <Label Text="👤"
+                                <Label Text="&#xf007;"
+                                       FontFamily="FASolid"
                                        FontSize="24"
                                        HorizontalOptions="Center"
                                        VerticalOptions="Center"
@@ -88,8 +89,9 @@
                                            Style="{StaticResource SubtitleStyle}"
                                            FontSize="12" />
                                 </VerticalStackLayout>
-                                <Label Grid.Column="1" Text="›"
-                                       FontSize="22"
+                                <Label Grid.Column="1" Text="&#xf054;"
+                                       FontFamily="FASolid"
+                                       FontSize="18"
                                        TextColor="{StaticResource PrimaryViolet}"
                                        VerticalOptions="Center" />
                             </Grid>
@@ -110,7 +112,7 @@
                                 <TapGestureRecognizer Command="{Binding GoToSkillsCommand}" />
                             </Border.GestureRecognizers>
                             <VerticalStackLayout Spacing="8">
-                                <Label Text="⭐" FontSize="28" />
+                                <Label Text="&#xf005;" FontFamily="FASolid" FontSize="28" />
                                 <Label Text="Skills"
                                        FontSize="15"
                                        FontFamily="OpenSansSemibold"
@@ -129,7 +131,7 @@
                                 <TapGestureRecognizer Command="{Binding GoToProjectsCommand}" />
                             </Border.GestureRecognizers>
                             <VerticalStackLayout Spacing="8">
-                                <Label Text="🚀" FontSize="28" />
+                                <Label Text="&#xf135;" FontFamily="FASolid" FontSize="28" />
                                 <Label Text="Projects"
                                        FontSize="15"
                                        FontFamily="OpenSansSemibold"
@@ -154,7 +156,7 @@
                                     StrokeThickness="0"
                                     StrokeShape="RoundRectangle 12"
                                     BackgroundColor="#EDE9FE">
-                                <Label Text="🎓" FontSize="18" HorizontalOptions="Center" VerticalOptions="Center" />
+                                <Label Text="&#xf19d;" FontFamily="FASolid" FontSize="18" HorizontalOptions="Center" VerticalOptions="Center" />
                             </Border>
                             <VerticalStackLayout Grid.Column="1" Spacing="6" VerticalOptions="Center">
                                 <Label Text="Education"
@@ -181,7 +183,7 @@
                                     StrokeThickness="0"
                                     StrokeShape="RoundRectangle 12"
                                     BackgroundColor="#DBEAFE">
-                                <Label Text="💼" FontSize="18" HorizontalOptions="Center" VerticalOptions="Center" />
+                                <Label Text="&#xf0b1;" FontFamily="FASolid" FontSize="18" HorizontalOptions="Center" VerticalOptions="Center" />
                             </Border>
                             <VerticalStackLayout Grid.Column="1" Spacing="6" VerticalOptions="Center">
                                 <Label Text="Experience"

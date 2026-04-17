@@ -18,7 +18,7 @@
                 <Border.Shadow>
                     <Shadow Brush="{StaticResource PrimaryViolet}" Offset="0,6" Radius="20" Opacity="0.35" />
                 </Border.Shadow>
-                <Label Text="✦" FontSize="32" TextColor="White" HorizontalOptions="Center" VerticalOptions="Center" />
+                <Label Text="&#xf005;" FontFamily="FASolid" FontSize="32" TextColor="White" HorizontalOptions="Center" VerticalOptions="Center" />
             </Border>
 
             <Label Text="Create Account"

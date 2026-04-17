@@ -25,7 +25,8 @@
                             Radius="20"
                             Opacity="0.35" />
                 </Border.Shadow>
-                <Label Text="✦"
+                <Label Text="&#xf005;"
+                       FontFamily="FASolid"
                        FontSize="32"
                        TextColor="White"
                        HorizontalOptions="Center"
