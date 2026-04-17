@@ -77,8 +77,7 @@ public partial class ProjectsViewModel : ObservableObject
             Technologies = CurrentProject.Technologies,
             ProjectUrl = CurrentProject.ProjectUrl,
             StartDate = CurrentProject.StartDate,
-            EndDate = CurrentProject.EndDate,
-            ImagePaths = [.. CurrentProject.ImagePaths]
+            EndDate = CurrentProject.EndDate
         };
 
         if (IsEditing && _editingProjectId is not null)
@@ -91,6 +90,10 @@ public partial class ProjectsViewModel : ObservableObject
         }
 
         await _localStorageService.SaveProjectsDraftAsync(ProjectEntries.ToList());
+        if (!await SyncProjectAsync(entry))
+        {
+            ShowError("Project saved locally. Backend sync failed — please try again.");
+        }
         ResetEditor();
     }
 
@@ -114,8 +117,7 @@ public partial class ProjectsViewModel : ObservableObject
             Technologies = entry.Technologies,
             ProjectUrl = entry.ProjectUrl,
             StartDate = entry.StartDate,
-            EndDate = entry.EndDate,
-            ImagePaths = [.. entry.ImagePaths]
+            EndDate = entry.EndDate
         };
     }
 
@@ -132,38 +134,13 @@ public partial class ProjectsViewModel : ObservableObject
 
         ProjectEntries.Remove(entry);
         await _localStorageService.SaveProjectsDraftAsync(ProjectEntries.ToList());
+        if (!await _apiService.DeleteProjectAsync(entry.Id))
+        {
+            ShowError("Project removed locally. Backend delete failed — please try again.");
+        }
         if (_editingProjectId == entry.Id)
         {
             ResetEditor();
-        }
-    }
-
-    [RelayCommand]
-    private async Task SelectProjectImages()
-    {
-        ResetError();
-
-        try
-        {
-            var results = await FilePicker.Default.PickMultipleAsync(new PickOptions
-            {
-                FileTypes = FilePickerFileType.Images,
-                PickerTitle = "Select project images"
-            });
-
-            if (results is null)
-            {
-                return;
-            }
-
-            CurrentProject.ImagePaths = results
-                .Where(file => !string.IsNullOrWhiteSpace(file.FullPath))
-                .Select(file => file.FullPath)
-                .ToList()!;
-        }
-        catch (Exception ex)
-        {
-            ShowError($"Could not select images: {ex.Message}");
         }
     }
 
@@ -206,10 +183,6 @@ public partial class ProjectsViewModel : ObservableObject
                     break;
                 }
 
-                if (project.ImagePaths.Count > 0)
-                {
-                    await _apiService.UploadProjectImagesAsync(project.Id, project.ImagePaths);
-                }
             }
 
             if (!syncFailed)
@@ -261,14 +234,27 @@ public partial class ProjectsViewModel : ObservableObject
         HasError = false;
     }
 
+    private async Task<bool> SyncProjectAsync(ProjectEntry project)
+    {
+        var success = int.TryParse(project.Id, out _)
+            ? await _apiService.UpdateProjectAsync(project)
+            : await _apiService.PostProjectAsync(project);
+
+        if (success)
+        {
+            await _localStorageService.SaveProjectsDraftAsync(ProjectEntries.ToList());
+        }
+
+        return success;
+    }
+
     partial void OnIsEditingChanged(bool value) => OnPropertyChanged(nameof(SubmitButtonText));
 
     private bool HasPendingProjectInput()
         => !string.IsNullOrWhiteSpace(CurrentProject.Name)
         || !string.IsNullOrWhiteSpace(CurrentProject.Description)
         || !string.IsNullOrWhiteSpace(CurrentProject.Technologies)
-        || !string.IsNullOrWhiteSpace(CurrentProject.ProjectUrl)
-        || CurrentProject.ImagePaths.Count > 0;
+        || !string.IsNullOrWhiteSpace(CurrentProject.ProjectUrl);
 
     private async Task<bool> TryAddCurrentProjectAsDraftAsync()
     {

@@ -93,6 +93,10 @@ public partial class EducationViewModel : ObservableObject
         }
 
         await _localStorageService.SaveEducationDraftAsync(EducationEntries.ToList());
+        if (!await SyncEducationAsync(entry))
+        {
+            ShowError("Education saved locally. Backend sync failed — please try again.");
+        }
         ResetEditor();
     }
 
@@ -133,6 +137,10 @@ public partial class EducationViewModel : ObservableObject
 
         EducationEntries.Remove(entry);
         await _localStorageService.SaveEducationDraftAsync(EducationEntries.ToList());
+        if (!await _apiService.DeleteEducationAsync(entry.Id))
+        {
+            ShowError("Education removed locally. Backend delete failed — please try again.");
+        }
         if (_editingEducationId == entry.Id)
         {
             ResetEditor();
@@ -227,6 +235,20 @@ public partial class EducationViewModel : ObservableObject
     {
         ErrorMessage = string.Empty;
         HasError = false;
+    }
+
+    private async Task<bool> SyncEducationAsync(EducationEntry entry)
+    {
+        var success = int.TryParse(entry.Id, out _)
+            ? await _apiService.UpdateEducationAsync(entry)
+            : await _apiService.PostEducationAsync(entry);
+
+        if (success)
+        {
+            await _localStorageService.SaveEducationDraftAsync(EducationEntries.ToList());
+        }
+
+        return success;
     }
 
     partial void OnIsEditingChanged(bool value) => OnPropertyChanged(nameof(SubmitButtonText));

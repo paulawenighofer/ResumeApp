@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Shared.Models;
 using System.Security.Claims;
-using System.Diagnostics;
 
 namespace API.Controllers;
 
@@ -70,9 +69,10 @@ public class ProjectsController : ControllerBase
             UserId = userId,
             Title = project.Name,
             Description = project.Description,
+            TechnologiesUsed = project.Technologies,
             ProjectUrl = project.Url,
-            StartDate = project.StartDate?.ToDateTime(TimeOnly.MinValue),
-            EndDate = project.EndDate?.ToDateTime(TimeOnly.MinValue)
+            StartDate = ToUtcDateTime(project.StartDate),
+            EndDate = ToUtcDateTime(project.EndDate)
         };
 
         _db.Projects.Add(entity);
@@ -113,9 +113,10 @@ public class ProjectsController : ControllerBase
 
         entity.Title = project.Name;
         entity.Description = project.Description;
+        entity.TechnologiesUsed = project.Technologies;
         entity.ProjectUrl = project.Url;
-        entity.StartDate = project.StartDate?.ToDateTime(TimeOnly.MinValue);
-        entity.EndDate = project.EndDate?.ToDateTime(TimeOnly.MinValue);
+        entity.StartDate = ToUtcDateTime(project.StartDate);
+        entity.EndDate = ToUtcDateTime(project.EndDate);
 
         await _db.SaveChangesAsync();
         _metrics.RecordProfileMutation(TelemetryTags.Sections.Project, TelemetryTags.Actions.Update, userId);
@@ -146,64 +147,13 @@ public class ProjectsController : ControllerBase
         return NoContent();
     }
 
-    [HttpPost("{id:int}/images")]
-    [RequestSizeLimit(25_000_000)]
-    public async Task<IActionResult> UploadImages(int id, [FromForm] List<IFormFile> files, [FromServices] IWebHostEnvironment environment)
-    {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrWhiteSpace(userId))
-        {
-            return Unauthorized();
-        }
-
-        var project = await _db.Projects
-            .FirstOrDefaultAsync(x => x.Id == id && x.UserId == userId);
-
-        if (project is null)
-        {
-            return NotFound();
-        }
-
-        if (files.Count == 0)
-        {
-            _metrics.RecordUpload(TelemetryTags.Sections.ProjectImage, TelemetryTags.Outcomes.Failure, 0, 0, 0, userId);
-            return BadRequest(new { message = "No images uploaded." });
-        }
-
-        var stopwatch = Stopwatch.StartNew();
-        var webRoot = string.IsNullOrWhiteSpace(environment.WebRootPath)
-            ? Path.Combine(environment.ContentRootPath, "wwwroot")
-            : environment.WebRootPath;
-        var uploadsFolder = Path.Combine(webRoot, "uploads", "projects", id.ToString());
-        Directory.CreateDirectory(uploadsFolder);
-
-        var uploadedUrls = new List<string>();
-        long totalBytes = 0;
-
-        foreach (var file in files.Where(f => f.Length > 0))
-        {
-            var extension = Path.GetExtension(file.FileName);
-            var fileName = $"{Guid.NewGuid():N}{extension}";
-            var fullPath = Path.Combine(uploadsFolder, fileName);
-
-            await using var stream = System.IO.File.Create(fullPath);
-            await file.CopyToAsync(stream);
-            totalBytes += file.Length;
-
-            uploadedUrls.Add($"{Request.Scheme}://{Request.Host}/uploads/projects/{id}/{fileName}");
-        }
-
-        stopwatch.Stop();
-        _metrics.RecordUpload(TelemetryTags.Sections.ProjectImage, TelemetryTags.Outcomes.Success, uploadedUrls.Count, totalBytes, stopwatch.Elapsed.TotalMilliseconds, userId);
-        return Ok(new { images = uploadedUrls });
-    }
-
     private static ResumeProject MapToResumeProject(Project project) => new()
     {
         Id = project.Id,
         UserId = project.UserId,
         Name = project.Title,
         Description = project.Description,
+        Technologies = project.TechnologiesUsed,
         Url = project.ProjectUrl,
         StartDate = project.StartDate.HasValue
             ? DateOnly.FromDateTime(project.StartDate.Value)
@@ -212,4 +162,9 @@ public class ProjectsController : ControllerBase
             ? DateOnly.FromDateTime(project.EndDate.Value)
             : null
     };
+
+    private static DateTime? ToUtcDateTime(DateOnly? value)
+        => value.HasValue
+            ? DateTime.SpecifyKind(value.Value.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc)
+            : null;
 }

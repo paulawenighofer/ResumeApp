@@ -76,6 +76,17 @@ public class ApiService : IApiService
         return updated || await PostEducationAsync(entry);
     }
 
+    public async Task<bool> DeleteEducationAsync(string id)
+    {
+        if (!int.TryParse(id, out var educationId))
+        {
+            return true;
+        }
+
+        var response = await SendAsync(HttpMethod.Delete, $"api/educations/{educationId}");
+        return response?.IsSuccessStatusCode == true;
+    }
+
     public async Task<List<ExperienceEntry>> GetExperienceAsync()
     {
         var response = await SendAsync(HttpMethod.Get, "api/experiences");
@@ -137,6 +148,17 @@ public class ApiService : IApiService
         return updated || await PostExperienceAsync(entry);
     }
 
+    public async Task<bool> DeleteExperienceAsync(string id)
+    {
+        if (!int.TryParse(id, out var experienceId))
+        {
+            return true;
+        }
+
+        var response = await SendAsync(HttpMethod.Delete, $"api/experiences/{experienceId}");
+        return response?.IsSuccessStatusCode == true;
+    }
+
     public async Task<List<SkillEntry>> GetSkillsAsync()
     {
         var response = await SendAsync(HttpMethod.Get, "api/skills");
@@ -190,6 +212,17 @@ public class ApiService : IApiService
         return updated || await PostSkillAsync(entry);
     }
 
+    public async Task<bool> DeleteSkillAsync(string id)
+    {
+        if (!int.TryParse(id, out var skillId))
+        {
+            return true;
+        }
+
+        var response = await SendAsync(HttpMethod.Delete, $"api/skills/{skillId}");
+        return response?.IsSuccessStatusCode == true;
+    }
+
     public async Task<List<ProjectEntry>> GetProjectsAsync()
     {
         var response = await SendAsync(HttpMethod.Get, "api/projects");
@@ -208,6 +241,7 @@ public class ApiService : IApiService
         {
             Name = entry.Name,
             Description = entry.Description,
+            Technologies = entry.Technologies,
             Url = entry.ProjectUrl,
             StartDate = DateOnly.FromDateTime(entry.StartDate),
             EndDate = DateOnly.FromDateTime(entry.EndDate)
@@ -238,6 +272,7 @@ public class ApiService : IApiService
         {
             Name = entry.Name,
             Description = entry.Description,
+            Technologies = entry.Technologies,
             Url = entry.ProjectUrl,
             StartDate = DateOnly.FromDateTime(entry.StartDate),
             EndDate = DateOnly.FromDateTime(entry.EndDate)
@@ -248,15 +283,14 @@ public class ApiService : IApiService
         return response?.IsSuccessStatusCode == true || await PostProjectAsync(entry);
     }
 
-    public async Task<bool> UploadProjectImagesAsync(string projectId, IReadOnlyCollection<string> imagePaths)
+    public async Task<bool> DeleteProjectAsync(string id)
     {
-        if (imagePaths.Count == 0)
+        if (!int.TryParse(id, out var projectId))
         {
             return true;
         }
 
-        var content = BuildMultipartContent(imagePaths, "files");
-        var response = await SendAsync(HttpMethod.Post, $"api/projects/{projectId}/images", content);
+        var response = await SendAsync(HttpMethod.Delete, $"api/projects/{projectId}");
         return response?.IsSuccessStatusCode == true;
     }
 
@@ -371,6 +405,7 @@ public class ApiService : IApiService
         Id = project.Id.ToString(),
         Name = project.Name,
         Description = project.Description ?? string.Empty,
+        Technologies = project.Technologies,
         ProjectUrl = project.Url,
         StartDate = project.StartDate?.ToDateTime(TimeOnly.MinValue) ?? DateTime.Now,
         EndDate = project.EndDate?.ToDateTime(TimeOnly.MinValue) ?? DateTime.Now

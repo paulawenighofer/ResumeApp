@@ -109,6 +109,10 @@ public partial class SkillsViewModel : ObservableObject
         }
 
         await _localStorageService.SaveSkillsDraftAsync(SkillEntries.ToList());
+        if (!await SyncSkillAsync(skill))
+        {
+            ShowError("Skill saved locally. Backend sync failed — please try again.");
+        }
         ResetEditor();
     }
 
@@ -134,6 +138,8 @@ public partial class SkillsViewModel : ObservableObject
     [RelayCommand]
     private async Task AddSuggestedSkill(string skillName)
     {
+        ResetError();
+
         if (SkillEntries.Any(s => s.Name.Equals(skillName, StringComparison.OrdinalIgnoreCase)))
         {
             return;
@@ -148,6 +154,11 @@ public partial class SkillsViewModel : ObservableObject
         });
 
         await _localStorageService.SaveSkillsDraftAsync(SkillEntries.ToList());
+        var addedSkill = SkillEntries.Last();
+        if (!await SyncSkillAsync(addedSkill))
+        {
+            ShowError("Skill saved locally. Backend sync failed — please try again.");
+        }
     }
 
     [RelayCommand]
@@ -160,6 +171,10 @@ public partial class SkillsViewModel : ObservableObject
 
         SkillEntries.Remove(skill);
         await _localStorageService.SaveSkillsDraftAsync(SkillEntries.ToList());
+        if (!await _apiService.DeleteSkillAsync(skill.Id))
+        {
+            ShowError("Skill removed locally. Backend delete failed — please try again.");
+        }
         if (_editingSkillId == skill.Id)
         {
             ResetEditor();
@@ -254,6 +269,20 @@ public partial class SkillsViewModel : ObservableObject
     {
         ErrorMessage = string.Empty;
         HasError = false;
+    }
+
+    private async Task<bool> SyncSkillAsync(SkillEntry skill)
+    {
+        var success = int.TryParse(skill.Id, out _)
+            ? await _apiService.UpdateSkillAsync(skill)
+            : await _apiService.PostSkillAsync(skill);
+
+        if (success)
+        {
+            await _localStorageService.SaveSkillsDraftAsync(SkillEntries.ToList());
+        }
+
+        return success;
     }
 
     partial void OnIsEditingChanged(bool value) => OnPropertyChanged(nameof(SubmitButtonText));

@@ -47,10 +47,6 @@
                             Text="{Binding CurrentProject.Description}"
                             PlaceholderColor="{StaticResource InactiveIcon}" />
 
-                    <Button Text="Select project images"
-                            Command="{Binding SelectProjectImagesCommand}"
-                            Style="{StaticResource OutlineButtonStyle}" />
-
                     <Button Text="{Binding SubmitButtonText}"
                             Command="{Binding AddProjectCommand}"
                             Style="{StaticResource VioletButtonStyle}" />
@@ -99,10 +95,6 @@
                                 <Label Text="{Binding Description}"
                                        FontSize="13"
                                        TextColor="{StaticResource TextPrimary}" />
-                                <Label Text="✓ Images attached"
-                                       FontSize="12"
-                                       TextColor="{StaticResource SuccessGreen}"
-                                       IsVisible="{Binding HasImages}" />
                                 <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,4,0,0">
                                     <Button Grid.Column="0"
                                             Text="Edit"
