@@ -13,6 +13,8 @@ public partial class ToastPopup : Popup
         BindingContext = this;
     }
 
+    public VisualElement ToastContainerView => ToastContainer;
+
     public string Message { get; }
 
     public Color BackgroundColor { get; }
