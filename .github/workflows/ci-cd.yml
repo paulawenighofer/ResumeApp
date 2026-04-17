@@ -8,7 +8,7 @@ jobs:
   deploy-on-kubernetes:
     runs-on: self-hosted
     env:
-      FEATURES_ENABLE_EMAIL_OTP_DELIVERY: ${{ vars.STAGING_FEATURES_ENABLE_EMAIL_OTP_DELIVERY }}
+      FEATURES_EMAIL_OTP_DELIVERY: ${{ vars.STAGING_FEATURES_EMAIL_OTP_DELIVERY }}
     steps:
       - name: Check out repository code
         uses: actions/checkout@v5

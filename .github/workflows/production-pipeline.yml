@@ -12,7 +12,7 @@ jobs:
       id-token: write
       contents: read
     env:
-      FEATURES_ENABLE_EMAIL_OTP_DELIVERY: ${{ vars.PRODUCTION_FEATURES_ENABLE_EMAIL_OTP_DELIVERY }}
+      FEATURES_EMAIL_OTP_DELIVERY: ${{ vars.PRODUCTION_FEATURES_EMAIL_OTP_DELIVERY }}
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -48,7 +48,7 @@ jobs:
           az containerapp update \
             --name "${{ secrets.AZURE_CONTAINER_APP_NAME }}" \
             --resource-group "${{ secrets.AZURE_RESOURCE_GROUP }}" \
-            --set-env-vars Features__EnableEmailOtpDelivery="${FEATURES_ENABLE_EMAIL_OTP_DELIVERY:-true}"
+            --set-env-vars Features__EmailOtpDelivery="${FEATURES_EMAIL_OTP_DELIVERY:-true}"
 
       - name: Notify on failure
         if: failure()
