@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.FeatureManagement;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using OpenTelemetry.Logs;
@@ -77,6 +78,7 @@ builder.Services.AddSwaggerGen(options =>
 
 });
 builder.Services.AddSingleton<InMemoryResumeStore>();
+builder.Services.AddFeatureManagement(builder.Configuration.GetSection("FeatureFlags"));
 
 // =============================================
 // SECTION 1: DATABASE
@@ -166,8 +168,22 @@ builder.Services.AddHttpClient();
 builder.Services.AddScoped<TokenService>();
 // Register our social auth service
 builder.Services.AddScoped<SocialAuthService>();
-// Register the email service — sends OTP codes and password-reset links via SMTP
-builder.Services.AddScoped<IEmailService, SmtpEmailService>();
+
+// Register email service implementations and select one by feature flag at resolve time.
+builder.Services.AddScoped<SmtpEmailService>();
+builder.Services.AddScoped<LoggingEmailService>();
+builder.Services.AddScoped<IEmailService>(sp =>
+{
+    var emailOtpDeliveryEnabled = sp
+        .GetRequiredService<IFeatureManagerSnapshot>()
+        .IsEnabledAsync("EmailOtpDelivery")
+        .GetAwaiter()
+        .GetResult();
+
+    return emailOtpDeliveryEnabled
+        ? sp.GetRequiredService<SmtpEmailService>()
+        : sp.GetRequiredService<LoggingEmailService>();
+});
 builder.Services.AddSingleton<UserActivityTracker>();
 
 // =============================================
