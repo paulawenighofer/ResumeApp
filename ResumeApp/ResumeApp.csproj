@@ -21,6 +21,7 @@
 		<Nullable>enable</Nullable>
 		<RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
 		<RunAnalyzersDuringLiveAnalysis>true</RunAnalyzersDuringLiveAnalysis>
+		<MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
 
 		<!-- Display name -->
 		<ApplicationTitle>ResumeApp</ApplicationTitle>
@@ -68,6 +69,8 @@
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.9" />
 		<PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
+		<PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.11" />
+		<PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="2.1.11" />
 	</ItemGroup>
 
 	<ItemGroup>

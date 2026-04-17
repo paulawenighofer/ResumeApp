@@ -3,7 +3,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:ResumeApp.Views.Controls"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:vm="clr-namespace:ResumeApp.ViewModels"
+             xmlns:models="clr-namespace:ResumeApp.Models"
              x:Class="ResumeApp.Views.ProjectsPage"
+             x:DataType="vm:ProjectsViewModel"
              x:Name="ProjectsPageRoot"
              Title="Projects"
              Shell.NavBarIsVisible="False"
@@ -119,7 +122,7 @@
                            Style="{StaticResource SubtitleStyle}" />
                 </CollectionView.EmptyView>
                 <CollectionView.ItemTemplate>
-                    <DataTemplate>
+                    <DataTemplate x:DataType="models:ProjectEntry">
                         <Border Margin="0,0,0,12"
                                 Padding="16"
                                 BackgroundColor="{StaticResource SurfaceWhite}"
