@@ -11,27 +11,85 @@ public partial class CertificationsViewModel : ObservableObject
     private readonly IApiService _apiService;
     private readonly ILocalStorageService _localStorageService;
 
-    [ObservableProperty]
-    private CertificationEntry currentCertification = new();
-
-    [ObservableProperty]
-    private ObservableCollection<CertificationEntry> certificationEntries = [];
-
-    [ObservableProperty]
-    private bool isBusy;
-
-    [ObservableProperty]
-    private string errorMessage = string.Empty;
-
-    [ObservableProperty]
-    private bool hasError;
-
-    [ObservableProperty]
-    private bool isEditing;
+    private CertificationEntry _currentCertification = new();
+    private ObservableCollection<CertificationEntry> _certificationEntries = [];
+    private bool _isBusy;
+    private string _errorMessage = string.Empty;
+    private bool _hasError;
+    private bool _isEditing;
+    private bool _hasUnsavedChanges;
 
     private string? _editingCertificationId;
 
+    public CertificationEntry CurrentCertification
+    {
+        get => _currentCertification;
+        set
+        {
+            if (SetProperty(ref _currentCertification, value))
+            {
+                OnPropertyChanged(nameof(CanSave));
+            }
+        }
+    }
+
+    public ObservableCollection<CertificationEntry> CertificationEntries
+    {
+        get => _certificationEntries;
+        set => SetProperty(ref _certificationEntries, value);
+    }
+
+    public bool IsBusy
+    {
+        get => _isBusy;
+        set
+        {
+            if (SetProperty(ref _isBusy, value))
+            {
+                OnPropertyChanged(nameof(CanSave));
+            }
+        }
+    }
+
+    public string ErrorMessage
+    {
+        get => _errorMessage;
+        set => SetProperty(ref _errorMessage, value);
+    }
+
+    public bool HasError
+    {
+        get => _hasError;
+        set => SetProperty(ref _hasError, value);
+    }
+
+    public bool IsEditing
+    {
+        get => _isEditing;
+        set
+        {
+            if (SetProperty(ref _isEditing, value))
+            {
+                OnPropertyChanged(nameof(SubmitButtonText));
+            }
+        }
+    }
+
+    public bool HasUnsavedChanges
+    {
+        get => _hasUnsavedChanges;
+        set
+        {
+            if (SetProperty(ref _hasUnsavedChanges, value))
+            {
+                OnPropertyChanged(nameof(CanSave));
+            }
+        }
+    }
+
     public string SubmitButtonText => IsEditing ? "Save changes" : "Add certification";
+
+    public bool CanSave => !IsBusy && (HasUnsavedChanges || HasPendingCertificationInput());
 
     public CertificationsViewModel(IApiService apiService, ILocalStorageService localStorageService)
     {
@@ -78,10 +136,16 @@ public partial class CertificationsViewModel : ObservableObject
             CertificationEntries.Add(entry);
         }
 
+        HasUnsavedChanges = true;
+
         await _localStorageService.SaveCertificationsDraftAsync(CertificationEntries.ToList());
         if (!await SyncCertificationAsync(entry))
         {
             ShowError("Certification saved locally. Backend sync failed — please try again.");
+        }
+        else
+        {
+            await ShowToastAsync("Certification saved");
         }
         ResetEditor();
     }
@@ -120,11 +184,21 @@ public partial class CertificationsViewModel : ObservableObject
             return;
         }
 
+        if (!await ConfirmDeleteAsync("Delete certification", "Delete this certification?"))
+        {
+            return;
+        }
+
         CertificationEntries.Remove(entry);
+        HasUnsavedChanges = true;
         await _localStorageService.SaveCertificationsDraftAsync(CertificationEntries.ToList());
         if (!await _apiService.DeleteCertificationAsync(entry.Id))
         {
             ShowError("Certification removed locally. Backend delete failed — please try again.");
+        }
+        else
+        {
+            await ShowToastAsync("Certification deleted");
         }
         if (_editingCertificationId == entry.Id)
         {
@@ -175,6 +249,7 @@ public partial class CertificationsViewModel : ObservableObject
             if (!syncFailed)
             {
                 await _localStorageService.ClearCertificationsDraftAsync();
+                HasUnsavedChanges = false;
             }
 
             if (syncFailed)
@@ -201,12 +276,14 @@ public partial class CertificationsViewModel : ObservableObject
         if (drafts.Count > 0)
         {
             CertificationEntries = new ObservableCollection<CertificationEntry>(drafts);
+            HasUnsavedChanges = true;
         }
 
         var entries = await _apiService.GetCertificationsAsync();
         if (entries.Count > 0)
         {
             CertificationEntries = new ObservableCollection<CertificationEntry>(entries);
+            HasUnsavedChanges = false;
         }
     }
 
@@ -214,6 +291,7 @@ public partial class CertificationsViewModel : ObservableObject
     {
         ErrorMessage = message;
         HasError = true;
+        _ = ShowToastAsync(message, isError: true);
     }
 
     private void ResetError()
@@ -236,7 +314,15 @@ public partial class CertificationsViewModel : ObservableObject
         return success;
     }
 
-    partial void OnIsEditingChanged(bool value) => OnPropertyChanged(nameof(SubmitButtonText));
+    [RelayCommand]
+    private void MarkDirty() => HasUnsavedChanges = true;
+
+    private static Task ShowToastAsync(string message, bool isError = false)
+        => ToastService.ShowAsync(message, isError);
+
+    private static Task<bool> ConfirmDeleteAsync(string title, string message)
+        => App.Current?.MainPage?.DisplayAlert(title, message, "Delete", "Cancel")
+           ?? Task.FromResult(true);
 
     private bool HasPendingCertificationInput()
         => !string.IsNullOrWhiteSpace(CurrentCertification.Name)

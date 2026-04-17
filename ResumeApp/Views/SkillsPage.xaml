@@ -1,18 +1,30 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:controls="clr-namespace:ResumeApp.Views.Controls"
              x:Class="ResumeApp.Views.SkillsPage"
              x:Name="SkillsPageRoot"
              Title="Skills"
+             Shell.NavBarIsVisible="False"
+             Shell.TabBarIsVisible="False"
              BackgroundColor="{StaticResource PageBackground}">
 
     <ScrollView>
         <VerticalStackLayout Padding="24,16" Spacing="16">
 
-            <Label Text="⭐ Skills"
-                   FontSize="26"
+            <controls:PageHeader Title="Skills" />
+
+            <Label FontSize="26"
                    FontFamily="OpenSansSemibold"
-                   TextColor="{StaticResource TextPrimary}" />
+                   TextColor="{StaticResource TextPrimary}">
+                <Label.FormattedText>
+                    <FormattedString>
+                        <Span Text="&#xf005; " FontFamily="FASolid" />
+                        <Span Text="Skills" />
+                    </FormattedString>
+                </Label.FormattedText>
+            </Label>
             <Label Text="Add your technical and soft skills."
                    Style="{StaticResource SubtitleStyle}" />
 
@@ -21,17 +33,32 @@
                 <VerticalStackLayout Spacing="12">
                     <Entry Placeholder="New skill"
                            Text="{Binding SkillInput}"
-                           PlaceholderColor="{StaticResource InactiveIcon}" />
+                           PlaceholderColor="{StaticResource InactiveIcon}">
+                        <Entry.Behaviors>
+                            <toolkit:EventToCommandBehavior EventName="TextChanged"
+                                                            Command="{Binding MarkDirtyCommand}" />
+                        </Entry.Behaviors>
+                    </Entry>
 
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
                         <Picker Grid.Column="0"
                                 Title="Level"
                                 ItemsSource="{Binding ProficiencyLevels}"
-                                SelectedItem="{Binding SelectedProficiencyLevel}" />
+                                SelectedItem="{Binding SelectedProficiencyLevel}">
+                            <Picker.Behaviors>
+                                <toolkit:EventToCommandBehavior EventName="SelectedIndexChanged"
+                                                                Command="{Binding MarkDirtyCommand}" />
+                            </Picker.Behaviors>
+                        </Picker>
                         <Picker Grid.Column="1"
                                 Title="Category"
                                 ItemsSource="{Binding SkillCategories}"
-                                SelectedItem="{Binding SelectedCategory}" />
+                                SelectedItem="{Binding SelectedCategory}">
+                            <Picker.Behaviors>
+                                <toolkit:EventToCommandBehavior EventName="SelectedIndexChanged"
+                                                                Command="{Binding MarkDirtyCommand}" />
+                            </Picker.Behaviors>
+                        </Picker>
                     </Grid>
 
                     <Button Text="{Binding SubmitButtonText}"
@@ -125,11 +152,6 @@
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
-
-            <Button Text="Save"
-                    Command="{Binding SaveAndContinueCommand}"
-                    Style="{StaticResource VioletButtonStyle}"
-                    Margin="0,4,0,0" />
 
             <ActivityIndicator IsRunning="{Binding IsBusy}"
                                IsVisible="{Binding IsBusy}"

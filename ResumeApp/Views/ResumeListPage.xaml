@@ -22,7 +22,7 @@
                     </VerticalStackLayout>
 
                     <Button Grid.Column="1"
-                            Text="+ New"
+                            Text="New"
                             Command="{Binding GenerateResumeCommand}"
                             BackgroundColor="{StaticResource PrimaryViolet}"
                             TextColor="White"
@@ -30,14 +30,20 @@
                             Padding="16,10"
                             HeightRequest="44"
                             FontSize="14"
-                            VerticalOptions="Center" />
+                            ContentLayout="Left,8"
+                            VerticalOptions="Center">
+                        <Button.ImageSource>
+                            <FontImageSource FontFamily="FASolid" Glyph="&#xf067;" Color="White" Size="14" />
+                        </Button.ImageSource>
+                    </Button>
                 </Grid>
 
                 <!-- Empty state -->
                 <Border Style="{StaticResource CardStyle}"
                         Margin="0,20,0,0">
                     <VerticalStackLayout Spacing="16" HorizontalOptions="Center" Padding="16">
-                        <Label Text="📄"
+                        <Label Text="&#xf15c;"
+                               FontFamily="FASolid"
                                FontSize="48"
                                HorizontalOptions="Center" />
                         <Label Text="No resumes yet"
@@ -64,7 +70,7 @@
 
                 <Border Style="{StaticResource CardStyle}" Padding="16">
                     <HorizontalStackLayout Spacing="12">
-                        <Label Text="💡" FontSize="24" VerticalOptions="Center" />
+                        <Label Text="&#xf0eb;" FontFamily="FASolid" FontSize="24" VerticalOptions="Center" />
                         <Label Text="Complete your profile sections first for better AI suggestions."
                                Style="{StaticResource SubtitleStyle}"
                                VerticalOptions="Center" />
@@ -73,7 +79,7 @@
 
                 <Border Style="{StaticResource CardStyle}" Padding="16">
                     <HorizontalStackLayout Spacing="12">
-                        <Label Text="🎯" FontSize="24" VerticalOptions="Center" />
+                        <Label Text="&#xf140;" FontFamily="FASolid" FontSize="24" VerticalOptions="Center" />
                         <Label Text="Tailor each resume to a specific job description for best results."
                                Style="{StaticResource SubtitleStyle}"
                                VerticalOptions="Center" />

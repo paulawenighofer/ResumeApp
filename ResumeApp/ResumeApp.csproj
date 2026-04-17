@@ -19,6 +19,8 @@
 		<SingleProject>true</SingleProject>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
+		<RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
+		<RunAnalyzersDuringLiveAnalysis>true</RunAnalyzersDuringLiveAnalysis>
 
 		<!-- Display name -->
 		<ApplicationTitle>ResumeApp</ApplicationTitle>
@@ -81,6 +83,9 @@
 	<ItemGroup>
 	  <MauiXaml Update="Resources\Styles\Converters.xaml">
 	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+   <MauiXaml Update="Views\Controls\PageHeader.xaml">
+		<Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\CertificationsPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>

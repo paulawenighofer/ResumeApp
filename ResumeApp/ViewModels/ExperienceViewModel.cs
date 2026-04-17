@@ -12,27 +12,85 @@ public partial class ExperienceViewModel : ObservableObject
     private readonly IApiService _apiService;
     private readonly ILocalStorageService _localStorageService;
 
-    [ObservableProperty]
-    private ExperienceEntry currentExperience = new();
-
-    [ObservableProperty]
-    private ObservableCollection<ExperienceEntry> experienceEntries = [];
-
-    [ObservableProperty]
-    private bool isBusy;
-
-    [ObservableProperty]
-    private string errorMessage = string.Empty;
-
-    [ObservableProperty]
-    private bool hasError;
-
-    [ObservableProperty]
-    private bool isEditing;
+    private ExperienceEntry _currentExperience = new();
+    private ObservableCollection<ExperienceEntry> _experienceEntries = [];
+    private bool _isBusy;
+    private string _errorMessage = string.Empty;
+    private bool _hasError;
+    private bool _isEditing;
+    private bool _hasUnsavedChanges;
 
     private string? _editingExperienceId;
 
+    public ExperienceEntry CurrentExperience
+    {
+        get => _currentExperience;
+        set
+        {
+            if (SetProperty(ref _currentExperience, value))
+            {
+                OnPropertyChanged(nameof(CanSave));
+            }
+        }
+    }
+
+    public ObservableCollection<ExperienceEntry> ExperienceEntries
+    {
+        get => _experienceEntries;
+        set => SetProperty(ref _experienceEntries, value);
+    }
+
+    public bool IsBusy
+    {
+        get => _isBusy;
+        set
+        {
+            if (SetProperty(ref _isBusy, value))
+            {
+                OnPropertyChanged(nameof(CanSave));
+            }
+        }
+    }
+
+    public string ErrorMessage
+    {
+        get => _errorMessage;
+        set => SetProperty(ref _errorMessage, value);
+    }
+
+    public bool HasError
+    {
+        get => _hasError;
+        set => SetProperty(ref _hasError, value);
+    }
+
+    public bool IsEditing
+    {
+        get => _isEditing;
+        set
+        {
+            if (SetProperty(ref _isEditing, value))
+            {
+                OnPropertyChanged(nameof(SubmitButtonText));
+            }
+        }
+    }
+
+    public bool HasUnsavedChanges
+    {
+        get => _hasUnsavedChanges;
+        set
+        {
+            if (SetProperty(ref _hasUnsavedChanges, value))
+            {
+                OnPropertyChanged(nameof(CanSave));
+            }
+        }
+    }
+
     public string SubmitButtonText => IsEditing ? "Save changes" : "Add entry";
+
+    public bool CanSave => !IsBusy && (HasUnsavedChanges || HasPendingExperienceInput());
 
     public IList<string> EmploymentTypes { get; } =
     [
@@ -92,10 +150,16 @@ public partial class ExperienceViewModel : ObservableObject
             ExperienceEntries.Add(entry);
         }
 
+        HasUnsavedChanges = true;
+
         await _localStorageService.SaveExperienceDraftAsync(ExperienceEntries.ToList());
         if (!await SyncExperienceAsync(entry))
         {
             ShowError("Experience saved locally. Backend sync failed — please try again.");
+        }
+        else
+        {
+            await ShowToastAsync("Experience saved");
         }
         ResetEditor();
     }
@@ -137,11 +201,21 @@ public partial class ExperienceViewModel : ObservableObject
             return;
         }
 
+        if (!await ConfirmDeleteAsync("Delete experience", "Delete this experience entry?"))
+        {
+            return;
+        }
+
         ExperienceEntries.Remove(entry);
+        HasUnsavedChanges = true;
         await _localStorageService.SaveExperienceDraftAsync(ExperienceEntries.ToList());
         if (!await _apiService.DeleteExperienceAsync(entry.Id))
         {
             ShowError("Experience removed locally. Backend delete failed — please try again.");
+        }
+        else
+        {
+            await ShowToastAsync("Experience deleted");
         }
         if (_editingExperienceId == entry.Id)
         {
@@ -192,6 +266,7 @@ public partial class ExperienceViewModel : ObservableObject
             if (!syncFailed)
             {
                 await _localStorageService.ClearExperienceDraftAsync();
+                HasUnsavedChanges = false;
             }
 
             if (syncFailed)
@@ -218,12 +293,14 @@ public partial class ExperienceViewModel : ObservableObject
         if (drafts.Count > 0)
         {
             ExperienceEntries = new ObservableCollection<ExperienceEntry>(drafts);
+            HasUnsavedChanges = true;
         }
 
         var entries = await _apiService.GetExperienceAsync();
         if (entries.Count > 0)
         {
             ExperienceEntries = new ObservableCollection<ExperienceEntry>(entries);
+            HasUnsavedChanges = false;
         }
     }
 
@@ -231,6 +308,7 @@ public partial class ExperienceViewModel : ObservableObject
     {
         ErrorMessage = message;
         HasError = true;
+        _ = ShowToastAsync(message, isError: true);
     }
 
     private void ResetError()
@@ -253,7 +331,15 @@ public partial class ExperienceViewModel : ObservableObject
         return success;
     }
 
-    partial void OnIsEditingChanged(bool value) => OnPropertyChanged(nameof(SubmitButtonText));
+    [RelayCommand]
+    private void MarkDirty() => HasUnsavedChanges = true;
+
+    private static Task ShowToastAsync(string message, bool isError = false)
+        => ToastService.ShowAsync(message, isError);
+
+    private static Task<bool> ConfirmDeleteAsync(string title, string message)
+        => App.Current?.MainPage?.DisplayAlert(title, message, "Delete", "Cancel")
+           ?? Task.FromResult(true);
 
     private bool HasPendingExperienceInput()
         => !string.IsNullOrWhiteSpace(CurrentExperience.Company)

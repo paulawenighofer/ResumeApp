@@ -11,27 +11,85 @@ public partial class ProjectsViewModel : ObservableObject
     private readonly IApiService _apiService;
     private readonly ILocalStorageService _localStorageService;
 
-    [ObservableProperty]
-    private ProjectEntry currentProject = new();
-
-    [ObservableProperty]
-    private ObservableCollection<ProjectEntry> projectEntries = [];
-
-    [ObservableProperty]
-    private bool isBusy;
-
-    [ObservableProperty]
-    private string errorMessage = string.Empty;
-
-    [ObservableProperty]
-    private bool hasError;
-
-    [ObservableProperty]
-    private bool isEditing;
+    private ProjectEntry _currentProject = new();
+    private ObservableCollection<ProjectEntry> _projectEntries = [];
+    private bool _isBusy;
+    private string _errorMessage = string.Empty;
+    private bool _hasError;
+    private bool _isEditing;
+    private bool _hasUnsavedChanges;
 
     private string? _editingProjectId;
 
+    public ProjectEntry CurrentProject
+    {
+        get => _currentProject;
+        set
+        {
+            if (SetProperty(ref _currentProject, value))
+            {
+                OnPropertyChanged(nameof(CanSave));
+            }
+        }
+    }
+
+    public ObservableCollection<ProjectEntry> ProjectEntries
+    {
+        get => _projectEntries;
+        set => SetProperty(ref _projectEntries, value);
+    }
+
+    public bool IsBusy
+    {
+        get => _isBusy;
+        set
+        {
+            if (SetProperty(ref _isBusy, value))
+            {
+                OnPropertyChanged(nameof(CanSave));
+            }
+        }
+    }
+
+    public string ErrorMessage
+    {
+        get => _errorMessage;
+        set => SetProperty(ref _errorMessage, value);
+    }
+
+    public bool HasError
+    {
+        get => _hasError;
+        set => SetProperty(ref _hasError, value);
+    }
+
+    public bool IsEditing
+    {
+        get => _isEditing;
+        set
+        {
+            if (SetProperty(ref _isEditing, value))
+            {
+                OnPropertyChanged(nameof(SubmitButtonText));
+            }
+        }
+    }
+
+    public bool HasUnsavedChanges
+    {
+        get => _hasUnsavedChanges;
+        set
+        {
+            if (SetProperty(ref _hasUnsavedChanges, value))
+            {
+                OnPropertyChanged(nameof(CanSave));
+            }
+        }
+    }
+
     public string SubmitButtonText => IsEditing ? "Save changes" : "Add project";
+
+    public bool CanSave => !IsBusy && (HasUnsavedChanges || HasPendingProjectInput());
 
     public IList<string> ProjectTypes { get; } =
     [
@@ -89,10 +147,16 @@ public partial class ProjectsViewModel : ObservableObject
             ProjectEntries.Add(entry);
         }
 
+        HasUnsavedChanges = true;
+
         await _localStorageService.SaveProjectsDraftAsync(ProjectEntries.ToList());
         if (!await SyncProjectAsync(entry))
         {
             ShowError("Project saved locally. Backend sync failed — please try again.");
+        }
+        else
+        {
+            await ShowToastAsync("Project saved");
         }
         ResetEditor();
     }
@@ -132,11 +196,21 @@ public partial class ProjectsViewModel : ObservableObject
             return;
         }
 
+        if (!await ConfirmDeleteAsync("Delete project", "Delete this project?"))
+        {
+            return;
+        }
+
         ProjectEntries.Remove(entry);
+        HasUnsavedChanges = true;
         await _localStorageService.SaveProjectsDraftAsync(ProjectEntries.ToList());
         if (!await _apiService.DeleteProjectAsync(entry.Id))
         {
             ShowError("Project removed locally. Backend delete failed — please try again.");
+        }
+        else
+        {
+            await ShowToastAsync("Project deleted");
         }
         if (_editingProjectId == entry.Id)
         {
@@ -188,6 +262,7 @@ public partial class ProjectsViewModel : ObservableObject
             if (!syncFailed)
             {
                 await _localStorageService.ClearProjectsDraftAsync();
+                HasUnsavedChanges = false;
             }
 
             if (syncFailed)
@@ -213,12 +288,14 @@ public partial class ProjectsViewModel : ObservableObject
         if (drafts.Count > 0)
         {
             ProjectEntries = new ObservableCollection<ProjectEntry>(drafts);
+            HasUnsavedChanges = true;
         }
 
         var entries = await _apiService.GetProjectsAsync();
         if (entries.Count > 0)
         {
             ProjectEntries = new ObservableCollection<ProjectEntry>(entries);
+            HasUnsavedChanges = false;
         }
     }
 
@@ -226,6 +303,7 @@ public partial class ProjectsViewModel : ObservableObject
     {
         ErrorMessage = message;
         HasError = true;
+        _ = ShowToastAsync(message, isError: true);
     }
 
     private void ResetError()
@@ -248,7 +326,15 @@ public partial class ProjectsViewModel : ObservableObject
         return success;
     }
 
-    partial void OnIsEditingChanged(bool value) => OnPropertyChanged(nameof(SubmitButtonText));
+    [RelayCommand]
+    private void MarkDirty() => HasUnsavedChanges = true;
+
+    private static Task ShowToastAsync(string message, bool isError = false)
+        => ToastService.ShowAsync(message, isError);
+
+    private static Task<bool> ConfirmDeleteAsync(string title, string message)
+        => App.Current?.MainPage?.DisplayAlert(title, message, "Delete", "Cancel")
+           ?? Task.FromResult(true);
 
     private bool HasPendingProjectInput()
         => !string.IsNullOrWhiteSpace(CurrentProject.Name)

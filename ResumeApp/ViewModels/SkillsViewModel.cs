@@ -12,33 +12,114 @@ public partial class SkillsViewModel : ObservableObject
     private readonly IApiService _apiService;
     private readonly ILocalStorageService _localStorageService;
 
-    [ObservableProperty]
-    private string skillInput = string.Empty;
-
-    [ObservableProperty]
-    private string selectedProficiencyLevel = "Intermediate";
-
-    [ObservableProperty]
-    private string selectedCategory = "Programming Language";
-
-    [ObservableProperty]
-    private ObservableCollection<SkillEntry> skillEntries = [];
-
-    [ObservableProperty]
-    private bool isBusy;
-
-    [ObservableProperty]
-    private string errorMessage = string.Empty;
-
-    [ObservableProperty]
-    private bool hasError;
-
-    [ObservableProperty]
-    private bool isEditing;
+    private string _skillInput = string.Empty;
+    private string _selectedProficiencyLevel = "Intermediate";
+    private string _selectedCategory = "Programming Language";
+    private ObservableCollection<SkillEntry> _skillEntries = [];
+    private bool _isBusy;
+    private string _errorMessage = string.Empty;
+    private bool _hasError;
+    private bool _isEditing;
+    private bool _hasUnsavedChanges;
 
     private string? _editingSkillId;
 
+    public string SkillInput
+    {
+        get => _skillInput;
+        set
+        {
+            if (SetProperty(ref _skillInput, value))
+            {
+                OnPropertyChanged(nameof(CanSave));
+            }
+        }
+    }
+
+    public string SelectedProficiencyLevel
+    {
+        get => _selectedProficiencyLevel;
+        set
+        {
+            if (SetProperty(ref _selectedProficiencyLevel, value))
+            {
+                OnPropertyChanged(nameof(CanSave));
+            }
+        }
+    }
+
+    public string SelectedCategory
+    {
+        get => _selectedCategory;
+        set
+        {
+            if (SetProperty(ref _selectedCategory, value))
+            {
+                OnPropertyChanged(nameof(CanSave));
+            }
+        }
+    }
+
+    public ObservableCollection<SkillEntry> SkillEntries
+    {
+        get => _skillEntries;
+        set => SetProperty(ref _skillEntries, value);
+    }
+
+    public bool IsBusy
+    {
+        get => _isBusy;
+        set
+        {
+            if (SetProperty(ref _isBusy, value))
+            {
+                OnPropertyChanged(nameof(CanSave));
+            }
+        }
+    }
+
+    public string ErrorMessage
+    {
+        get => _errorMessage;
+        set => SetProperty(ref _errorMessage, value);
+    }
+
+    public bool HasError
+    {
+        get => _hasError;
+        set => SetProperty(ref _hasError, value);
+    }
+
+    public bool IsEditing
+    {
+        get => _isEditing;
+        set
+        {
+            if (SetProperty(ref _isEditing, value))
+            {
+                OnPropertyChanged(nameof(SubmitButtonText));
+            }
+        }
+    }
+
+    public bool HasUnsavedChanges
+    {
+        get => _hasUnsavedChanges;
+        set
+        {
+            if (SetProperty(ref _hasUnsavedChanges, value))
+            {
+                OnPropertyChanged(nameof(CanSave));
+            }
+        }
+    }
+
     public string SubmitButtonText => IsEditing ? "Save changes" : "Add skill";
+
+    public bool CanSave => !IsBusy && (HasUnsavedChanges || HasPendingSkillInput());
+
+    [RelayCommand]
+    private void MarkDirty() => HasUnsavedChanges = true;
 
     public IList<string> ProficiencyLevels { get; } = ["Beginner", "Intermediate", "Advanced", "Expert"];
     public IList<string> SkillCategories { get; } =
@@ -108,10 +189,16 @@ public partial class SkillsViewModel : ObservableObject
             SkillEntries.Add(skill);
         }
 
+        HasUnsavedChanges = true;
+
         await _localStorageService.SaveSkillsDraftAsync(SkillEntries.ToList());
         if (!await SyncSkillAsync(skill))
         {
             ShowError("Skill saved locally. Backend sync failed — please try again.");
+        }
+        else
+        {
+            await ShowToastAsync("Skill saved");
         }
         ResetEditor();
     }
@@ -153,11 +240,17 @@ public partial class SkillsViewModel : ObservableObject
             Category = SelectedCategory
         });
 
+        HasUnsavedChanges = true;
+
         await _localStorageService.SaveSkillsDraftAsync(SkillEntries.ToList());
         var addedSkill = SkillEntries.Last();
         if (!await SyncSkillAsync(addedSkill))
         {
             ShowError("Skill saved locally. Backend sync failed — please try again.");
+        }
+        else
+        {
+            await ShowToastAsync("Skill added");
         }
     }
 
@@ -169,11 +262,21 @@ public partial class SkillsViewModel : ObservableObject
             return;
         }
 
+        if (!await ConfirmDeleteAsync("Delete skill", "Delete this skill?"))
+        {
+            return;
+        }
+
         SkillEntries.Remove(skill);
+        HasUnsavedChanges = true;
         await _localStorageService.SaveSkillsDraftAsync(SkillEntries.ToList());
         if (!await _apiService.DeleteSkillAsync(skill.Id))
         {
             ShowError("Skill removed locally. Backend delete failed — please try again.");
+        }
+        else
+        {
+            await ShowToastAsync("Skill deleted");
         }
         if (_editingSkillId == skill.Id)
         {
@@ -224,6 +327,7 @@ public partial class SkillsViewModel : ObservableObject
             if (!syncFailed)
             {
                 await _localStorageService.ClearSkillsDraftAsync();
+                HasUnsavedChanges = false;
             }
 
             if (syncFailed)
@@ -250,12 +354,14 @@ public partial class SkillsViewModel : ObservableObject
         if (drafts.Count > 0)
         {
             SkillEntries = new ObservableCollection<SkillEntry>(drafts);
+            HasUnsavedChanges = true;
         }
 
         var entries = await _apiService.GetSkillsAsync();
         if (entries.Count > 0)
         {
             SkillEntries = new ObservableCollection<SkillEntry>(entries);
+            HasUnsavedChanges = false;
         }
     }
 
@@ -263,6 +369,7 @@ public partial class SkillsViewModel : ObservableObject
     {
         ErrorMessage = message;
         HasError = true;
+        _ = ShowToastAsync(message, isError: true);
     }
 
     private void ResetError()
@@ -285,7 +392,12 @@ public partial class SkillsViewModel : ObservableObject
         return success;
     }
 
-    partial void OnIsEditingChanged(bool value) => OnPropertyChanged(nameof(SubmitButtonText));
+    private static Task ShowToastAsync(string message, bool isError = false)
+        => ToastService.ShowAsync(message, isError);
+
+    private static Task<bool> ConfirmDeleteAsync(string title, string message)
+        => App.Current?.MainPage?.DisplayAlert(title, message, "Delete", "Cancel")
+           ?? Task.FromResult(true);
 
     private bool HasPendingSkillInput() => !string.IsNullOrWhiteSpace(SkillInput);
 

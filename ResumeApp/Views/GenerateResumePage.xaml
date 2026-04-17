@@ -1,21 +1,31 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:ResumeApp.Views.Controls"
              xmlns:vm="clr-namespace:ResumeApp.ViewModels"
              x:Class="ResumeApp.Views.GenerateResumePage"
              x:DataType="vm:GenerateResumeViewModel"
              Title="Generate Resume"
-             Shell.NavBarIsVisible="True"
+             Shell.NavBarIsVisible="False"
+             Shell.TabBarIsVisible="False"
              BackgroundColor="{StaticResource PageBackground}">
 
     <ScrollView>
         <VerticalStackLayout Padding="24,16" Spacing="20">
 
+            <controls:PageHeader Title="Generate Resume" />
+
             <!-- Header -->
-            <Label Text="✨ Generate Resume"
-                   FontSize="24"
+            <Label FontSize="24"
                    FontFamily="OpenSansSemibold"
-                   TextColor="{StaticResource TextPrimary}" />
+                   TextColor="{StaticResource TextPrimary}">
+                <Label.FormattedText>
+                    <FormattedString>
+                        <Span Text="&#xf0d0; " FontFamily="FASolid" />
+                        <Span Text="Generate Resume" />
+                    </FormattedString>
+                </Label.FormattedText>
+            </Label>
             <Label Text="Fill in the details below and let AI build you a tailored resume."
                    Style="{StaticResource SubtitleStyle}" />
 
@@ -123,10 +133,15 @@
             </Border>
 
             <!-- Generate button -->
-            <Button Text="🚀  Generate with AI"
+            <Button Text="Generate with AI"
                     Command="{Binding GenerateCommand}"
                     Style="{StaticResource VioletButtonStyle}"
-                    Margin="0,4,0,0" />
+                    ContentLayout="Left,12"
+                    Margin="0,4,0,0">
+                <Button.ImageSource>
+                    <FontImageSource FontFamily="FASolid" Glyph="&#xf135;" Color="White" Size="18" />
+                </Button.ImageSource>
+            </Button>
 
             <ActivityIndicator IsRunning="{Binding IsBusy}"
                                IsVisible="{Binding IsBusy}"

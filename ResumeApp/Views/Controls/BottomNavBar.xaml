@@ -29,16 +29,16 @@
                     </Grid.GestureRecognizers>
                     <Border BackgroundColor="{StaticResource PrimaryViolet}"
                             StrokeThickness="0" StrokeShape="RoundRectangle 20"
-                            Padding="10,8" HorizontalOptions="Center"
+                            Padding="10,6" HorizontalOptions="Center"
                             IsVisible="{Binding SelectedTab, Converter={StaticResource navTabMatch}, ConverterParameter=Home}">
-                        <HorizontalStackLayout Spacing="5" HorizontalOptions="Center">
-                            <Label Text="⌂" FontSize="15" TextColor="White" VerticalOptions="Center" />
-                            <Label Text="Home" FontSize="12" FontFamily="OpenSansSemibold" TextColor="White" VerticalOptions="Center" />
-                        </HorizontalStackLayout>
+                        <VerticalStackLayout Spacing="2" HorizontalOptions="Center">
+                            <Label Text="&#xf015;" FontFamily="FASolid" FontSize="18" TextColor="White" HorizontalOptions="Center" />
+                            <Label Text="Home" FontSize="10" FontFamily="OpenSansSemibold" TextColor="White" HorizontalOptions="Center" />
+                        </VerticalStackLayout>
                     </Border>
                     <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="2"
                                          IsVisible="{Binding SelectedTab, Converter={StaticResource navTabNotMatch}, ConverterParameter=Home}">
-                        <Label Text="⌂" FontSize="20" TextColor="{StaticResource InactiveIcon}" HorizontalOptions="Center" />
+                        <Label Text="&#xf015;" FontFamily="FASolid" FontSize="20" TextColor="{StaticResource InactiveIcon}" HorizontalOptions="Center" />
                         <Label Text="Home" FontSize="9" TextColor="{StaticResource InactiveIcon}" HorizontalOptions="Center" />
                     </VerticalStackLayout>
                 </Grid>
@@ -50,16 +50,16 @@
                     </Grid.GestureRecognizers>
                     <Border BackgroundColor="{StaticResource PrimaryViolet}"
                             StrokeThickness="0" StrokeShape="RoundRectangle 20"
-                            Padding="10,8" HorizontalOptions="Center"
+                            Padding="10,6" HorizontalOptions="Center"
                             IsVisible="{Binding SelectedTab, Converter={StaticResource navTabMatch}, ConverterParameter=Resume}">
-                        <HorizontalStackLayout Spacing="5" HorizontalOptions="Center">
-                            <Label Text="☰" FontSize="15" TextColor="White" VerticalOptions="Center" />
-                            <Label Text="Resume" FontSize="12" FontFamily="OpenSansSemibold" TextColor="White" VerticalOptions="Center" />
-                        </HorizontalStackLayout>
+                        <VerticalStackLayout Spacing="2" HorizontalOptions="Center">
+                            <Label Text="&#xf15c;" FontFamily="FASolid" FontSize="18" TextColor="White" HorizontalOptions="Center" />
+                            <Label Text="Resume" FontSize="10" FontFamily="OpenSansSemibold" TextColor="White" HorizontalOptions="Center" />
+                        </VerticalStackLayout>
                     </Border>
                     <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="2"
                                          IsVisible="{Binding SelectedTab, Converter={StaticResource navTabNotMatch}, ConverterParameter=Resume}">
-                        <Label Text="☰" FontSize="20" TextColor="{StaticResource InactiveIcon}" HorizontalOptions="Center" />
+                        <Label Text="&#xf15c;" FontFamily="FASolid" FontSize="20" TextColor="{StaticResource InactiveIcon}" HorizontalOptions="Center" />
                         <Label Text="Resume" FontSize="9" TextColor="{StaticResource InactiveIcon}" HorizontalOptions="Center" />
                     </VerticalStackLayout>
                 </Grid>
@@ -74,16 +74,16 @@
                     </Grid.GestureRecognizers>
                     <Border BackgroundColor="{StaticResource PrimaryViolet}"
                             StrokeThickness="0" StrokeShape="RoundRectangle 20"
-                            Padding="10,8" HorizontalOptions="Center"
+                            Padding="10,6" HorizontalOptions="Center"
                             IsVisible="{Binding SelectedTab, Converter={StaticResource navTabMatch}, ConverterParameter=Profile}">
-                        <HorizontalStackLayout Spacing="5" HorizontalOptions="Center">
-                            <Label Text="◉" FontSize="15" TextColor="White" VerticalOptions="Center" />
-                            <Label Text="Profile" FontSize="12" FontFamily="OpenSansSemibold" TextColor="White" VerticalOptions="Center" />
-                        </HorizontalStackLayout>
+                        <VerticalStackLayout Spacing="2" HorizontalOptions="Center">
+                            <Label Text="&#xf007;" FontFamily="FASolid" FontSize="18" TextColor="White" HorizontalOptions="Center" />
+                            <Label Text="Profile" FontSize="10" FontFamily="OpenSansSemibold" TextColor="White" HorizontalOptions="Center" />
+                        </VerticalStackLayout>
                     </Border>
                     <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="2"
                                          IsVisible="{Binding SelectedTab, Converter={StaticResource navTabNotMatch}, ConverterParameter=Profile}">
-                        <Label Text="◉" FontSize="20" TextColor="{StaticResource InactiveIcon}" HorizontalOptions="Center" />
+                        <Label Text="&#xf007;" FontFamily="FASolid" FontSize="20" TextColor="{StaticResource InactiveIcon}" HorizontalOptions="Center" />
                         <Label Text="Profile" FontSize="9" TextColor="{StaticResource InactiveIcon}" HorizontalOptions="Center" />
                     </VerticalStackLayout>
                 </Grid>
@@ -95,16 +95,16 @@
                     </Grid.GestureRecognizers>
                     <Border BackgroundColor="{StaticResource PrimaryViolet}"
                             StrokeThickness="0" StrokeShape="RoundRectangle 20"
-                            Padding="10,8" HorizontalOptions="Center"
+                            Padding="10,6" HorizontalOptions="Center"
                             IsVisible="{Binding SelectedTab, Converter={StaticResource navTabMatch}, ConverterParameter=Settings}">
-                        <HorizontalStackLayout Spacing="5" HorizontalOptions="Center">
-                            <Label Text="⚙" FontSize="15" TextColor="White" VerticalOptions="Center" />
-                            <Label Text="Settings" FontSize="12" FontFamily="OpenSansSemibold" TextColor="White" VerticalOptions="Center" />
-                        </HorizontalStackLayout>
+                        <VerticalStackLayout Spacing="2" HorizontalOptions="Center">
+                            <Label Text="&#xf013;" FontFamily="FASolid" FontSize="18" TextColor="White" HorizontalOptions="Center" />
+                            <Label Text="Settings" FontSize="10" FontFamily="OpenSansSemibold" TextColor="White" HorizontalOptions="Center" />
+                        </VerticalStackLayout>
                     </Border>
                     <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="2"
                                          IsVisible="{Binding SelectedTab, Converter={StaticResource navTabNotMatch}, ConverterParameter=Settings}">
-                        <Label Text="⚙" FontSize="20" TextColor="{StaticResource InactiveIcon}" HorizontalOptions="Center" />
+                        <Label Text="&#xf013;" FontFamily="FASolid" FontSize="20" TextColor="{StaticResource InactiveIcon}" HorizontalOptions="Center" />
                         <Label Text="Settings" FontSize="9" TextColor="{StaticResource InactiveIcon}" HorizontalOptions="Center" />
                     </VerticalStackLayout>
                 </Grid>
@@ -124,7 +124,7 @@
             <Border.GestureRecognizers>
                 <TapGestureRecognizer Command="{Binding OpenGenerateCommand}" />
             </Border.GestureRecognizers>
-            <Label Text="+" FontSize="28" FontAttributes="Bold" TextColor="White"
+            <Label Text="&#xf067;" FontFamily="FASolid" FontSize="24" TextColor="White"
                    HorizontalOptions="Center" VerticalOptions="Center" />
         </Border>
 

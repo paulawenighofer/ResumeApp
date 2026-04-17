@@ -33,8 +33,7 @@ public partial class LoginViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password))
         {
-            ErrorMessage = "Please enter your email and password.";
-            HasError = true;
+            await ShowErrorAsync("Please enter your email and password.");
             return;
         }
 
@@ -51,14 +50,12 @@ public partial class LoginViewModel : ObservableObject
                 await Shell.Current.GoToAsync($"///otp?email={Uri.EscapeDataString(result.Email ?? Email)}");
             else
             {
-                ErrorMessage = "Invalid email or password.";
-                HasError = true;
+                await ShowErrorAsync("Invalid email or password.");
             }
         }
         catch (Exception)
         {
-            ErrorMessage = "Something went wrong. Please try again.";
-            HasError = true;
+            await ShowErrorAsync("Something went wrong. Please try again.");
         }
         finally
         {
@@ -117,8 +114,7 @@ public partial class LoginViewModel : ObservableObject
                 token = t;
             else if (authResult.Properties.TryGetValue("error", out var error))
             {
-                ErrorMessage = $"Login failed: {error}";
-                HasError = true;
+                await ShowErrorAsync($"Login failed: {error}");
                 return;
             }
 #endif
@@ -133,8 +129,7 @@ public partial class LoginViewModel : ObservableObject
             }
             else
             {
-                ErrorMessage = "Login was cancelled or failed.";
-                HasError = true;
+                await ShowErrorAsync("Login was cancelled or failed.");
             }
         }
         catch (TaskCanceledException)
@@ -143,8 +138,7 @@ public partial class LoginViewModel : ObservableObject
         }
         catch (Exception)
         {
-            ErrorMessage = "Social login failed. Please try again.";
-            HasError = true;
+            await ShowErrorAsync("Social login failed. Please try again.");
         }
         finally
         {
@@ -162,5 +156,12 @@ public partial class LoginViewModel : ObservableObject
     private async Task GoToForgotPassword()
     {
         await Shell.Current.GoToAsync("//forgot-password");
+    }
+
+    private async Task ShowErrorAsync(string message)
+    {
+        ErrorMessage = message;
+        HasError = true;
+        await ToastService.ShowAsync(message, isError: true, durationMilliseconds: 4500);
     }
 }

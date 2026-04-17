@@ -8,7 +8,8 @@
     <ScrollView>
         <VerticalStackLayout Spacing="16" Padding="28,60,28,28" VerticalOptions="Center">
 
-            <Label Text="✉️"
+            <Label Text="&#xf0e0;"
+                   FontFamily="FASolid"
                    FontSize="56"
                    HorizontalOptions="Center" />
 
