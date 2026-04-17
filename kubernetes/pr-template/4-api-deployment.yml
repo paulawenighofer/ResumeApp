@@ -34,6 +34,8 @@ spec:
               value: http://otel-collector-service:4317
             - name: OTEL_SERVICE_NAME
               value: ResumeApp
+            - name: Features__EnableEmailOtpDelivery
+              value: "${FEATURES_ENABLE_EMAIL_OTP_DELIVERY}"
           envFrom:
             - secretRef:
                 name: $PR_NAMESPACE-secrets

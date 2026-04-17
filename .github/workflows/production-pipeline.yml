@@ -11,6 +11,8 @@ jobs:
     permissions:
       id-token: write
       contents: read
+    env:
+      FEATURES_ENABLE_EMAIL_OTP_DELIVERY: ${{ vars.PRODUCTION_FEATURES_ENABLE_EMAIL_OTP_DELIVERY }}
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -40,6 +42,13 @@ jobs:
           resourceGroup: ${{ secrets.AZURE_RESOURCE_GROUP }}
           containerAppName: ${{ secrets.AZURE_CONTAINER_APP_NAME }}
           imageToDeploy: ${{ secrets.DOCKER_USERNAME }}/resumeapp:prod-${{ github.run_number }}
+
+      - name: Apply production feature flags
+        run: |
+          az containerapp update \
+            --name "${{ secrets.AZURE_CONTAINER_APP_NAME }}" \
+            --resource-group "${{ secrets.AZURE_RESOURCE_GROUP }}" \
+            --set-env-vars Features__EnableEmailOtpDelivery="${FEATURES_ENABLE_EMAIL_OTP_DELIVERY:-true}"
 
       - name: Notify on failure
         if: failure()

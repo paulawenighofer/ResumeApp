@@ -10,6 +10,7 @@ jobs:
     runs-on: self-hosted
     if: github.event.action != 'closed'
     env:
+      FEATURES_ENABLE_EMAIL_OTP_DELIVERY: ${{ vars.STAGING_FEATURES_ENABLE_EMAIL_OTP_DELIVERY }}
       PR_NUMBER: ${{ github.event.pull_request.number }}
       PR_NAMESPACE: resumeapp-pr-${{ github.event.pull_request.number }}
       PR_HOSTNAME: pr-${{ github.event.pull_request.number }}.resume-app-pb.duckdns.org
