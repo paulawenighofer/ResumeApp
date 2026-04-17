@@ -6,6 +6,7 @@ public static class TelemetryTags
     {
         public const string Success = "success";
         public const string Failure = "failure";
+        public const string Disabled = "disabled";
         public const string LockedOut = "locked_out";
         public const string Unverified = "unverified";
         public const string Requested = "requested";

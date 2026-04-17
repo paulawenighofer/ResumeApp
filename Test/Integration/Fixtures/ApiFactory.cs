@@ -17,14 +17,21 @@ namespace Test.Integration.Fixtures;
 public class ApiFactory : WebApplicationFactory<Program>
 {
     private readonly bool _useProductionRateLimits;
+    private readonly bool _overrideEmailService;
+    private readonly bool _emailOtpDeliveryEnabled;
 
     public ApiFactory() : this(useProductionRateLimits: false)
     {
     }
 
-    internal ApiFactory(bool useProductionRateLimits)
+    internal ApiFactory(
+        bool useProductionRateLimits,
+        bool overrideEmailService = true,
+        bool emailOtpDeliveryEnabled = true)
     {
         _useProductionRateLimits = useProductionRateLimits;
+        _overrideEmailService = overrideEmailService;
+        _emailOtpDeliveryEnabled = emailOtpDeliveryEnabled;
     }
 
     public FakeEmailService EmailService { get; } = new();
@@ -41,6 +48,7 @@ public class ApiFactory : WebApplicationFactory<Program>
                 ["Jwt:Issuer"] = "TestIssuer",
                 ["Jwt:Audience"] = "TestAudience",
                 ["Jwt:ExpirationInMinutes"] = "60",
+                ["FeatureFlags:EmailOtpDelivery"] = _emailOtpDeliveryEnabled.ToString(),
             };
 
             if (!_useProductionRateLimits)
@@ -85,10 +93,13 @@ public class ApiFactory : WebApplicationFactory<Program>
             services.AddDbContext<AppDbContext>(opts =>
                 opts.UseInMemoryDatabase(dbName));
 
-            // Replace the real SMTP email service with our capturable fake.
-            var emailHits = services.Where(d => d.ServiceType == typeof(IEmailService)).ToList();
-            foreach (var d in emailHits) services.Remove(d);
-            services.AddScoped<IEmailService>(_ => EmailService);
+            if (_overrideEmailService)
+            {
+                // Replace the app-registered email service with our capturable fake.
+                var emailHits = services.Where(d => d.ServiceType == typeof(IEmailService)).ToList();
+                foreach (var d in emailHits) services.Remove(d);
+                services.AddScoped<IEmailService>(_ => EmailService);
+            }
         });
     }
 }
