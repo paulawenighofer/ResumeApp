@@ -9,6 +9,8 @@ public static class ToastService
 {
     private const string ToastHostClassId = "ToastHostRoot";
     private const string ToastOverlayClassId = "ToastOverlayLayer";
+    private const string SuccessIconGlyph = "\uf058";
+    private const string WarningIconGlyph = "\uf071";
 
     public static Task ShowAsync(string message, bool isError = false, int durationMilliseconds = 2000)
         => MainThread.InvokeOnMainThreadAsync(async () =>
@@ -20,6 +22,7 @@ public static class ToastService
 
             var page = ResolveVisiblePage();
             var duration = Math.Max(durationMilliseconds, isError ? 5000 : 3000);
+            var iconPrefix = isError ? WarningIconGlyph : SuccessIconGlyph;
 
             try
             {
@@ -47,7 +50,7 @@ public static class ToastService
                     };
 
                     await page.DisplaySnackbar(
-                        (isError ? "⚠ " : "✓ ") + message,
+                        $"{iconPrefix} {message}",
                         action: () => { },
                         actionButtonText: "Close",
                         duration: TimeSpan.FromMilliseconds(duration),
@@ -62,7 +65,7 @@ public static class ToastService
 
             try
             {
-                var toast = Toast.Make((isError ? "⚠ " : "✓ ") + message, isError ? ToastDuration.Long : ToastDuration.Short, 18);
+                var toast = Toast.Make($"{iconPrefix} {message}", isError ? ToastDuration.Long : ToastDuration.Short, 18);
                 await toast.Show();
             }
             catch (Exception ex)
@@ -78,7 +81,7 @@ public static class ToastService
 
         var backgroundColor = isError ? Color.FromArgb("#B91C1C") : Color.FromArgb("#F4C542");
         var textColor = isError ? Colors.White : Color.FromArgb("#0F172A");
-        var iconGlyph = isError ? "\uf071" : "\uf058"; // triangle-exclamation / circle-check
+        var iconGlyph = isError ? WarningIconGlyph : SuccessIconGlyph; // triangle-exclamation / circle-check
 
         var closeIcon = new Label
         {
