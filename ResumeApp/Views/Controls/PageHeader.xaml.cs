@@ -70,6 +70,21 @@ public partial class PageHeader : ContentView
 
     private async void OnBackTapped(object sender, TappedEventArgs e)
     {
+        await GoBackAsync();
+    }
+
+    private async void OnBackClicked(object sender, EventArgs e)
+    {
+        await GoBackAsync();
+    }
+
+    private async Task GoBackAsync()
+    {
+        if (Shell.Current is null)
+        {
+            return;
+        }
+
         try
         {
             var currentPage = FindParentPage(this);
@@ -79,28 +94,37 @@ public partial class PageHeader : ContentView
                 return;
             }
 
-            if (Shell.Current?.Navigation?.NavigationStack?.Count > 1)
+            if (Shell.Current.Navigation.NavigationStack.Count > 1)
             {
                 await Shell.Current.Navigation.PopAsync();
                 return;
             }
 
-            if (Shell.Current is not null)
+            var before = Shell.Current.CurrentState?.Location?.ToString() ?? string.Empty;
+
+            try
             {
                 await Shell.Current.GoToAsync("..");
+            }
+            catch
+            {
+                // ignore and use fallback below
+            }
+
+            var after = Shell.Current.CurrentState?.Location?.ToString() ?? string.Empty;
+            if (string.Equals(before, after, StringComparison.OrdinalIgnoreCase))
+            {
+                var fallbackRoute = before.Contains("resume", StringComparison.OrdinalIgnoreCase)
+                    || before.Contains(nameof(Views.GenerateResumePage), StringComparison.OrdinalIgnoreCase)
+                        ? "//main/resume"
+                        : "//main/home";
+
+                await Shell.Current.GoToAsync(fallbackRoute);
             }
         }
         catch
         {
-            if (Shell.Current is not null)
-            {
-                var location = Shell.Current.CurrentState?.Location?.ToString() ?? string.Empty;
-                var fallbackRoute = location.Contains("resume", StringComparison.OrdinalIgnoreCase)
-                    ? "//main/resume"
-                    : "//main/home";
-
-                await Shell.Current.GoToAsync(fallbackRoute);
-            }
+            await Shell.Current.GoToAsync("//main/home");
         }
     }
 

@@ -166,6 +166,7 @@ public static class ToastService
 
         overlay.Children.Remove(toastBorder);
         overlay.InputTransparent = true;
+        RemoveOverlayIfEmpty(page, overlay);
     }
 
     private static AbsoluteLayout GetOrCreateOverlay(ContentPage page)
@@ -222,4 +223,23 @@ public static class ToastService
             null => null,
             _ => page
         };
+
+    private static void RemoveOverlayIfEmpty(ContentPage page, AbsoluteLayout overlay)
+    {
+        if (overlay.Children.Count > 0)
+        {
+            return;
+        }
+
+        if (page.Content is Grid hostGrid && hostGrid.ClassId == ToastHostClassId)
+        {
+            hostGrid.Children.Remove(overlay);
+
+            if (hostGrid.Children.Count == 1 && hostGrid.Children[0] is View originalView)
+            {
+                hostGrid.Children.Remove(originalView);
+                page.Content = originalView;
+            }
+        }
+    }
 }
