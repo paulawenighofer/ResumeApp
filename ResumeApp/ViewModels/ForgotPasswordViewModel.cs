@@ -41,8 +41,7 @@ public partial class ForgotPasswordViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(Email))
         {
-            ErrorMessage = "Please enter your email address.";
-            HasError = true;
+            await ShowErrorAsync("Please enter your email address.");
             return;
         }
 
@@ -69,14 +68,12 @@ public partial class ForgotPasswordViewModel : ObservableObject
             }
             else
             {
-                ErrorMessage = result.Message ?? "Something went wrong. Please try again.";
-                HasError = true;
+                await ShowErrorAsync(result.Message ?? "Something went wrong. Please try again.");
             }
         }
         catch (Exception)
         {
-            ErrorMessage = "Something went wrong. Please try again.";
-            HasError = true;
+            await ShowErrorAsync("Something went wrong. Please try again.");
         }
         finally
         {
@@ -109,5 +106,12 @@ public partial class ForgotPasswordViewModel : ObservableObject
     private async Task GoToLogin()
     {
         await Shell.Current.GoToAsync("//login");
+    }
+
+    private async Task ShowErrorAsync(string message)
+    {
+        ErrorMessage = message;
+        HasError = true;
+        await ToastService.ShowAsync(message, isError: true, durationMilliseconds: 4500);
     }
 }

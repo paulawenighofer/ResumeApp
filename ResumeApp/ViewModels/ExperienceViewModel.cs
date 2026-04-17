@@ -1,6 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using ResumeApp.Services;
 using ResumeApp.Models;
 using ResumeApp.Services;
 using ResumeApp.Views;
@@ -13,29 +12,81 @@ public partial class ExperienceViewModel : ObservableObject
     private readonly IApiService _apiService;
     private readonly ILocalStorageService _localStorageService;
 
-
-    [ObservableProperty]
-    private ExperienceEntry currentExperience = new();
-
-    [ObservableProperty]
-    private ObservableCollection<ExperienceEntry> experienceEntries = [];
-
-    [ObservableProperty]
-    private bool isBusy;
-
-    [ObservableProperty]
-    private string errorMessage = string.Empty;
-
-    [ObservableProperty]
-    private bool hasError;
-
-    [ObservableProperty]
-    private bool isEditing;
-
-    [ObservableProperty]
-    private bool hasUnsavedChanges;
+    private ExperienceEntry _currentExperience = new();
+    private ObservableCollection<ExperienceEntry> _experienceEntries = [];
+    private bool _isBusy;
+    private string _errorMessage = string.Empty;
+    private bool _hasError;
+    private bool _isEditing;
+    private bool _hasUnsavedChanges;
 
     private string? _editingExperienceId;
+
+    public ExperienceEntry CurrentExperience
+    {
+        get => _currentExperience;
+        set
+        {
+            if (SetProperty(ref _currentExperience, value))
+            {
+                OnPropertyChanged(nameof(CanSave));
+            }
+        }
+    }
+
+    public ObservableCollection<ExperienceEntry> ExperienceEntries
+    {
+        get => _experienceEntries;
+        set => SetProperty(ref _experienceEntries, value);
+    }
+
+    public bool IsBusy
+    {
+        get => _isBusy;
+        set
+        {
+            if (SetProperty(ref _isBusy, value))
+            {
+                OnPropertyChanged(nameof(CanSave));
+            }
+        }
+    }
+
+    public string ErrorMessage
+    {
+        get => _errorMessage;
+        set => SetProperty(ref _errorMessage, value);
+    }
+
+    public bool HasError
+    {
+        get => _hasError;
+        set => SetProperty(ref _hasError, value);
+    }
+
+    public bool IsEditing
+    {
+        get => _isEditing;
+        set
+        {
+            if (SetProperty(ref _isEditing, value))
+            {
+                OnPropertyChanged(nameof(SubmitButtonText));
+            }
+        }
+    }
+
+    public bool HasUnsavedChanges
+    {
+        get => _hasUnsavedChanges;
+        set
+        {
+            if (SetProperty(ref _hasUnsavedChanges, value))
+            {
+                OnPropertyChanged(nameof(CanSave));
+            }
+        }
+    }
 
     public string SubmitButtonText => IsEditing ? "Save changes" : "Add entry";
 
@@ -289,12 +340,6 @@ public partial class ExperienceViewModel : ObservableObject
     private static Task<bool> ConfirmDeleteAsync(string title, string message)
         => App.Current?.MainPage?.DisplayAlert(title, message, "Delete", "Cancel")
            ?? Task.FromResult(true);
-
-    partial void OnIsEditingChanged(bool value) => OnPropertyChanged(nameof(SubmitButtonText));
-
-    partial void OnIsBusyChanged(bool value) => OnPropertyChanged(nameof(CanSave));
-
-    partial void OnHasUnsavedChangesChanged(bool value) => OnPropertyChanged(nameof(CanSave));
 
     private bool HasPendingExperienceInput()
         => !string.IsNullOrWhiteSpace(CurrentExperience.Company)

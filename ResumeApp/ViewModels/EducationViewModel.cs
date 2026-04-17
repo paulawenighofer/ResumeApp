@@ -1,11 +1,10 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using ResumeApp.Services;
+using Microsoft.Maui.ApplicationModel;
 using ResumeApp.Models;
 using ResumeApp.Services;
 using ResumeApp.Views;
 using System.Collections.ObjectModel;
-using Microsoft.Maui.ApplicationModel;
 
 namespace ResumeApp.ViewModels;
 
@@ -14,29 +13,81 @@ public partial class EducationViewModel : ObservableObject
     private readonly IApiService _apiService;
     private readonly ILocalStorageService _localStorageService;
 
-
-    [ObservableProperty]
-    private EducationEntry currentEducation = new();
-
-    [ObservableProperty]
-    private ObservableCollection<EducationEntry> educationEntries = [];
-
-    [ObservableProperty]
-    private bool isBusy;
-
-    [ObservableProperty]
-    private string errorMessage = string.Empty;
-
-    [ObservableProperty]
-    private bool hasError;
-
-    [ObservableProperty]
-    private bool isEditing;
-
-    [ObservableProperty]
-    private bool hasUnsavedChanges;
+    private EducationEntry _currentEducation = new();
+    private ObservableCollection<EducationEntry> _educationEntries = [];
+    private bool _isBusy;
+    private string _errorMessage = string.Empty;
+    private bool _hasError;
+    private bool _isEditing;
+    private bool _hasUnsavedChanges;
 
     private string? _editingEducationId;
+
+    public EducationEntry CurrentEducation
+    {
+        get => _currentEducation;
+        set
+        {
+            if (SetProperty(ref _currentEducation, value))
+            {
+                OnPropertyChanged(nameof(CanSave));
+            }
+        }
+    }
+
+    public ObservableCollection<EducationEntry> EducationEntries
+    {
+        get => _educationEntries;
+        set => SetProperty(ref _educationEntries, value);
+    }
+
+    public bool IsBusy
+    {
+        get => _isBusy;
+        set
+        {
+            if (SetProperty(ref _isBusy, value))
+            {
+                OnPropertyChanged(nameof(CanSave));
+            }
+        }
+    }
+
+    public string ErrorMessage
+    {
+        get => _errorMessage;
+        set => SetProperty(ref _errorMessage, value);
+    }
+
+    public bool HasError
+    {
+        get => _hasError;
+        set => SetProperty(ref _hasError, value);
+    }
+
+    public bool IsEditing
+    {
+        get => _isEditing;
+        set
+        {
+            if (SetProperty(ref _isEditing, value))
+            {
+                OnPropertyChanged(nameof(SubmitButtonText));
+            }
+        }
+    }
+
+    public bool HasUnsavedChanges
+    {
+        get => _hasUnsavedChanges;
+        set
+        {
+            if (SetProperty(ref _hasUnsavedChanges, value))
+            {
+                OnPropertyChanged(nameof(CanSave));
+            }
+        }
+    }
 
     public string SubmitButtonText => IsEditing ? "Save changes" : "Add entry";
 
@@ -288,12 +339,6 @@ public partial class EducationViewModel : ObservableObject
     private static Task<bool> ConfirmDeleteAsync(string title, string message)
         => App.Current?.MainPage?.DisplayAlert(title, message, "Delete", "Cancel")
            ?? Task.FromResult(true);
-
-    partial void OnIsEditingChanged(bool value) => OnPropertyChanged(nameof(SubmitButtonText));
-
-    partial void OnIsBusyChanged(bool value) => OnPropertyChanged(nameof(CanSave));
-
-    partial void OnHasUnsavedChangesChanged(bool value) => OnPropertyChanged(nameof(CanSave));
 
     private bool HasPendingEducationInput()
         => !string.IsNullOrWhiteSpace(CurrentEducation.School)

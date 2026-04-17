@@ -70,9 +70,54 @@ public partial class PageHeader : ContentView
 
     private async void OnBackTapped(object sender, TappedEventArgs e)
     {
-        if (Shell.Current is not null)
+        try
         {
-            await Shell.Current.GoToAsync("..");
+            var currentPage = FindParentPage(this);
+            if (currentPage?.Navigation?.NavigationStack?.Count > 1)
+            {
+                await currentPage.Navigation.PopAsync();
+                return;
+            }
+
+            if (Shell.Current?.Navigation?.NavigationStack?.Count > 1)
+            {
+                await Shell.Current.Navigation.PopAsync();
+                return;
+            }
+
+            if (Shell.Current is not null)
+            {
+                await Shell.Current.GoToAsync("..");
+            }
         }
+        catch
+        {
+            if (Shell.Current is not null)
+            {
+                var location = Shell.Current.CurrentState?.Location?.ToString() ?? string.Empty;
+                var fallbackRoute = location.Contains("resume", StringComparison.OrdinalIgnoreCase)
+                    ? "//main/resume"
+                    : "//main/home";
+
+                await Shell.Current.GoToAsync(fallbackRoute);
+            }
+        }
+    }
+
+    private static Page? FindParentPage(Element element)
+    {
+        Element? current = element;
+
+        while (current is not null)
+        {
+            if (current is Page page)
+            {
+                return page;
+            }
+
+            current = current.Parent;
+        }
+
+        return null;
     }
 }
