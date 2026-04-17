@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: resumeapp-postgres-pvc
+  name: resumeapp-pvc-postgres
   namespace: resumeapp
 spec:
   accessModes:
