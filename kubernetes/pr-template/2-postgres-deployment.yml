@@ -52,3 +52,4 @@ spec:
         - name: postgres-data
           persistentVolumeClaim:
             claimName: resumeapp-pvc-postgres
+
