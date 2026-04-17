@@ -16,6 +16,9 @@ public interface ILocalStorageService
     Task SaveProjectsDraftAsync(List<ProjectEntry> entries);
     Task<List<ProjectEntry>> LoadProjectsDraftAsync();
     Task ClearProjectsDraftAsync();
+    Task SaveCertificationsDraftAsync(List<CertificationEntry> entries);
+    Task<List<CertificationEntry>> LoadCertificationsDraftAsync();
+    Task ClearCertificationsDraftAsync();
     Task SaveProfileImagePathAsync(string? imagePath);
     Task<string?> LoadProfileImagePathAsync();
 }

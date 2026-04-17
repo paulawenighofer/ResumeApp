@@ -20,5 +20,9 @@ public interface IApiService
     Task<bool> PostProjectAsync(ProjectEntry entry);
     Task<bool> UpdateProjectAsync(ProjectEntry entry);
     Task<bool> DeleteProjectAsync(string id);
+    Task<List<CertificationEntry>> GetCertificationsAsync();
+    Task<bool> PostCertificationAsync(CertificationEntry entry);
+    Task<bool> UpdateCertificationAsync(CertificationEntry entry);
+    Task<bool> DeleteCertificationAsync(string id);
     Task<string?> UploadProfileImageAsync(string imagePath);
 }

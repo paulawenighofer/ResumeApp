@@ -11,6 +11,7 @@ public class LocalStorageService : ILocalStorageService
     private const string ExperienceKey = "draft_experience";
     private const string SkillsKey = "draft_skills";
     private const string ProjectsKey = "draft_projects";
+    private const string CertificationsKey = "draft_certifications";
     private const string ProfileImageKey = "profile_image_path";
 
     public Task SaveEducationDraftAsync(List<EducationEntry> entries) => SaveAsync(EducationKey, entries);
@@ -25,6 +26,9 @@ public class LocalStorageService : ILocalStorageService
     public Task SaveProjectsDraftAsync(List<ProjectEntry> entries) => SaveAsync(ProjectsKey, entries);
     public Task<List<ProjectEntry>> LoadProjectsDraftAsync() => LoadAsync<ProjectEntry>(ProjectsKey);
     public Task ClearProjectsDraftAsync() => RemoveAsync(ProjectsKey);
+    public Task SaveCertificationsDraftAsync(List<CertificationEntry> entries) => SaveAsync(CertificationsKey, entries);
+    public Task<List<CertificationEntry>> LoadCertificationsDraftAsync() => LoadAsync<CertificationEntry>(CertificationsKey);
+    public Task ClearCertificationsDraftAsync() => RemoveAsync(CertificationsKey);
 
     public Task SaveProfileImagePathAsync(string? imagePath)
     {

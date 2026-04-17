@@ -294,6 +294,76 @@ public class ApiService : IApiService
         return response?.IsSuccessStatusCode == true;
     }
 
+    public async Task<List<CertificationEntry>> GetCertificationsAsync()
+    {
+        var response = await SendAsync(HttpMethod.Get, "api/certifications");
+        if (response is null || !response.IsSuccessStatusCode)
+        {
+            return [];
+        }
+
+        var items = await response.Content.ReadFromJsonAsync<List<Certification>>();
+        return items?.Select(MapCertification).ToList() ?? [];
+    }
+
+    public async Task<bool> PostCertificationAsync(CertificationEntry entry)
+    {
+        var response = await SendAsync(HttpMethod.Post, "api/certifications", JsonContent.Create(new Certification
+        {
+            Name = entry.Name,
+            IssuingOrganization = entry.IssuingOrganization,
+            IssueDate = ToUtcDate(entry.IssueDate),
+            ExpirationDate = ToUtcDate(entry.ExpirationDate),
+            CredentialId = entry.CredentialId,
+            CredentialUrl = entry.CredentialUrl
+        }));
+
+        if (response is null || !response.IsSuccessStatusCode)
+        {
+            return false;
+        }
+
+        var certification = await response.Content.ReadFromJsonAsync<Certification>();
+        if (certification is not null)
+        {
+            entry.Id = certification.Id.ToString();
+        }
+
+        return true;
+    }
+
+    public async Task<bool> UpdateCertificationAsync(CertificationEntry entry)
+    {
+        if (!int.TryParse(entry.Id, out var id))
+        {
+            return await PostCertificationAsync(entry);
+        }
+
+        var payload = new Certification
+        {
+            Name = entry.Name,
+            IssuingOrganization = entry.IssuingOrganization,
+            IssueDate = ToUtcDate(entry.IssueDate),
+            ExpirationDate = ToUtcDate(entry.ExpirationDate),
+            CredentialId = entry.CredentialId,
+            CredentialUrl = entry.CredentialUrl
+        };
+
+        var updated = await SendJsonAsync(HttpMethod.Put, $"api/certifications/{id}", payload);
+        return updated || await PostCertificationAsync(entry);
+    }
+
+    public async Task<bool> DeleteCertificationAsync(string id)
+    {
+        if (!int.TryParse(id, out var certificationId))
+        {
+            return true;
+        }
+
+        var response = await SendAsync(HttpMethod.Delete, $"api/certifications/{certificationId}");
+        return response?.IsSuccessStatusCode == true;
+    }
+
     public async Task<string?> UploadProfileImageAsync(string imagePath)
     {
         var content = BuildMultipartContent([imagePath], "file");
@@ -409,6 +479,17 @@ public class ApiService : IApiService
         ProjectUrl = project.Url,
         StartDate = project.StartDate?.ToDateTime(TimeOnly.MinValue) ?? DateTime.Now,
         EndDate = project.EndDate?.ToDateTime(TimeOnly.MinValue) ?? DateTime.Now
+    };
+
+    private static CertificationEntry MapCertification(Certification certification) => new()
+    {
+        Id = certification.Id.ToString(),
+        Name = certification.Name,
+        IssuingOrganization = certification.IssuingOrganization,
+        IssueDate = certification.IssueDate ?? DateTime.Now,
+        ExpirationDate = certification.ExpirationDate ?? DateTime.Now.AddYears(1),
+        CredentialId = certification.CredentialId,
+        CredentialUrl = certification.CredentialUrl
     };
 
     private sealed class ImageUploadResponse

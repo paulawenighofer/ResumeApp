@@ -57,6 +57,8 @@ public static class MauiProgram
         builder.Services.AddTransient<ExperiencePage>();
         builder.Services.AddTransient<SkillsViewModel>();
         builder.Services.AddTransient<SkillsPage>();
+        builder.Services.AddTransient<CertificationsViewModel>();
+        builder.Services.AddTransient<CertificationsPage>();
         builder.Services.AddTransient<ProjectsViewModel>();
         builder.Services.AddTransient<ProjectsPage>();
         builder.Services.AddTransient<ProfileViewModel>();
