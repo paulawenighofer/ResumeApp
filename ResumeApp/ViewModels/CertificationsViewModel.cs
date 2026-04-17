@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using ResumeApp.Services;
 using ResumeApp.Models;
 using ResumeApp.Services;
 using System.Collections.ObjectModel;
@@ -10,6 +11,7 @@ public partial class CertificationsViewModel : ObservableObject
 {
     private readonly IApiService _apiService;
     private readonly ILocalStorageService _localStorageService;
+
 
     [ObservableProperty]
     private CertificationEntry currentCertification = new();
@@ -29,9 +31,14 @@ public partial class CertificationsViewModel : ObservableObject
     [ObservableProperty]
     private bool isEditing;
 
+    [ObservableProperty]
+    private bool hasUnsavedChanges;
+
     private string? _editingCertificationId;
 
     public string SubmitButtonText => IsEditing ? "Save changes" : "Add certification";
+
+    public bool CanSave => !IsBusy && (HasUnsavedChanges || HasPendingCertificationInput());
 
     public CertificationsViewModel(IApiService apiService, ILocalStorageService localStorageService)
     {
@@ -78,10 +85,16 @@ public partial class CertificationsViewModel : ObservableObject
             CertificationEntries.Add(entry);
         }
 
+        HasUnsavedChanges = true;
+
         await _localStorageService.SaveCertificationsDraftAsync(CertificationEntries.ToList());
         if (!await SyncCertificationAsync(entry))
         {
             ShowError("Certification saved locally. Backend sync failed — please try again.");
+        }
+        else
+        {
+            await ShowToastAsync("Certification saved");
         }
         ResetEditor();
     }
@@ -120,11 +133,21 @@ public partial class CertificationsViewModel : ObservableObject
             return;
         }
 
+        if (!await ConfirmDeleteAsync("Delete certification", "Delete this certification?"))
+        {
+            return;
+        }
+
         CertificationEntries.Remove(entry);
+        HasUnsavedChanges = true;
         await _localStorageService.SaveCertificationsDraftAsync(CertificationEntries.ToList());
         if (!await _apiService.DeleteCertificationAsync(entry.Id))
         {
             ShowError("Certification removed locally. Backend delete failed — please try again.");
+        }
+        else
+        {
+            await ShowToastAsync("Certification deleted");
         }
         if (_editingCertificationId == entry.Id)
         {
@@ -175,6 +198,7 @@ public partial class CertificationsViewModel : ObservableObject
             if (!syncFailed)
             {
                 await _localStorageService.ClearCertificationsDraftAsync();
+                HasUnsavedChanges = false;
             }
 
             if (syncFailed)
@@ -201,12 +225,14 @@ public partial class CertificationsViewModel : ObservableObject
         if (drafts.Count > 0)
         {
             CertificationEntries = new ObservableCollection<CertificationEntry>(drafts);
+            HasUnsavedChanges = true;
         }
 
         var entries = await _apiService.GetCertificationsAsync();
         if (entries.Count > 0)
         {
             CertificationEntries = new ObservableCollection<CertificationEntry>(entries);
+            HasUnsavedChanges = false;
         }
     }
 
@@ -214,6 +240,7 @@ public partial class CertificationsViewModel : ObservableObject
     {
         ErrorMessage = message;
         HasError = true;
+        _ = ShowToastAsync(message, isError: true);
     }
 
     private void ResetError()
@@ -236,7 +263,21 @@ public partial class CertificationsViewModel : ObservableObject
         return success;
     }
 
+    [RelayCommand]
+    private void MarkDirty() => HasUnsavedChanges = true;
+
+    private static Task ShowToastAsync(string message, bool isError = false)
+        => ToastService.ShowAsync(message, isError);
+
+    private static Task<bool> ConfirmDeleteAsync(string title, string message)
+        => App.Current?.MainPage?.DisplayAlert(title, message, "Delete", "Cancel")
+           ?? Task.FromResult(true);
+
     partial void OnIsEditingChanged(bool value) => OnPropertyChanged(nameof(SubmitButtonText));
+
+    partial void OnIsBusyChanged(bool value) => OnPropertyChanged(nameof(CanSave));
+
+    partial void OnHasUnsavedChangesChanged(bool value) => OnPropertyChanged(nameof(CanSave));
 
     private bool HasPendingCertificationInput()
         => !string.IsNullOrWhiteSpace(CurrentCertification.Name)

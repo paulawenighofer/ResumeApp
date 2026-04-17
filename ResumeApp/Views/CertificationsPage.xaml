@@ -1,13 +1,19 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:ResumeApp.Views.Controls"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="ResumeApp.Views.CertificationsPage"
              x:Name="CertificationsPageRoot"
              Title="Certifications"
+             Shell.NavBarIsVisible="False"
+             Shell.TabBarIsVisible="False"
              BackgroundColor="{StaticResource PageBackground}">
 
     <ScrollView>
         <VerticalStackLayout Padding="24,16" Spacing="16">
+
+            <controls:PageHeader Title="Certifications" />
 
             <Label FontSize="26"
                    FontFamily="OpenSansSemibold"
@@ -27,26 +33,56 @@
                 <VerticalStackLayout Spacing="12">
                     <Entry Placeholder="Certification name"
                            Text="{Binding CurrentCertification.Name}"
-                           PlaceholderColor="{StaticResource InactiveIcon}" />
+                           PlaceholderColor="{StaticResource InactiveIcon}">
+                        <Entry.Behaviors>
+                            <toolkit:EventToCommandBehavior EventName="TextChanged"
+                                                            Command="{Binding MarkDirtyCommand}" />
+                        </Entry.Behaviors>
+                    </Entry>
 
                     <Entry Placeholder="Issuing organization"
                            Text="{Binding CurrentCertification.IssuingOrganization}"
-                           PlaceholderColor="{StaticResource InactiveIcon}" />
+                           PlaceholderColor="{StaticResource InactiveIcon}">
+                        <Entry.Behaviors>
+                            <toolkit:EventToCommandBehavior EventName="TextChanged"
+                                                            Command="{Binding MarkDirtyCommand}" />
+                        </Entry.Behaviors>
+                    </Entry>
 
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
                         <DatePicker Grid.Column="0"
-                                    Date="{Binding CurrentCertification.IssueDate}" />
+                                    Date="{Binding CurrentCertification.IssueDate}">
+                            <DatePicker.Behaviors>
+                                <toolkit:EventToCommandBehavior EventName="DateSelected"
+                                                                Command="{Binding MarkDirtyCommand}" />
+                            </DatePicker.Behaviors>
+                        </DatePicker>
                         <DatePicker Grid.Column="1"
-                                    Date="{Binding CurrentCertification.ExpirationDate}" />
+                                    Date="{Binding CurrentCertification.ExpirationDate}">
+                            <DatePicker.Behaviors>
+                                <toolkit:EventToCommandBehavior EventName="DateSelected"
+                                                                Command="{Binding MarkDirtyCommand}" />
+                            </DatePicker.Behaviors>
+                        </DatePicker>
                     </Grid>
 
                     <Entry Placeholder="Credential ID"
                            Text="{Binding CurrentCertification.CredentialId}"
-                           PlaceholderColor="{StaticResource InactiveIcon}" />
+                           PlaceholderColor="{StaticResource InactiveIcon}">
+                        <Entry.Behaviors>
+                            <toolkit:EventToCommandBehavior EventName="TextChanged"
+                                                            Command="{Binding MarkDirtyCommand}" />
+                        </Entry.Behaviors>
+                    </Entry>
 
                     <Entry Placeholder="Credential URL"
                            Text="{Binding CurrentCertification.CredentialUrl}"
-                           PlaceholderColor="{StaticResource InactiveIcon}" />
+                           PlaceholderColor="{StaticResource InactiveIcon}">
+                        <Entry.Behaviors>
+                            <toolkit:EventToCommandBehavior EventName="TextChanged"
+                                                            Command="{Binding MarkDirtyCommand}" />
+                        </Entry.Behaviors>
+                    </Entry>
 
                     <Button Text="{Binding SubmitButtonText}"
                             Command="{Binding AddCertificationCommand}"
@@ -115,11 +151,6 @@
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
-
-            <Button Text="Save"
-                    Command="{Binding SaveAndContinueCommand}"
-                    Style="{StaticResource VioletButtonStyle}"
-                    Margin="0,4,0,0" />
 
             <ActivityIndicator IsRunning="{Binding IsBusy}"
                                IsVisible="{Binding IsBusy}"

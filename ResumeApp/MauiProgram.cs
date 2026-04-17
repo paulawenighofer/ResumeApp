@@ -19,7 +19,10 @@ public static class MauiProgram
             fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             fonts.AddFont("fa-brands-400.ttf", "FABrands");
             fonts.AddFont("fa-solid-900.ttf", "FASolid");
-        }).UseMauiCommunityToolkit();
+        }).UseMauiCommunityToolkit(options =>
+        {
+            options.SetShouldEnableSnackbarOnWindows(true);
+        });
 
         builder.Services.AddSingleton(sp =>
         {

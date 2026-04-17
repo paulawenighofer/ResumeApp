@@ -82,6 +82,12 @@
 	  <MauiXaml Update="Resources\Styles\Converters.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+   <MauiXaml Update="Views\Controls\PageHeader.xaml">
+		<Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+   <MauiXaml Update="Views\Controls\ToastPopup.xaml">
+		<Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Views\CertificationsPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

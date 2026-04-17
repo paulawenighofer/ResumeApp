@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using ResumeApp.Services;
 using ResumeApp.Models;
 using ResumeApp.Services;
 using ResumeApp.Views;
@@ -36,9 +37,17 @@ public partial class SkillsViewModel : ObservableObject
     [ObservableProperty]
     private bool isEditing;
 
+    [ObservableProperty]
+    private bool hasUnsavedChanges;
+
     private string? _editingSkillId;
 
     public string SubmitButtonText => IsEditing ? "Save changes" : "Add skill";
+
+    public bool CanSave => !IsBusy && (HasUnsavedChanges || HasPendingSkillInput());
+
+    [RelayCommand]
+    private void MarkDirty() => HasUnsavedChanges = true;
 
     public IList<string> ProficiencyLevels { get; } = ["Beginner", "Intermediate", "Advanced", "Expert"];
     public IList<string> SkillCategories { get; } =
@@ -108,6 +117,8 @@ public partial class SkillsViewModel : ObservableObject
             SkillEntries.Add(skill);
         }
 
+        HasUnsavedChanges = true;
+
         await _localStorageService.SaveSkillsDraftAsync(SkillEntries.ToList());
         if (!await SyncSkillAsync(skill))
         {
@@ -153,11 +164,17 @@ public partial class SkillsViewModel : ObservableObject
             Category = SelectedCategory
         });
 
+        HasUnsavedChanges = true;
+
         await _localStorageService.SaveSkillsDraftAsync(SkillEntries.ToList());
         var addedSkill = SkillEntries.Last();
         if (!await SyncSkillAsync(addedSkill))
         {
             ShowError("Skill saved locally. Backend sync failed — please try again.");
+        }
+        else
+        {
+            await ShowToastAsync("Skill added");
         }
     }
 
@@ -169,11 +186,21 @@ public partial class SkillsViewModel : ObservableObject
             return;
         }
 
+        if (!await ConfirmDeleteAsync("Delete skill", "Delete this skill?"))
+        {
+            return;
+        }
+
         SkillEntries.Remove(skill);
+        HasUnsavedChanges = true;
         await _localStorageService.SaveSkillsDraftAsync(SkillEntries.ToList());
         if (!await _apiService.DeleteSkillAsync(skill.Id))
         {
             ShowError("Skill removed locally. Backend delete failed — please try again.");
+        }
+        else
+        {
+            await ShowToastAsync("Skill deleted");
         }
         if (_editingSkillId == skill.Id)
         {
@@ -224,6 +251,7 @@ public partial class SkillsViewModel : ObservableObject
             if (!syncFailed)
             {
                 await _localStorageService.ClearSkillsDraftAsync();
+                HasUnsavedChanges = false;
             }
 
             if (syncFailed)
@@ -250,12 +278,14 @@ public partial class SkillsViewModel : ObservableObject
         if (drafts.Count > 0)
         {
             SkillEntries = new ObservableCollection<SkillEntry>(drafts);
+            HasUnsavedChanges = true;
         }
 
         var entries = await _apiService.GetSkillsAsync();
         if (entries.Count > 0)
         {
             SkillEntries = new ObservableCollection<SkillEntry>(entries);
+            HasUnsavedChanges = false;
         }
     }
 
@@ -263,6 +293,7 @@ public partial class SkillsViewModel : ObservableObject
     {
         ErrorMessage = message;
         HasError = true;
+        _ = ShowToastAsync(message, isError: true);
     }
 
     private void ResetError()
@@ -286,6 +317,23 @@ public partial class SkillsViewModel : ObservableObject
     }
 
     partial void OnIsEditingChanged(bool value) => OnPropertyChanged(nameof(SubmitButtonText));
+
+    partial void OnSkillInputChanged(string value) => OnPropertyChanged(nameof(CanSave));
+
+    partial void OnSelectedProficiencyLevelChanged(string value) => OnPropertyChanged(nameof(CanSave));
+
+    partial void OnSelectedCategoryChanged(string value) => OnPropertyChanged(nameof(CanSave));
+
+    private static Task ShowToastAsync(string message, bool isError = false)
+        => ToastService.ShowAsync(message, isError);
+
+    private static Task<bool> ConfirmDeleteAsync(string title, string message)
+        => App.Current?.MainPage?.DisplayAlert(title, message, "Delete", "Cancel")
+           ?? Task.FromResult(true);
+
+    partial void OnIsBusyChanged(bool value) => OnPropertyChanged(nameof(CanSave));
+
+    partial void OnHasUnsavedChangesChanged(bool value) => OnPropertyChanged(nameof(CanSave));
 
     private bool HasPendingSkillInput() => !string.IsNullOrWhiteSpace(SkillInput);
 

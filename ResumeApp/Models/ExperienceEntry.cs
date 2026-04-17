@@ -42,5 +42,6 @@ namespace ResumeApp.Models
             .Select(t => t.Trim())
             .Where(t => !string.IsNullOrEmpty(t))
             .ToList() ?? new();
+
     }
 }

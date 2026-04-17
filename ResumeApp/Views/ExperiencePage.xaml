@@ -1,13 +1,19 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:ResumeApp.Views.Controls"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="ResumeApp.Views.ExperiencePage"
              x:Name="ExperiencePageRoot"
              Title="Experience"
+             Shell.NavBarIsVisible="False"
+             Shell.TabBarIsVisible="False"
              BackgroundColor="{StaticResource PageBackground}">
 
     <ScrollView>
         <VerticalStackLayout Padding="24,16" Spacing="16">
+
+            <controls:PageHeader Title="Experience" />
 
             <Label FontSize="26"
                    FontFamily="OpenSansSemibold"
@@ -27,32 +33,67 @@
                 <VerticalStackLayout Spacing="12">
                     <Entry Placeholder="Company"
                            Text="{Binding CurrentExperience.Company}"
-                           PlaceholderColor="{StaticResource InactiveIcon}" />
+                           PlaceholderColor="{StaticResource InactiveIcon}">
+                        <Entry.Behaviors>
+                            <toolkit:EventToCommandBehavior EventName="TextChanged"
+                                                            Command="{Binding MarkDirtyCommand}" />
+                        </Entry.Behaviors>
+                    </Entry>
                     <Entry Placeholder="Job Title"
                            Text="{Binding CurrentExperience.JobTitle}"
-                           PlaceholderColor="{StaticResource InactiveIcon}" />
+                           PlaceholderColor="{StaticResource InactiveIcon}">
+                        <Entry.Behaviors>
+                            <toolkit:EventToCommandBehavior EventName="TextChanged"
+                                                            Command="{Binding MarkDirtyCommand}" />
+                        </Entry.Behaviors>
+                    </Entry>
 
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
                         <Picker Grid.Column="0"
                                 Title="Employment Type"
                                 ItemsSource="{Binding EmploymentTypes}"
-                                SelectedItem="{Binding CurrentExperience.EmploymentType}" />
+                                SelectedItem="{Binding CurrentExperience.EmploymentType}">
+                            <Picker.Behaviors>
+                                <toolkit:EventToCommandBehavior EventName="SelectedIndexChanged"
+                                                                Command="{Binding MarkDirtyCommand}" />
+                            </Picker.Behaviors>
+                        </Picker>
                         <Entry Grid.Column="1"
                                Placeholder="Location"
                                Text="{Binding CurrentExperience.Location}"
-                               PlaceholderColor="{StaticResource InactiveIcon}" />
+                               PlaceholderColor="{StaticResource InactiveIcon}">
+                            <Entry.Behaviors>
+                                <toolkit:EventToCommandBehavior EventName="TextChanged"
+                                                                Command="{Binding MarkDirtyCommand}" />
+                            </Entry.Behaviors>
+                        </Entry>
                     </Grid>
 
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
                         <DatePicker Grid.Column="0"
-                                    Date="{Binding CurrentExperience.StartDate}" />
+                                    Date="{Binding CurrentExperience.StartDate}">
+                            <DatePicker.Behaviors>
+                                <toolkit:EventToCommandBehavior EventName="DateSelected"
+                                                                Command="{Binding MarkDirtyCommand}" />
+                            </DatePicker.Behaviors>
+                        </DatePicker>
                         <DatePicker Grid.Column="1"
-                                    Date="{Binding CurrentExperience.EndDate}" />
+                                    Date="{Binding CurrentExperience.EndDate}">
+                            <DatePicker.Behaviors>
+                                <toolkit:EventToCommandBehavior EventName="DateSelected"
+                                                                Command="{Binding MarkDirtyCommand}" />
+                            </DatePicker.Behaviors>
+                        </DatePicker>
                     </Grid>
 
                     <HorizontalStackLayout Spacing="10">
                         <CheckBox IsChecked="{Binding CurrentExperience.IsCurrentJob}"
-                                  Color="{StaticResource PrimaryViolet}" />
+                                  Color="{StaticResource PrimaryViolet}">
+                            <CheckBox.Behaviors>
+                                <toolkit:EventToCommandBehavior EventName="CheckedChanged"
+                                                                Command="{Binding MarkDirtyCommand}" />
+                            </CheckBox.Behaviors>
+                        </CheckBox>
                         <Label Text="I currently work here"
                                VerticalOptions="Center"
                                TextColor="{StaticResource TextPrimary}" />
@@ -60,12 +101,22 @@
 
                     <Entry Placeholder="Technologies, e.g. C#, Azure, SQL"
                            Text="{Binding CurrentExperience.Technologies}"
-                           PlaceholderColor="{StaticResource InactiveIcon}" />
+                           PlaceholderColor="{StaticResource InactiveIcon}">
+                        <Entry.Behaviors>
+                            <toolkit:EventToCommandBehavior EventName="TextChanged"
+                                                            Command="{Binding MarkDirtyCommand}" />
+                        </Entry.Behaviors>
+                    </Entry>
 
                     <Editor Placeholder="Describe responsibilities and achievements"
                             AutoSize="TextChanges"
                             Text="{Binding CurrentExperience.Description}"
-                            PlaceholderColor="{StaticResource InactiveIcon}" />
+                            PlaceholderColor="{StaticResource InactiveIcon}">
+                        <Editor.Behaviors>
+                            <toolkit:EventToCommandBehavior EventName="TextChanged"
+                                                            Command="{Binding MarkDirtyCommand}" />
+                        </Editor.Behaviors>
+                    </Editor>
 
                     <Button Text="{Binding SubmitButtonText}"
                             Command="{Binding AddExperienceCommand}"
@@ -136,11 +187,6 @@
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
-
-            <Button Text="Save"
-                    Command="{Binding SaveAndContinueCommand}"
-                    Style="{StaticResource VioletButtonStyle}"
-                    Margin="0,4,0,0" />
 
             <ActivityIndicator IsRunning="{Binding IsBusy}"
                                IsVisible="{Binding IsBusy}"

@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using ResumeApp.Services;
 using ResumeApp.Models;
 using ResumeApp.Services;
 using System.Collections.ObjectModel;
@@ -10,6 +11,7 @@ public partial class ProjectsViewModel : ObservableObject
 {
     private readonly IApiService _apiService;
     private readonly ILocalStorageService _localStorageService;
+
 
     [ObservableProperty]
     private ProjectEntry currentProject = new();
@@ -29,9 +31,14 @@ public partial class ProjectsViewModel : ObservableObject
     [ObservableProperty]
     private bool isEditing;
 
+    [ObservableProperty]
+    private bool hasUnsavedChanges;
+
     private string? _editingProjectId;
 
     public string SubmitButtonText => IsEditing ? "Save changes" : "Add project";
+
+    public bool CanSave => !IsBusy && (HasUnsavedChanges || HasPendingProjectInput());
 
     public IList<string> ProjectTypes { get; } =
     [
@@ -89,10 +96,16 @@ public partial class ProjectsViewModel : ObservableObject
             ProjectEntries.Add(entry);
         }
 
+        HasUnsavedChanges = true;
+
         await _localStorageService.SaveProjectsDraftAsync(ProjectEntries.ToList());
         if (!await SyncProjectAsync(entry))
         {
             ShowError("Project saved locally. Backend sync failed — please try again.");
+        }
+        else
+        {
+            await ShowToastAsync("Project saved");
         }
         ResetEditor();
     }
@@ -132,11 +145,21 @@ public partial class ProjectsViewModel : ObservableObject
             return;
         }
 
+        if (!await ConfirmDeleteAsync("Delete project", "Delete this project?"))
+        {
+            return;
+        }
+
         ProjectEntries.Remove(entry);
+        HasUnsavedChanges = true;
         await _localStorageService.SaveProjectsDraftAsync(ProjectEntries.ToList());
         if (!await _apiService.DeleteProjectAsync(entry.Id))
         {
             ShowError("Project removed locally. Backend delete failed — please try again.");
+        }
+        else
+        {
+            await ShowToastAsync("Project deleted");
         }
         if (_editingProjectId == entry.Id)
         {
@@ -188,6 +211,7 @@ public partial class ProjectsViewModel : ObservableObject
             if (!syncFailed)
             {
                 await _localStorageService.ClearProjectsDraftAsync();
+                HasUnsavedChanges = false;
             }
 
             if (syncFailed)
@@ -213,12 +237,14 @@ public partial class ProjectsViewModel : ObservableObject
         if (drafts.Count > 0)
         {
             ProjectEntries = new ObservableCollection<ProjectEntry>(drafts);
+            HasUnsavedChanges = true;
         }
 
         var entries = await _apiService.GetProjectsAsync();
         if (entries.Count > 0)
         {
             ProjectEntries = new ObservableCollection<ProjectEntry>(entries);
+            HasUnsavedChanges = false;
         }
     }
 
@@ -226,6 +252,7 @@ public partial class ProjectsViewModel : ObservableObject
     {
         ErrorMessage = message;
         HasError = true;
+        _ = ShowToastAsync(message, isError: true);
     }
 
     private void ResetError()
@@ -248,7 +275,21 @@ public partial class ProjectsViewModel : ObservableObject
         return success;
     }
 
+    [RelayCommand]
+    private void MarkDirty() => HasUnsavedChanges = true;
+
+    private static Task ShowToastAsync(string message, bool isError = false)
+        => ToastService.ShowAsync(message, isError);
+
+    private static Task<bool> ConfirmDeleteAsync(string title, string message)
+        => App.Current?.MainPage?.DisplayAlert(title, message, "Delete", "Cancel")
+           ?? Task.FromResult(true);
+
     partial void OnIsEditingChanged(bool value) => OnPropertyChanged(nameof(SubmitButtonText));
+
+    partial void OnIsBusyChanged(bool value) => OnPropertyChanged(nameof(CanSave));
+
+    partial void OnHasUnsavedChangesChanged(bool value) => OnPropertyChanged(nameof(CanSave));
 
     private bool HasPendingProjectInput()
         => !string.IsNullOrWhiteSpace(CurrentProject.Name)

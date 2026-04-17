@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using ResumeApp.Services;
 using ResumeApp.Models;
 using ResumeApp.Services;
 using ResumeApp.Views;
@@ -11,6 +12,7 @@ public partial class ExperienceViewModel : ObservableObject
 {
     private readonly IApiService _apiService;
     private readonly ILocalStorageService _localStorageService;
+
 
     [ObservableProperty]
     private ExperienceEntry currentExperience = new();
@@ -30,9 +32,14 @@ public partial class ExperienceViewModel : ObservableObject
     [ObservableProperty]
     private bool isEditing;
 
+    [ObservableProperty]
+    private bool hasUnsavedChanges;
+
     private string? _editingExperienceId;
 
     public string SubmitButtonText => IsEditing ? "Save changes" : "Add entry";
+
+    public bool CanSave => !IsBusy && (HasUnsavedChanges || HasPendingExperienceInput());
 
     public IList<string> EmploymentTypes { get; } =
     [
@@ -92,10 +99,16 @@ public partial class ExperienceViewModel : ObservableObject
             ExperienceEntries.Add(entry);
         }
 
+        HasUnsavedChanges = true;
+
         await _localStorageService.SaveExperienceDraftAsync(ExperienceEntries.ToList());
         if (!await SyncExperienceAsync(entry))
         {
             ShowError("Experience saved locally. Backend sync failed — please try again.");
+        }
+        else
+        {
+            await ShowToastAsync("Experience saved");
         }
         ResetEditor();
     }
@@ -137,11 +150,21 @@ public partial class ExperienceViewModel : ObservableObject
             return;
         }
 
+        if (!await ConfirmDeleteAsync("Delete experience", "Delete this experience entry?"))
+        {
+            return;
+        }
+
         ExperienceEntries.Remove(entry);
+        HasUnsavedChanges = true;
         await _localStorageService.SaveExperienceDraftAsync(ExperienceEntries.ToList());
         if (!await _apiService.DeleteExperienceAsync(entry.Id))
         {
             ShowError("Experience removed locally. Backend delete failed — please try again.");
+        }
+        else
+        {
+            await ShowToastAsync("Experience deleted");
         }
         if (_editingExperienceId == entry.Id)
         {
@@ -192,6 +215,7 @@ public partial class ExperienceViewModel : ObservableObject
             if (!syncFailed)
             {
                 await _localStorageService.ClearExperienceDraftAsync();
+                HasUnsavedChanges = false;
             }
 
             if (syncFailed)
@@ -218,12 +242,14 @@ public partial class ExperienceViewModel : ObservableObject
         if (drafts.Count > 0)
         {
             ExperienceEntries = new ObservableCollection<ExperienceEntry>(drafts);
+            HasUnsavedChanges = true;
         }
 
         var entries = await _apiService.GetExperienceAsync();
         if (entries.Count > 0)
         {
             ExperienceEntries = new ObservableCollection<ExperienceEntry>(entries);
+            HasUnsavedChanges = false;
         }
     }
 
@@ -231,6 +257,7 @@ public partial class ExperienceViewModel : ObservableObject
     {
         ErrorMessage = message;
         HasError = true;
+        _ = ShowToastAsync(message, isError: true);
     }
 
     private void ResetError()
@@ -253,7 +280,21 @@ public partial class ExperienceViewModel : ObservableObject
         return success;
     }
 
+    [RelayCommand]
+    private void MarkDirty() => HasUnsavedChanges = true;
+
+    private static Task ShowToastAsync(string message, bool isError = false)
+        => ToastService.ShowAsync(message, isError);
+
+    private static Task<bool> ConfirmDeleteAsync(string title, string message)
+        => App.Current?.MainPage?.DisplayAlert(title, message, "Delete", "Cancel")
+           ?? Task.FromResult(true);
+
     partial void OnIsEditingChanged(bool value) => OnPropertyChanged(nameof(SubmitButtonText));
+
+    partial void OnIsBusyChanged(bool value) => OnPropertyChanged(nameof(CanSave));
+
+    partial void OnHasUnsavedChangesChanged(bool value) => OnPropertyChanged(nameof(CanSave));
 
     private bool HasPendingExperienceInput()
         => !string.IsNullOrWhiteSpace(CurrentExperience.Company)

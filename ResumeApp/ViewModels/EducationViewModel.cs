@@ -1,9 +1,11 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using ResumeApp.Services;
 using ResumeApp.Models;
 using ResumeApp.Services;
 using ResumeApp.Views;
 using System.Collections.ObjectModel;
+using Microsoft.Maui.ApplicationModel;
 
 namespace ResumeApp.ViewModels;
 
@@ -11,6 +13,7 @@ public partial class EducationViewModel : ObservableObject
 {
     private readonly IApiService _apiService;
     private readonly ILocalStorageService _localStorageService;
+
 
     [ObservableProperty]
     private EducationEntry currentEducation = new();
@@ -30,9 +33,14 @@ public partial class EducationViewModel : ObservableObject
     [ObservableProperty]
     private bool isEditing;
 
+    [ObservableProperty]
+    private bool hasUnsavedChanges;
+
     private string? _editingEducationId;
 
     public string SubmitButtonText => IsEditing ? "Save changes" : "Add entry";
+
+    public bool CanSave => !IsBusy && (HasUnsavedChanges || HasPendingEducationInput());
 
     public IList<string> DegreeOptions { get; } =
     [
@@ -92,10 +100,16 @@ public partial class EducationViewModel : ObservableObject
             EducationEntries.Add(entry);
         }
 
+        HasUnsavedChanges = true;
+
         await _localStorageService.SaveEducationDraftAsync(EducationEntries.ToList());
         if (!await SyncEducationAsync(entry))
         {
             ShowError("Education saved locally. Backend sync failed — please try again.");
+        }
+        else
+        {
+            await ShowToastAsync("Education saved");
         }
         ResetEditor();
     }
@@ -135,11 +149,21 @@ public partial class EducationViewModel : ObservableObject
             return;
         }
 
+        if (!await ConfirmDeleteAsync("Delete education", "Delete this education entry?"))
+        {
+            return;
+        }
+
         EducationEntries.Remove(entry);
+        HasUnsavedChanges = true;
         await _localStorageService.SaveEducationDraftAsync(EducationEntries.ToList());
         if (!await _apiService.DeleteEducationAsync(entry.Id))
         {
             ShowError("Education removed locally. Backend delete failed — please try again.");
+        }
+        else
+        {
+            await ShowToastAsync("Education deleted");
         }
         if (_editingEducationId == entry.Id)
         {
@@ -190,6 +214,7 @@ public partial class EducationViewModel : ObservableObject
             if (!syncFailed)
             {
                 await _localStorageService.ClearEducationDraftAsync();
+                HasUnsavedChanges = false;
             }
 
             if (syncFailed)
@@ -216,12 +241,14 @@ public partial class EducationViewModel : ObservableObject
         if (drafts.Count > 0)
         {
             EducationEntries = new ObservableCollection<EducationEntry>(drafts);
+            HasUnsavedChanges = true;
         }
 
         var entries = await _apiService.GetEducationAsync();
         if (entries.Count > 0)
         {
             EducationEntries = new ObservableCollection<EducationEntry>(entries);
+            HasUnsavedChanges = false;
         }
     }
 
@@ -229,6 +256,7 @@ public partial class EducationViewModel : ObservableObject
     {
         ErrorMessage = message;
         HasError = true;
+        _ = ShowToastAsync(message, isError: true);
     }
 
     private void ResetError()
@@ -251,7 +279,21 @@ public partial class EducationViewModel : ObservableObject
         return success;
     }
 
+    [RelayCommand]
+    private void MarkDirty() => HasUnsavedChanges = true;
+
+    private static Task ShowToastAsync(string message, bool isError = false)
+        => ToastService.ShowAsync(message, isError);
+
+    private static Task<bool> ConfirmDeleteAsync(string title, string message)
+        => App.Current?.MainPage?.DisplayAlert(title, message, "Delete", "Cancel")
+           ?? Task.FromResult(true);
+
     partial void OnIsEditingChanged(bool value) => OnPropertyChanged(nameof(SubmitButtonText));
+
+    partial void OnIsBusyChanged(bool value) => OnPropertyChanged(nameof(CanSave));
+
+    partial void OnHasUnsavedChangesChanged(bool value) => OnPropertyChanged(nameof(CanSave));
 
     private bool HasPendingEducationInput()
         => !string.IsNullOrWhiteSpace(CurrentEducation.School)

@@ -1,13 +1,19 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:ResumeApp.Views.Controls"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="ResumeApp.Views.ProjectsPage"
              x:Name="ProjectsPageRoot"
              Title="Projects"
+             Shell.NavBarIsVisible="False"
+             Shell.TabBarIsVisible="False"
              BackgroundColor="{StaticResource PageBackground}">
 
     <ScrollView>
         <VerticalStackLayout Padding="24,16" Spacing="16">
+
+            <controls:PageHeader Title="Projects" />
 
             <Label FontSize="26"
                    FontFamily="OpenSansSemibold"
@@ -27,31 +33,66 @@
                 <VerticalStackLayout Spacing="12">
                     <Entry Placeholder="Project name"
                            Text="{Binding CurrentProject.Name}"
-                           PlaceholderColor="{StaticResource InactiveIcon}" />
+                           PlaceholderColor="{StaticResource InactiveIcon}">
+                        <Entry.Behaviors>
+                            <toolkit:EventToCommandBehavior EventName="TextChanged"
+                                                            Command="{Binding MarkDirtyCommand}" />
+                        </Entry.Behaviors>
+                    </Entry>
 
                     <Picker Title="Project type"
                             ItemsSource="{Binding ProjectTypes}"
-                            SelectedItem="{Binding CurrentProject.ProjectType}" />
+                            SelectedItem="{Binding CurrentProject.ProjectType}">
+                        <Picker.Behaviors>
+                            <toolkit:EventToCommandBehavior EventName="SelectedIndexChanged"
+                                                            Command="{Binding MarkDirtyCommand}" />
+                        </Picker.Behaviors>
+                    </Picker>
 
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
                         <DatePicker Grid.Column="0"
-                                    Date="{Binding CurrentProject.StartDate}" />
+                                    Date="{Binding CurrentProject.StartDate}">
+                            <DatePicker.Behaviors>
+                                <toolkit:EventToCommandBehavior EventName="DateSelected"
+                                                                Command="{Binding MarkDirtyCommand}" />
+                            </DatePicker.Behaviors>
+                        </DatePicker>
                         <DatePicker Grid.Column="1"
-                                    Date="{Binding CurrentProject.EndDate}" />
+                                    Date="{Binding CurrentProject.EndDate}">
+                            <DatePicker.Behaviors>
+                                <toolkit:EventToCommandBehavior EventName="DateSelected"
+                                                                Command="{Binding MarkDirtyCommand}" />
+                            </DatePicker.Behaviors>
+                        </DatePicker>
                     </Grid>
 
                     <Entry Placeholder="Technologies"
                            Text="{Binding CurrentProject.Technologies}"
-                           PlaceholderColor="{StaticResource InactiveIcon}" />
+                           PlaceholderColor="{StaticResource InactiveIcon}">
+                        <Entry.Behaviors>
+                            <toolkit:EventToCommandBehavior EventName="TextChanged"
+                                                            Command="{Binding MarkDirtyCommand}" />
+                        </Entry.Behaviors>
+                    </Entry>
 
                     <Entry Placeholder="Project URL"
                            Text="{Binding CurrentProject.ProjectUrl}"
-                           PlaceholderColor="{StaticResource InactiveIcon}" />
+                           PlaceholderColor="{StaticResource InactiveIcon}">
+                        <Entry.Behaviors>
+                            <toolkit:EventToCommandBehavior EventName="TextChanged"
+                                                            Command="{Binding MarkDirtyCommand}" />
+                        </Entry.Behaviors>
+                    </Entry>
 
                     <Editor Placeholder="Project description"
                             AutoSize="TextChanges"
                             Text="{Binding CurrentProject.Description}"
-                            PlaceholderColor="{StaticResource InactiveIcon}" />
+                            PlaceholderColor="{StaticResource InactiveIcon}">
+                        <Editor.Behaviors>
+                            <toolkit:EventToCommandBehavior EventName="TextChanged"
+                                                            Command="{Binding MarkDirtyCommand}" />
+                        </Editor.Behaviors>
+                    </Editor>
 
                     <Button Text="{Binding SubmitButtonText}"
                             Command="{Binding AddProjectCommand}"
@@ -120,11 +161,6 @@
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
-
-            <Button Text="Save"
-                    Command="{Binding SaveAndContinueCommand}"
-                    Style="{StaticResource VioletButtonStyle}"
-                    Margin="0,4,0,0" />
 
             <ActivityIndicator IsRunning="{Binding IsBusy}"
                                IsVisible="{Binding IsBusy}"

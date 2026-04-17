@@ -21,5 +21,6 @@ namespace ResumeApp.Models
                 return $"Issued {issuedText} • Expires {expiresText}";
             }
         }
+
     }
 }

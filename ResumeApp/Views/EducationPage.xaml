@@ -1,13 +1,19 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:ResumeApp.Views.Controls"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="ResumeApp.Views.EducationPage"
              x:Name="EducationPageRoot"
              Title="Education"
+             Shell.NavBarIsVisible="False"
+             Shell.TabBarIsVisible="False"
              BackgroundColor="{StaticResource PageBackground}">
 
     <ScrollView>
         <VerticalStackLayout Padding="24,16" Spacing="16">
+
+            <controls:PageHeader Title="Education" />
 
             <Label FontSize="26"
                    FontFamily="OpenSansSemibold"
@@ -27,31 +33,66 @@
                 <VerticalStackLayout Spacing="12">
                     <Entry Placeholder="School / University"
                            Text="{Binding CurrentEducation.School}"
-                           PlaceholderColor="{StaticResource InactiveIcon}" />
+                           PlaceholderColor="{StaticResource InactiveIcon}">
+                        <Entry.Behaviors>
+                            <toolkit:EventToCommandBehavior EventName="TextChanged"
+                                                            Command="{Binding MarkDirtyCommand}" />
+                        </Entry.Behaviors>
+                    </Entry>
 
                     <Picker Title="Degree"
                             ItemsSource="{Binding DegreeOptions}"
-                            SelectedItem="{Binding CurrentEducation.Degree}" />
+                            SelectedItem="{Binding CurrentEducation.Degree}">
+                        <Picker.Behaviors>
+                            <toolkit:EventToCommandBehavior EventName="SelectedIndexChanged"
+                                                            Command="{Binding MarkDirtyCommand}" />
+                        </Picker.Behaviors>
+                    </Picker>
 
                     <Entry Placeholder="Field of Study"
                            Text="{Binding CurrentEducation.FieldOfStudy}"
-                           PlaceholderColor="{StaticResource InactiveIcon}" />
+                           PlaceholderColor="{StaticResource InactiveIcon}">
+                        <Entry.Behaviors>
+                            <toolkit:EventToCommandBehavior EventName="TextChanged"
+                                                            Command="{Binding MarkDirtyCommand}" />
+                        </Entry.Behaviors>
+                    </Entry>
 
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
                         <DatePicker Grid.Column="0"
-                                    Date="{Binding CurrentEducation.StartDate}" />
+                                    Date="{Binding CurrentEducation.StartDate}">
+                            <DatePicker.Behaviors>
+                                <toolkit:EventToCommandBehavior EventName="DateSelected"
+                                                                Command="{Binding MarkDirtyCommand}" />
+                            </DatePicker.Behaviors>
+                        </DatePicker>
                         <DatePicker Grid.Column="1"
-                                    Date="{Binding CurrentEducation.EndDate}" />
+                                    Date="{Binding CurrentEducation.EndDate}">
+                            <DatePicker.Behaviors>
+                                <toolkit:EventToCommandBehavior EventName="DateSelected"
+                                                                Command="{Binding MarkDirtyCommand}" />
+                            </DatePicker.Behaviors>
+                        </DatePicker>
                     </Grid>
 
                     <Entry Placeholder="GPA / Grade (optional)"
                            Text="{Binding CurrentEducation.GPA}"
-                           PlaceholderColor="{StaticResource InactiveIcon}" />
+                           PlaceholderColor="{StaticResource InactiveIcon}">
+                        <Entry.Behaviors>
+                            <toolkit:EventToCommandBehavior EventName="TextChanged"
+                                                            Command="{Binding MarkDirtyCommand}" />
+                        </Entry.Behaviors>
+                    </Entry>
 
                     <Editor Placeholder="Description, focus areas, honors"
                             AutoSize="TextChanges"
                             Text="{Binding CurrentEducation.Description}"
-                            PlaceholderColor="{StaticResource InactiveIcon}" />
+                            PlaceholderColor="{StaticResource InactiveIcon}">
+                        <Editor.Behaviors>
+                            <toolkit:EventToCommandBehavior EventName="TextChanged"
+                                                            Command="{Binding MarkDirtyCommand}" />
+                        </Editor.Behaviors>
+                    </Editor>
 
                     <Button Text="{Binding SubmitButtonText}"
                             Command="{Binding AddEducationCommand}"
@@ -119,11 +160,6 @@
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
-
-            <Button Text="Save"
-                    Command="{Binding SaveAndContinueCommand}"
-                    Style="{StaticResource VioletButtonStyle}"
-                    Margin="0,4,0,0" />
 
             <ActivityIndicator IsRunning="{Binding IsBusy}"
                                IsVisible="{Binding IsBusy}"

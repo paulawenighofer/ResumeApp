@@ -25,5 +25,6 @@ namespace ResumeApp.Models
                 _ => 0
             };
         }
+
     }
 }

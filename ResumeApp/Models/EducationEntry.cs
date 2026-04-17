@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ResumeApp.Models
+﻿namespace ResumeApp.Models
 {
     public class EducationEntry
     {
@@ -27,5 +21,6 @@ namespace ResumeApp.Models
                 return years > 0 ? $"{years} year{(years > 1 ? "s" : "")}" : "< 1 year";
             }
         }
+
     }
 }
