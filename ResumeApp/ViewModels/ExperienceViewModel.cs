@@ -93,6 +93,10 @@ public partial class ExperienceViewModel : ObservableObject
         }
 
         await _localStorageService.SaveExperienceDraftAsync(ExperienceEntries.ToList());
+        if (!await SyncExperienceAsync(entry))
+        {
+            ShowError("Experience saved locally. Backend sync failed — please try again.");
+        }
         ResetEditor();
     }
 
@@ -135,6 +139,10 @@ public partial class ExperienceViewModel : ObservableObject
 
         ExperienceEntries.Remove(entry);
         await _localStorageService.SaveExperienceDraftAsync(ExperienceEntries.ToList());
+        if (!await _apiService.DeleteExperienceAsync(entry.Id))
+        {
+            ShowError("Experience removed locally. Backend delete failed — please try again.");
+        }
         if (_editingExperienceId == entry.Id)
         {
             ResetEditor();
@@ -229,6 +237,20 @@ public partial class ExperienceViewModel : ObservableObject
     {
         ErrorMessage = string.Empty;
         HasError = false;
+    }
+
+    private async Task<bool> SyncExperienceAsync(ExperienceEntry entry)
+    {
+        var success = int.TryParse(entry.Id, out _)
+            ? await _apiService.UpdateExperienceAsync(entry)
+            : await _apiService.PostExperienceAsync(entry);
+
+        if (success)
+        {
+            await _localStorageService.SaveExperienceDraftAsync(ExperienceEntries.ToList());
+        }
+
+        return success;
     }
 
     partial void OnIsEditingChanged(bool value) => OnPropertyChanged(nameof(SubmitButtonText));

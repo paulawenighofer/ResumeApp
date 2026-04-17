@@ -76,6 +76,17 @@ public class ApiService : IApiService
         return updated || await PostEducationAsync(entry);
     }
 
+    public async Task<bool> DeleteEducationAsync(string id)
+    {
+        if (!int.TryParse(id, out var educationId))
+        {
+            return true;
+        }
+
+        var response = await SendAsync(HttpMethod.Delete, $"api/educations/{educationId}");
+        return response?.IsSuccessStatusCode == true;
+    }
+
     public async Task<List<ExperienceEntry>> GetExperienceAsync()
     {
         var response = await SendAsync(HttpMethod.Get, "api/experiences");
@@ -137,6 +148,17 @@ public class ApiService : IApiService
         return updated || await PostExperienceAsync(entry);
     }
 
+    public async Task<bool> DeleteExperienceAsync(string id)
+    {
+        if (!int.TryParse(id, out var experienceId))
+        {
+            return true;
+        }
+
+        var response = await SendAsync(HttpMethod.Delete, $"api/experiences/{experienceId}");
+        return response?.IsSuccessStatusCode == true;
+    }
+
     public async Task<List<SkillEntry>> GetSkillsAsync()
     {
         var response = await SendAsync(HttpMethod.Get, "api/skills");
@@ -190,6 +212,17 @@ public class ApiService : IApiService
         return updated || await PostSkillAsync(entry);
     }
 
+    public async Task<bool> DeleteSkillAsync(string id)
+    {
+        if (!int.TryParse(id, out var skillId))
+        {
+            return true;
+        }
+
+        var response = await SendAsync(HttpMethod.Delete, $"api/skills/{skillId}");
+        return response?.IsSuccessStatusCode == true;
+    }
+
     public async Task<List<ProjectEntry>> GetProjectsAsync()
     {
         var response = await SendAsync(HttpMethod.Get, "api/projects");
@@ -208,6 +241,7 @@ public class ApiService : IApiService
         {
             Name = entry.Name,
             Description = entry.Description,
+            Technologies = entry.Technologies,
             Url = entry.ProjectUrl,
             StartDate = DateOnly.FromDateTime(entry.StartDate),
             EndDate = DateOnly.FromDateTime(entry.EndDate)
@@ -238,6 +272,7 @@ public class ApiService : IApiService
         {
             Name = entry.Name,
             Description = entry.Description,
+            Technologies = entry.Technologies,
             Url = entry.ProjectUrl,
             StartDate = DateOnly.FromDateTime(entry.StartDate),
             EndDate = DateOnly.FromDateTime(entry.EndDate)
@@ -248,15 +283,84 @@ public class ApiService : IApiService
         return response?.IsSuccessStatusCode == true || await PostProjectAsync(entry);
     }
 
-    public async Task<bool> UploadProjectImagesAsync(string projectId, IReadOnlyCollection<string> imagePaths)
+    public async Task<bool> DeleteProjectAsync(string id)
     {
-        if (imagePaths.Count == 0)
+        if (!int.TryParse(id, out var projectId))
         {
             return true;
         }
 
-        var content = BuildMultipartContent(imagePaths, "files");
-        var response = await SendAsync(HttpMethod.Post, $"api/projects/{projectId}/images", content);
+        var response = await SendAsync(HttpMethod.Delete, $"api/projects/{projectId}");
+        return response?.IsSuccessStatusCode == true;
+    }
+
+    public async Task<List<CertificationEntry>> GetCertificationsAsync()
+    {
+        var response = await SendAsync(HttpMethod.Get, "api/certifications");
+        if (response is null || !response.IsSuccessStatusCode)
+        {
+            return [];
+        }
+
+        var items = await response.Content.ReadFromJsonAsync<List<Certification>>();
+        return items?.Select(MapCertification).ToList() ?? [];
+    }
+
+    public async Task<bool> PostCertificationAsync(CertificationEntry entry)
+    {
+        var response = await SendAsync(HttpMethod.Post, "api/certifications", JsonContent.Create(new Certification
+        {
+            Name = entry.Name,
+            IssuingOrganization = entry.IssuingOrganization,
+            IssueDate = ToUtcDate(entry.IssueDate),
+            ExpirationDate = ToUtcDate(entry.ExpirationDate),
+            CredentialId = entry.CredentialId,
+            CredentialUrl = entry.CredentialUrl
+        }));
+
+        if (response is null || !response.IsSuccessStatusCode)
+        {
+            return false;
+        }
+
+        var certification = await response.Content.ReadFromJsonAsync<Certification>();
+        if (certification is not null)
+        {
+            entry.Id = certification.Id.ToString();
+        }
+
+        return true;
+    }
+
+    public async Task<bool> UpdateCertificationAsync(CertificationEntry entry)
+    {
+        if (!int.TryParse(entry.Id, out var id))
+        {
+            return await PostCertificationAsync(entry);
+        }
+
+        var payload = new Certification
+        {
+            Name = entry.Name,
+            IssuingOrganization = entry.IssuingOrganization,
+            IssueDate = ToUtcDate(entry.IssueDate),
+            ExpirationDate = ToUtcDate(entry.ExpirationDate),
+            CredentialId = entry.CredentialId,
+            CredentialUrl = entry.CredentialUrl
+        };
+
+        var updated = await SendJsonAsync(HttpMethod.Put, $"api/certifications/{id}", payload);
+        return updated || await PostCertificationAsync(entry);
+    }
+
+    public async Task<bool> DeleteCertificationAsync(string id)
+    {
+        if (!int.TryParse(id, out var certificationId))
+        {
+            return true;
+        }
+
+        var response = await SendAsync(HttpMethod.Delete, $"api/certifications/{certificationId}");
         return response?.IsSuccessStatusCode == true;
     }
 
@@ -371,9 +475,21 @@ public class ApiService : IApiService
         Id = project.Id.ToString(),
         Name = project.Name,
         Description = project.Description ?? string.Empty,
+        Technologies = project.Technologies,
         ProjectUrl = project.Url,
         StartDate = project.StartDate?.ToDateTime(TimeOnly.MinValue) ?? DateTime.Now,
         EndDate = project.EndDate?.ToDateTime(TimeOnly.MinValue) ?? DateTime.Now
+    };
+
+    private static CertificationEntry MapCertification(Certification certification) => new()
+    {
+        Id = certification.Id.ToString(),
+        Name = certification.Name,
+        IssuingOrganization = certification.IssuingOrganization,
+        IssueDate = certification.IssueDate ?? DateTime.Now,
+        ExpirationDate = certification.ExpirationDate ?? DateTime.Now.AddYears(1),
+        CredentialId = certification.CredentialId,
+        CredentialUrl = certification.CredentialUrl
     };
 
     private sealed class ImageUploadResponse

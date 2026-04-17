@@ -86,6 +86,10 @@ public partial class ProfileViewModel : ObservableObject
         await Shell.Current.GoToAsync(nameof(SkillsPage));
 
     [RelayCommand]
+    private async Task GoToCertifications() =>
+        await Shell.Current.GoToAsync(nameof(CertificationsPage));
+
+    [RelayCommand]
     private async Task GoToProjects() =>
         await Shell.Current.GoToAsync(nameof(ProjectsPage));
 

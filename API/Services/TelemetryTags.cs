@@ -31,6 +31,7 @@ public static class TelemetryTags
         public const string Experience = "experience";
         public const string Skill = "skill";
         public const string Project = "project";
+        public const string Certification = "certification";
         public const string ProfileImage = "profile_image";
         public const string ProjectImage = "project_image";
     }

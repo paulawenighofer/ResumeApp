@@ -7,15 +7,22 @@ public interface IApiService
     Task<List<EducationEntry>> GetEducationAsync();
     Task<bool> PostEducationAsync(EducationEntry entry);
     Task<bool> UpdateEducationAsync(EducationEntry entry);
+    Task<bool> DeleteEducationAsync(string id);
     Task<List<ExperienceEntry>> GetExperienceAsync();
     Task<bool> PostExperienceAsync(ExperienceEntry entry);
     Task<bool> UpdateExperienceAsync(ExperienceEntry entry);
+    Task<bool> DeleteExperienceAsync(string id);
     Task<List<SkillEntry>> GetSkillsAsync();
     Task<bool> PostSkillAsync(SkillEntry entry);
     Task<bool> UpdateSkillAsync(SkillEntry entry);
+    Task<bool> DeleteSkillAsync(string id);
     Task<List<ProjectEntry>> GetProjectsAsync();
     Task<bool> PostProjectAsync(ProjectEntry entry);
     Task<bool> UpdateProjectAsync(ProjectEntry entry);
-    Task<bool> UploadProjectImagesAsync(string projectId, IReadOnlyCollection<string> imagePaths);
+    Task<bool> DeleteProjectAsync(string id);
+    Task<List<CertificationEntry>> GetCertificationsAsync();
+    Task<bool> PostCertificationAsync(CertificationEntry entry);
+    Task<bool> UpdateCertificationAsync(CertificationEntry entry);
+    Task<bool> DeleteCertificationAsync(string id);
     Task<string?> UploadProfileImageAsync(string imagePath);
 }

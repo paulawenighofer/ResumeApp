@@ -16,7 +16,6 @@ namespace ResumeApp.Models
         public string? ProjectUrl { get; set; }
         public DateTime StartDate { get; set; } = DateTime.Now;
         public DateTime EndDate { get; set; } = DateTime.Now.AddMonths(3);
-        public List<string> ImagePaths { get; set; } = new();
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public string DurationText
@@ -34,6 +33,5 @@ namespace ResumeApp.Models
             .Where(t => !string.IsNullOrEmpty(t))
             .ToList() ?? new();
 
-        public bool HasImages => ImagePaths?.Count > 0;
     }
 }
