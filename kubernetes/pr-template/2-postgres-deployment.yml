@@ -51,4 +51,4 @@ spec:
       volumes:
         - name: postgres-data
           persistentVolumeClaim:
-            claimName: resumeapp-postgres-pvc
+            claimName: resumeapp-pvc-postgres
