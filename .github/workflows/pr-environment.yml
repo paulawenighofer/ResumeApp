@@ -11,6 +11,9 @@ jobs:
     if: github.event.action != 'closed'
     env:
       FEATURES_EMAIL_OTP_DELIVERY: ${{ vars.STAGING_FEATURES_EMAIL_OTP_DELIVERY }}
+      AI_SERVICE_BASE_URL: ${{ vars.STAGING_AI_SERVICE_BASEURL }}
+      AI_SERVICE_MODEL: ${{ vars.STAGING_AI_SERVICE_MODEL }}
+      AI_SERVICE_TIMEOUT_SECONDS: ${{ vars.STAGING_AI_SERVICE_TIMEOUTSECONDS }}
       PR_NUMBER: ${{ github.event.pull_request.number }}
       PR_NAMESPACE: resumeapp-pr-${{ github.event.pull_request.number }}
       PR_HOSTNAME: pr-${{ github.event.pull_request.number }}.resume-app-pb.duckdns.org
@@ -71,6 +74,10 @@ jobs:
             --from-literal=POSTGRES_DB="${{ secrets.POSTGRES_DB }}" \
             --from-literal=Smtp__Username="${{ secrets.SMTP_USERNAME }}" \
             --from-literal=Smtp__Password="${{ secrets.SMTP_PASSWORD }}" \
+            --from-literal=AiService__BaseUrl="${AI_SERVICE_BASE_URL}" \
+            --from-literal=AiService__ApiKey="${{ secrets.AI_SERVICE_APIKEY }}" \
+            --from-literal=AiService__Model="${AI_SERVICE_MODEL}" \
+            --from-literal=AiService__TimeoutSeconds="${AI_SERVICE_TIMEOUT_SECONDS:-60}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Deploy PR manifests
@@ -116,7 +123,7 @@ jobs:
           echo "  Prometheus: http://${PR_PROMETHEUS_HOST}"
           echo "  Namespace:  ${PR_NAMESPACE}"
           echo "  PR:         ${{ github.event.pull_request.html_url }}"
-          echo "=========================================="
+          echo "======================================"
 
       - name: Post or update PR comment
         env:

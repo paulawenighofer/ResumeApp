@@ -11,6 +11,7 @@
             Routing.RegisterRoute(nameof(Views.CertificationsPage), typeof(Views.CertificationsPage));
             Routing.RegisterRoute(nameof(Views.ProjectsPage), typeof(Views.ProjectsPage));
             Routing.RegisterRoute(nameof(Views.GenerateResumePage), typeof(Views.GenerateResumePage));
+            Routing.RegisterRoute(nameof(Views.ResumeDraftDetailPage), typeof(Views.ResumeDraftDetailPage));
         }
     }
 }

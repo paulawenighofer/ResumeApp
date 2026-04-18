@@ -42,6 +42,10 @@ services:
       - AzureBlob__ConnectionString=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;
       - AzureBlob__ProfileImagesContainer=profile-images
       - AzureBlob__ProfileImagesBasePath=
+      - AiService__BaseUrl=http://host.docker.internal:11434/api/generate
+      - AiService__ApiKey=
+      - AiService__Model=
+      - AiService__TimeoutSeconds=60
     depends_on:
       postgres:
         condition: service_healthy
