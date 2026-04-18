@@ -31,6 +31,9 @@ public class Resume
     public DateTime? PdfGeneratedAt { get; set; }
 
     [MaxLength(2000)]
+    public string? PdfFailureReason { get; set; }
+
+    [MaxLength(2000)]
     public string? FailedReason { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
