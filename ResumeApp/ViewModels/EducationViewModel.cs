@@ -337,7 +337,7 @@ public partial class EducationViewModel : ObservableObject
         => ToastService.ShowAsync(message, isError);
 
     private static Task<bool> ConfirmDeleteAsync(string title, string message)
-        => App.Current?.MainPage?.DisplayAlert(title, message, "Delete", "Cancel")
+        => Shell.Current?.CurrentPage?.DisplayAlert(title, message, "Delete", "Cancel")
            ?? Task.FromResult(true);
 
     private bool HasPendingEducationInput()

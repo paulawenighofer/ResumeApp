@@ -3,7 +3,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:controls="clr-namespace:ResumeApp.Views.Controls"
+             xmlns:vm="clr-namespace:ResumeApp.ViewModels"
+             xmlns:models="clr-namespace:ResumeApp.Models"
+             xmlns:sys="clr-namespace:System;assembly=netstandard"
              x:Class="ResumeApp.Views.SkillsPage"
+             x:DataType="vm:SkillsViewModel"
              x:Name="SkillsPageRoot"
              Title="Skills"
              Shell.NavBarIsVisible="False"
@@ -80,7 +84,7 @@
                             ItemsLayout="HorizontalList"
                             HeightRequest="44">
                 <CollectionView.ItemTemplate>
-                    <DataTemplate>
+                    <DataTemplate x:DataType="sys:String">
                         <Border Margin="0,0,8,0"
                                 BackgroundColor="#EDE9FE"
                                 StrokeThickness="0"
@@ -88,6 +92,7 @@
                                 Padding="12,8">
                             <Border.GestureRecognizers>
                                 <TapGestureRecognizer
+                                    x:DataType="{x:Null}"
                                     Command="{Binding Source={x:Reference SkillsPageRoot}, Path=BindingContext.AddSuggestedSkillCommand}"
                                     CommandParameter="{Binding .}" />
                             </Border.GestureRecognizers>
@@ -115,7 +120,7 @@
                            Style="{StaticResource SubtitleStyle}" />
                 </CollectionView.EmptyView>
                 <CollectionView.ItemTemplate>
-                    <DataTemplate>
+                    <DataTemplate x:DataType="models:SkillEntry">
                         <Border Margin="0,0,0,12"
                                 Padding="16"
                                 BackgroundColor="{StaticResource SurfaceWhite}"
@@ -135,12 +140,14 @@
                                 </VerticalStackLayout>
                                 <VerticalStackLayout Grid.Column="1" Spacing="8" VerticalOptions="Center">
                                     <Button Text="Edit"
+                                            x:DataType="{x:Null}"
                                             Command="{Binding Source={x:Reference SkillsPageRoot}, Path=BindingContext.EditSkillCommand}"
                                             CommandParameter="{Binding .}"
                                             Style="{StaticResource OutlineButtonStyle}"
                                             HeightRequest="36"
                                             Padding="12,4" />
                                     <Button Text="Delete"
+                                            x:DataType="{x:Null}"
                                             Command="{Binding Source={x:Reference SkillsPageRoot}, Path=BindingContext.DeleteSkillCommand}"
                                             CommandParameter="{Binding .}"
                                             Style="{StaticResource DangerButtonStyle}"

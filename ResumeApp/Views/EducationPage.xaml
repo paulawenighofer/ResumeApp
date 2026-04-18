@@ -3,7 +3,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:ResumeApp.Views.Controls"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:vm="clr-namespace:ResumeApp.ViewModels"
+             xmlns:models="clr-namespace:ResumeApp.Models"
              x:Class="ResumeApp.Views.EducationPage"
+             x:DataType="vm:EducationViewModel"
              x:Name="EducationPageRoot"
              Title="Education"
              Shell.NavBarIsVisible="False"
@@ -119,7 +122,7 @@
                            Style="{StaticResource SubtitleStyle}" />
                 </CollectionView.EmptyView>
                 <CollectionView.ItemTemplate>
-                    <DataTemplate>
+                    <DataTemplate x:DataType="models:EducationEntry">
                         <Border Margin="0,0,0,12"
                                 Padding="16"
                                 BackgroundColor="{StaticResource SurfaceWhite}"
@@ -144,12 +147,14 @@
                                 <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,4,0,0">
                                     <Button Grid.Column="0"
                                             Text="Edit"
+                                            x:DataType="{x:Null}"
                                             Command="{Binding Source={x:Reference EducationPageRoot}, Path=BindingContext.EditEducationCommand}"
                                             CommandParameter="{Binding .}"
                                             Style="{StaticResource OutlineButtonStyle}"
                                             HeightRequest="36" />
                                     <Button Grid.Column="1"
                                             Text="Delete"
+                                            x:DataType="{x:Null}"
                                             Command="{Binding Source={x:Reference EducationPageRoot}, Path=BindingContext.DeleteEducationCommand}"
                                             CommandParameter="{Binding .}"
                                             Style="{StaticResource DangerButtonStyle}"

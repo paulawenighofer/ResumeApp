@@ -26,15 +26,8 @@ public static class MauiProgram
 
         builder.Services.AddSingleton(sp =>
         {
-#if DEBUG
-            // In development, point to your local API server.
-            // Change this to match wherever your API is running (e.g. https://localhost:7082).
-            // The production URL in appsettings.json is used for release builds automatically.
-            var apiBaseUrl = "https://localhost:7082";
-#else
-            var apiBaseUrl = builder.Configuration["ApiBaseUrl"]
-                ?? throw new InvalidOperationException("ApiBaseUrl is not set in appsettings.json.");
-#endif
+
+            var apiBaseUrl = "https://resumeapp-web-api.victoriousriver-0bd90a87.westus2.azurecontainerapps.io";
             var client = new HttpClient();
             client.BaseAddress = new Uri(apiBaseUrl.TrimEnd('/') + '/');
             return client;
