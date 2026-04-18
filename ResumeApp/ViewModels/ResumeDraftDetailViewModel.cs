@@ -296,7 +296,7 @@ public partial class ResumeDraftDetailViewModel : ObservableObject, IQueryAttrib
             or ResumeDraftStatus.PdfReady
             or ResumeDraftStatus.PdfFailed;
 
-        CanEdit = status is ResumeDraftStatus.Generated or ResumeDraftStatus.DraftReady;
+        CanEdit = status is ResumeDraftStatus.Generated or ResumeDraftStatus.DraftReady or ResumeDraftStatus.DraftFailed or ResumeDraftStatus.Failed;
         CanApprove = status is ResumeDraftStatus.Generated or ResumeDraftStatus.DraftReady;
         CanGeneratePdf = status is ResumeDraftStatus.Approved or ResumeDraftStatus.PdfFailed;
         CanOpenPdf = status == ResumeDraftStatus.PdfReady || (_currentDraft?.HasPdf ?? false);
@@ -306,11 +306,11 @@ public partial class ResumeDraftDetailViewModel : ObservableObject, IQueryAttrib
         {
             ResumeDraftStatus.Generated => "Ready",
             ResumeDraftStatus.DraftReady => "Ready to Approve",
+            ResumeDraftStatus.DraftFailed or ResumeDraftStatus.Failed => "Draft Failed",
             ResumeDraftStatus.Approved => "Approved",
             ResumeDraftStatus.PdfGenerating => "PDF Generating",
             ResumeDraftStatus.PdfReady => "PDF Ready",
             ResumeDraftStatus.PdfFailed => "PDF Failed",
-            ResumeDraftStatus.Failed => "Failed",
             ResumeDraftStatus.Pending => "Generating",
             _ => "Generating"
         };
@@ -319,11 +319,11 @@ public partial class ResumeDraftDetailViewModel : ObservableObject, IQueryAttrib
         {
             ResumeDraftStatus.Generated => "#16A34A",
             ResumeDraftStatus.DraftReady => "#0284C7",
+            ResumeDraftStatus.DraftFailed or ResumeDraftStatus.Failed => "#DC2626",
             ResumeDraftStatus.Approved => "#1E40AF",
             ResumeDraftStatus.PdfGenerating => "#7C3AED",
             ResumeDraftStatus.PdfReady => "#0F766E",
             ResumeDraftStatus.PdfFailed => "#DC2626",
-            ResumeDraftStatus.Failed => "#DC2626",
             _ => "#7C3AED"
         };
     }

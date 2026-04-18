@@ -15,9 +15,13 @@ public interface IBlobStorageService
         Stream pdfStream,
         CancellationToken cancellationToken = default);
 
-    Task<Stream?> DownloadResumePdfAsync(
+    Task<ResumePdfDownloadResult?> DownloadResumePdfAsync(
         string blobPath,
         CancellationToken cancellationToken = default);
+
+    Task<bool> ResumePdfExistsAsync(string blobPath, CancellationToken cancellationToken = default);
+
+    Task<bool> DeleteResumePdfAsync(string blobPath, CancellationToken cancellationToken = default);
 
     Task<bool> TryDeleteAsync(string blobUrl, CancellationToken cancellationToken = default);
 }

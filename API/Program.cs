@@ -85,7 +85,10 @@ builder.Services.AddFeatureManagement(builder.Configuration.GetSection("FeatureF
 
 builder.Services
     .AddOptions<AiServiceOptions>()
-    .Bind(builder.Configuration.GetSection(AiServiceOptions.SectionName));
+    .Bind(builder.Configuration.GetSection(AiServiceOptions.SectionName))
+    .Validate(options => !string.IsNullOrWhiteSpace(options.BaseUrl), "AiService:BaseUrl is required.")
+    .Validate(options => options.TimeoutSeconds > 0, "AiService:TimeoutSeconds must be greater than zero.")
+    .ValidateOnStart();
 
 builder.Services
     .AddOptions<AzureBlobOptions>()
@@ -218,6 +221,8 @@ builder.Services.AddSingleton<UserActivityTracker>();
 //   Prevents email flooding / SMS-bombing style abuse.
 // "resume-generation" — applied to POST /api/resumes/drafts: 10 per hour per user.
 //   Protects AI generation service from being hammered.
+// "resume-pdf-generation" — applied to POST /api/resumes/{id}/generate-pdf: 10 per hour per user.
+//   Prevents repeated PDF regeneration abuse and blob churn.
 var otpVerifyPermitLimit = builder.Configuration.GetValue<int?>("RateLimiting:OtpVerify:PermitLimit") ?? 5;
 var otpVerifyWindowMinutes = builder.Configuration.GetValue<int?>("RateLimiting:OtpVerify:WindowMinutes") ?? 15;
 var otpVerifySegmentsPerWindow = builder.Configuration.GetValue<int?>("RateLimiting:OtpVerify:SegmentsPerWindow") ?? 3;
@@ -228,6 +233,9 @@ var otpSendSegmentsPerWindow = builder.Configuration.GetValue<int?>("RateLimitin
 
 var resumeGenerationPermitLimit = builder.Configuration.GetValue<int?>("RateLimiting:ResumeGeneration:PermitLimit") ?? 10;
 var resumeGenerationWindowHours = builder.Configuration.GetValue<int?>("RateLimiting:ResumeGeneration:WindowHours") ?? 1;
+
+var resumePdfGenerationPermitLimit = builder.Configuration.GetValue<int?>("RateLimiting:ResumePdfGeneration:PermitLimit") ?? 10;
+var resumePdfGenerationWindowHours = builder.Configuration.GetValue<int?>("RateLimiting:ResumePdfGeneration:WindowHours") ?? 1;
 
 builder.Services.AddRateLimiter(options =>
 {
@@ -251,6 +259,14 @@ builder.Services.AddRateLimiter(options =>
     {
         opt.PermitLimit = resumeGenerationPermitLimit;
         opt.Window = TimeSpan.FromHours(resumeGenerationWindowHours);
+        opt.QueueLimit = 0;
+        opt.AutoReplenishment = true;
+    });
+
+    options.AddFixedWindowLimiter("resume-pdf-generation", opt =>
+    {
+        opt.PermitLimit = resumePdfGenerationPermitLimit;
+        opt.Window = TimeSpan.FromHours(resumePdfGenerationWindowHours);
         opt.QueueLimit = 0;
         opt.AutoReplenishment = true;
     });

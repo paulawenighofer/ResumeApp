@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Test.Integration.Fixtures;
 
@@ -52,11 +53,17 @@ public class ApiFactory : WebApplicationFactory<Program>
                 ["Jwt:Audience"] = "TestAudience",
                 ["Jwt:ExpirationInMinutes"] = "60",
                 ["FeatureFlags:EmailOtpDelivery"] = _emailOtpDeliveryEnabled.ToString(),
+                ["AiService:BaseUrl"] = "https://ai.test.local/generate",
+                ["AiService:ApiKey"] = "test-key",
+                ["AiService:Model"] = "test-model",
+                ["AiService:TimeoutSeconds"] = "60",
                 ["AzureBlob:ConnectionString"] = "UseDevelopmentStorage=true",
                 ["AzureBlob:ProfileImagesContainer"] = "profile-images",
                 ["AzureBlob:ProfileImagesBasePath"] = "",
                 ["AzureBlob:ResumesContainer"] = "resumes",
                 ["AzureBlob:ResumesBasePath"] = "",
+                ["RateLimiting:ResumePdfGeneration:PermitLimit"] = "1000000",
+                ["RateLimiting:ResumePdfGeneration:WindowHours"] = "1",
             };
 
             if (!_useProductionRateLimits)
@@ -69,6 +76,7 @@ public class ApiFactory : WebApplicationFactory<Program>
                 testConfig["RateLimiting:OtpSend:SegmentsPerWindow"] = "1";
                 testConfig["RateLimiting:ResumeGeneration:PermitLimit"] = "1000000";
                 testConfig["RateLimiting:ResumeGeneration:WindowHours"] = "1";
+                testConfig["RateLimiting:ResumePdfGeneration:PermitLimit"] = "1000000";
             }
 
             config.AddInMemoryCollection(testConfig);
@@ -90,11 +98,7 @@ public class ApiFactory : WebApplicationFactory<Program>
                 typeof(DbContextOptions),
                 typeof(AppDbContext),
             ];
-            foreach (var type in toStrip)
-            {
-                var hits = services.Where(d => d.ServiceType == type).ToList();
-                foreach (var d in hits) services.Remove(d);
-            }
+            foreach (var type in toStrip) services.RemoveAll(type);
 
             // Register a fresh DbContext backed by a unique in-memory database.
             // The name is evaluated ONCE here (not inside the lambda) so that all
@@ -106,21 +110,17 @@ public class ApiFactory : WebApplicationFactory<Program>
             if (_overrideEmailService)
             {
                 // Replace the app-registered email service with our capturable fake.
-                var emailHits = services.Where(d => d.ServiceType == typeof(IEmailService)).ToList();
-                foreach (var d in emailHits) services.Remove(d);
+                services.RemoveAll(typeof(IEmailService));
                 services.AddScoped<IEmailService>(_ => EmailService);
             }
 
-            var aiClientHits = services.Where(d => d.ServiceType == typeof(IAiResumeGenerationClient)).ToList();
-            foreach (var d in aiClientHits) services.Remove(d);
+            services.RemoveAll(typeof(IAiResumeGenerationClient));
             services.AddScoped<IAiResumeGenerationClient>(_ => AiResumeGenerationClient);
 
-            var blobServiceHits = services.Where(d => d.ServiceType == typeof(IBlobStorageService)).ToList();
-            foreach (var d in blobServiceHits) services.Remove(d);
+            services.RemoveAll(typeof(IBlobStorageService));
             services.AddSingleton<IBlobStorageService>(BlobStorageService);
 
-            var pdfRendererHits = services.Where(d => d.ServiceType == typeof(IPdfRenderer)).ToList();
-            foreach (var d in pdfRendererHits) services.Remove(d);
+            services.RemoveAll(typeof(IPdfRenderer));
             services.AddSingleton<IPdfRenderer>(PdfRenderer);
         });
     }

@@ -100,6 +100,7 @@ public class ResumesController : ControllerBase
     }
 
     [HttpPost("{id:int}/generate-pdf")]
+    [EnableRateLimiting("resume-pdf-generation")]
     public async Task<ActionResult<ResumeDetailDto>> GeneratePdf(int id, CancellationToken cancellationToken)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -136,7 +137,7 @@ public class ResumesController : ControllerBase
                 return NotFound();
             }
 
-            return File(pdf.Content, "application/pdf", pdf.FileName);
+            return File(pdf.Content, pdf.ContentType, pdf.FileName);
         }
         catch (InvalidOperationException ex)
         {

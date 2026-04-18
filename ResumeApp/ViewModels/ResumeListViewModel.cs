@@ -69,7 +69,7 @@ public partial class ResumeListViewModel : ObservableObject
                         ResumeDraftStatus.PdfGenerating => "PDF Generating",
                         ResumeDraftStatus.PdfReady => "PDF Ready",
                         ResumeDraftStatus.PdfFailed => "PDF Failed",
-                        ResumeDraftStatus.Failed => "Failed",
+                        ResumeDraftStatus.DraftFailed or ResumeDraftStatus.Failed => "Draft Failed",
                         _ => "Generating"
                     },
                     StatusColorHex = item.Status switch
@@ -80,7 +80,7 @@ public partial class ResumeListViewModel : ObservableObject
                         ResumeDraftStatus.PdfGenerating => "#7C3AED",
                         ResumeDraftStatus.PdfReady => "#0F766E",
                         ResumeDraftStatus.PdfFailed => "#DC2626",
-                        ResumeDraftStatus.Failed => "#DC2626",
+                        ResumeDraftStatus.DraftFailed or ResumeDraftStatus.Failed => "#DC2626",
                         _ => "#7C3AED"
                     },
                     CreatedAt = item.CreatedAt,
