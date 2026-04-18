@@ -110,7 +110,7 @@ public class ResumeDraftService : IResumeDraftService
     public async Task<ResumeDetailDto?> SaveDraftEditAsync(string userId, int id, SaveDraftEditRequest request, CancellationToken cancellationToken = default)
     {
         var resume = await _db.Resumes.FirstOrDefaultAsync(x => x.UserId == userId && x.Id == id, cancellationToken);
-        
+
         if (resume is null)
         {
             return null;
@@ -146,7 +146,7 @@ public class ResumeDraftService : IResumeDraftService
     public async Task<ApproveDraftResponse?> ApproveDraftAsync(string userId, int id, ApproveDraftRequest request, CancellationToken cancellationToken = default)
     {
         var resume = await _db.Resumes.FirstOrDefaultAsync(x => x.UserId == userId && x.Id == id, cancellationToken);
-        
+
         if (resume is null)
         {
             return null;

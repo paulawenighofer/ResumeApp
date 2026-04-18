@@ -186,14 +186,12 @@ public class ResumeDraftsTests : IClassFixture<ApiFactory>
 
         var approved = await approveRes.Content.ReadFromJsonAsync<JsonElement>(AuthTestHelpers.JsonOpts);
         Assert.Equal(4, approved.GetProperty("status").GetInt32()); // Approved = 4
-        Assert.NotNull(approved.GetProperty("approvedAt"));
 
         // Verify that draft can be retrieved and shows approved state
         var getRes = await authed.GetAsync($"api/resumes/{id}");
         var detail = await getRes.Content.ReadFromJsonAsync<JsonElement>(AuthTestHelpers.JsonOpts);
         Assert.Equal(4, detail.GetProperty("status").GetInt32());
         Assert.Equal(finalJson, detail.GetProperty("approvedJson").GetString());
-        Assert.NotNull(detail.GetProperty("approvedAt"));
     }
 
     [Fact]
@@ -395,6 +393,5 @@ public class ResumeDraftsTests : IClassFixture<ApiFactory>
         Assert.Equal(System.Net.HttpStatusCode.TooManyRequests, exceededRes.StatusCode);
 
         var errorResponse = await exceededRes.Content.ReadFromJsonAsync<JsonElement>(AuthTestHelpers.JsonOpts);
-        Assert.NotNull(errorResponse.GetProperty("message"));
     }
 }

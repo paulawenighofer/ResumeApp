@@ -63,6 +63,8 @@ public class ApiFactory : WebApplicationFactory<Program>
                 testConfig["RateLimiting:OtpSend:PermitLimit"] = "1000000";
                 testConfig["RateLimiting:OtpSend:WindowMinutes"] = "1";
                 testConfig["RateLimiting:OtpSend:SegmentsPerWindow"] = "1";
+                testConfig["RateLimiting:ResumeGeneration:PermitLimit"] = "1000000";
+                testConfig["RateLimiting:ResumeGeneration:WindowHours"] = "1";
             }
 
             config.AddInMemoryCollection(testConfig);

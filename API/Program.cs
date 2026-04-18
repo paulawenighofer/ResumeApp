@@ -213,28 +213,39 @@ builder.Services.AddSingleton<UserActivityTracker>();
 //   Prevents email flooding / SMS-bombing style abuse.
 // "resume-generation" — applied to POST /api/resumes/drafts: 10 per hour per user.
 //   Protects AI generation service from being hammered.
+var otpVerifyPermitLimit = builder.Configuration.GetValue<int?>("RateLimiting:OtpVerify:PermitLimit") ?? 5;
+var otpVerifyWindowMinutes = builder.Configuration.GetValue<int?>("RateLimiting:OtpVerify:WindowMinutes") ?? 15;
+var otpVerifySegmentsPerWindow = builder.Configuration.GetValue<int?>("RateLimiting:OtpVerify:SegmentsPerWindow") ?? 3;
+
+var otpSendPermitLimit = builder.Configuration.GetValue<int?>("RateLimiting:OtpSend:PermitLimit") ?? 3;
+var otpSendWindowMinutes = builder.Configuration.GetValue<int?>("RateLimiting:OtpSend:WindowMinutes") ?? 10;
+var otpSendSegmentsPerWindow = builder.Configuration.GetValue<int?>("RateLimiting:OtpSend:SegmentsPerWindow") ?? 2;
+
+var resumeGenerationPermitLimit = builder.Configuration.GetValue<int?>("RateLimiting:ResumeGeneration:PermitLimit") ?? 10;
+var resumeGenerationWindowHours = builder.Configuration.GetValue<int?>("RateLimiting:ResumeGeneration:WindowHours") ?? 1;
+
 builder.Services.AddRateLimiter(options =>
 {
     options.AddSlidingWindowLimiter("otp-verify", opt =>
     {
-        opt.PermitLimit = 15;
-        opt.Window = TimeSpan.FromMinutes(5);
-        opt.SegmentsPerWindow = 3;
+        opt.PermitLimit = otpVerifyPermitLimit;
+        opt.Window = TimeSpan.FromMinutes(otpVerifyWindowMinutes);
+        opt.SegmentsPerWindow = otpVerifySegmentsPerWindow;
         opt.QueueLimit = 0;
     });
 
     options.AddSlidingWindowLimiter("otp-send", opt =>
     {
-        opt.PermitLimit = 15;
-        opt.Window = TimeSpan.FromMinutes(5);
-        opt.SegmentsPerWindow = 2;
+        opt.PermitLimit = otpSendPermitLimit;
+        opt.Window = TimeSpan.FromMinutes(otpSendWindowMinutes);
+        opt.SegmentsPerWindow = otpSendSegmentsPerWindow;
         opt.QueueLimit = 0;
     });
 
     options.AddFixedWindowLimiter("resume-generation", opt =>
     {
-        opt.PermitLimit = 300;
-        opt.Window = TimeSpan.FromHours(6);
+        opt.PermitLimit = resumeGenerationPermitLimit;
+        opt.Window = TimeSpan.FromHours(resumeGenerationWindowHours);
         opt.QueueLimit = 0;
         opt.AutoReplenishment = true;
     });

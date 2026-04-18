@@ -129,7 +129,7 @@ public partial class ResumeDraftDetailViewModel : ObservableObject, IQueryAttrib
             _currentDraft = updated;
             UpdateStatus(updated.Status);
             SaveDraftStatusMessage = "Draft edits saved successfully!";
-            
+
             // Auto-hide success message after 2 seconds
             await Task.Delay(2000);
             ShowSaveDraftStatus = false;
@@ -182,7 +182,7 @@ public partial class ResumeDraftDetailViewModel : ObservableObject, IQueryAttrib
             IsApproved = true;
             UpdateStatus(ResumeDraftStatus.Approved);
             await Shell.Current.DisplayAlert("Success", "Resume approved and locked for PDF generation!", "OK");
-            
+
             // Reload to show updated state
             await LoadDraftAsync(DraftId);
         }
