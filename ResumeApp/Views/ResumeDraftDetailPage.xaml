@@ -53,6 +53,17 @@
                    IsVisible="{Binding HasError}"
                    TextColor="{StaticResource DangerRed}" />
 
+            <!-- Status Messages for Edits -->
+            <Border IsVisible="{Binding ShowSaveDraftStatus}"
+                    Padding="12,8"
+                    Stroke="#10B981"
+                    BackgroundColor="#ECFDF5"
+                    StrokeShape="RoundRectangle 8">
+                <Label Text="{Binding SaveDraftStatusMessage}"
+                       FontSize="13"
+                       TextColor="#10B981" />
+            </Border>
+
             <CollectionView ItemsSource="{Binding Sections}"
                             IsVisible="{Binding HasSections}"
                             SelectionMode="None">
@@ -84,6 +95,37 @@
             <ActivityIndicator IsRunning="{Binding IsBusy}"
                                IsVisible="{Binding IsBusy}"
                                Color="{StaticResource PrimaryViolet}" />
+
+            <!-- Action Buttons -->
+            <VerticalStackLayout Spacing="8" 
+                                 IsVisible="{Binding CanEdit, Mode=OneWay}"
+                                 Margin="0,16,0,0">
+                <Button Text="Save Draft Edits"
+                        Command="{Binding SaveDraftEditCommand}"
+                        IsEnabled="{Binding IsBusy, Converter={toolkit:InvertedBoolConverter}}"
+                        Style="{StaticResource PrimaryButtonStyle}" />
+            </VerticalStackLayout>
+
+            <VerticalStackLayout Spacing="8" 
+                                 IsVisible="{Binding CanApprove, Mode=OneWay}"
+                                 Margin="0,16,0,0">
+                <Button Text="Approve and Finalize"
+                        Command="{Binding ApproveDraftCommand}"
+                        IsEnabled="{Binding IsBusy, Converter={toolkit:InvertedBoolConverter}}"
+                        Style="{StaticResource PrimaryButtonStyle}" />
+            </VerticalStackLayout>
+
+            <Border IsVisible="{Binding IsApproved}"
+                    Padding="12,8"
+                    Stroke="#1E40AF"
+                    BackgroundColor="#EFF6FF"
+                    StrokeShape="RoundRectangle 8"
+                    Margin="0,16,0,0">
+                <Label Text="✓ Resume approved and locked for PDF generation"
+                       FontSize="13"
+                       FontFamily="OpenSansSemibold"
+                       TextColor="#1E40AF" />
+            </Border>
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

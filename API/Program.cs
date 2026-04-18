@@ -211,22 +211,43 @@ builder.Services.AddSingleton<UserActivityTracker>();
 //   a single code, making automated attacks impractical within the 10-minute OTP window.
 // "otp-send"    — applied to forgot-password and resend-otp: 3 sends per 10 min per IP.
 //   Prevents email flooding / SMS-bombing style abuse.
+// "resume-generation" — applied to POST /api/resumes/drafts: 10 per hour per user.
+//   Protects AI generation service from being hammered.
+var otpVerifyPermitLimit = builder.Configuration.GetValue<int?>("RateLimiting:OtpVerify:PermitLimit") ?? 5;
+var otpVerifyWindowMinutes = builder.Configuration.GetValue<int?>("RateLimiting:OtpVerify:WindowMinutes") ?? 15;
+var otpVerifySegmentsPerWindow = builder.Configuration.GetValue<int?>("RateLimiting:OtpVerify:SegmentsPerWindow") ?? 3;
+
+var otpSendPermitLimit = builder.Configuration.GetValue<int?>("RateLimiting:OtpSend:PermitLimit") ?? 3;
+var otpSendWindowMinutes = builder.Configuration.GetValue<int?>("RateLimiting:OtpSend:WindowMinutes") ?? 10;
+var otpSendSegmentsPerWindow = builder.Configuration.GetValue<int?>("RateLimiting:OtpSend:SegmentsPerWindow") ?? 2;
+
+var resumeGenerationPermitLimit = builder.Configuration.GetValue<int?>("RateLimiting:ResumeGeneration:PermitLimit") ?? 10;
+var resumeGenerationWindowHours = builder.Configuration.GetValue<int?>("RateLimiting:ResumeGeneration:WindowHours") ?? 1;
+
 builder.Services.AddRateLimiter(options =>
 {
     options.AddSlidingWindowLimiter("otp-verify", opt =>
     {
-        opt.PermitLimit = 5;
-        opt.Window = TimeSpan.FromMinutes(15);
-        opt.SegmentsPerWindow = 3;
+        opt.PermitLimit = otpVerifyPermitLimit;
+        opt.Window = TimeSpan.FromMinutes(otpVerifyWindowMinutes);
+        opt.SegmentsPerWindow = otpVerifySegmentsPerWindow;
         opt.QueueLimit = 0;
     });
 
     options.AddSlidingWindowLimiter("otp-send", opt =>
     {
-        opt.PermitLimit = 3;
-        opt.Window = TimeSpan.FromMinutes(10);
-        opt.SegmentsPerWindow = 2;
+        opt.PermitLimit = otpSendPermitLimit;
+        opt.Window = TimeSpan.FromMinutes(otpSendWindowMinutes);
+        opt.SegmentsPerWindow = otpSendSegmentsPerWindow;
         opt.QueueLimit = 0;
+    });
+
+    options.AddFixedWindowLimiter("resume-generation", opt =>
+    {
+        opt.PermitLimit = resumeGenerationPermitLimit;
+        opt.Window = TimeSpan.FromHours(resumeGenerationWindowHours);
+        opt.QueueLimit = 0;
+        opt.AutoReplenishment = true;
     });
 
     options.OnRejected = async (ctx, token) =>

@@ -1,6 +1,7 @@
 using API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Shared.DTO;
 using System.Security.Claims;
 
@@ -19,6 +20,7 @@ public class ResumesController : ControllerBase
     }
 
     [HttpPost("drafts")]
+    [EnableRateLimiting("resume-generation")]
     public async Task<ActionResult<ResumeDraftResponse>> CreateDraft([FromBody] CreateResumeDraftRequest request, CancellationToken cancellationToken)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -55,5 +57,45 @@ public class ResumesController : ControllerBase
 
         var item = await _resumeDraftService.GetDraftAsync(userId, id, cancellationToken);
         return item is null ? NotFound() : Ok(item);
+    }
+
+    [HttpPut("{id:int}/draft")]
+    public async Task<ActionResult<ResumeDetailDto>> SaveDraftEdit(int id, [FromBody] SaveDraftEditRequest request, CancellationToken cancellationToken)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            var updated = await _resumeDraftService.SaveDraftEditAsync(userId, id, request, cancellationToken);
+            return updated is null ? NotFound() : Ok(updated);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpPost("{id:int}/approve")]
+    public async Task<ActionResult<ApproveDraftResponse>> ApproveDraft(int id, [FromBody] ApproveDraftRequest request, CancellationToken cancellationToken)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            var approved = await _resumeDraftService.ApproveDraftAsync(userId, id, request, cancellationToken);
+            return approved is null ? NotFound() : Ok(approved);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 }
