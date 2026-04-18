@@ -120,6 +120,10 @@
                             <CheckBox Grid.Column="0" IsChecked="{Binding IncludeProjects}" Color="{StaticResource PrimaryViolet}" />
                             <Label Grid.Column="1" Text="Projects" VerticalOptions="Center" TextColor="{StaticResource TextPrimary}" />
                         </Grid>
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                            <CheckBox Grid.Column="0" IsChecked="{Binding IncludeCertifications}" Color="{StaticResource PrimaryViolet}" />
+                            <Label Grid.Column="1" Text="Certifications" VerticalOptions="Center" TextColor="{StaticResource TextPrimary}" />
+                        </Grid>
                     </VerticalStackLayout>
                 </Border>
 

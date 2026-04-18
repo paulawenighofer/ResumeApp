@@ -19,6 +19,7 @@ public partial class GenerateResumeViewModel : ObservableObject
     [ObservableProperty] private bool includeExperience = true;
     [ObservableProperty] private bool includeSkills = true;
     [ObservableProperty] private bool includeProjects = true;
+    [ObservableProperty] private bool includeCertifications = true;
     [ObservableProperty] private bool isBusy;
     [ObservableProperty] private string statusMessage = string.Empty;
     [ObservableProperty] private bool hasStatus;
@@ -62,7 +63,7 @@ public partial class GenerateResumeViewModel : ObservableObject
                 IncludeExperience = IncludeExperience,
                 IncludeSkills = IncludeSkills,
                 IncludeProjects = IncludeProjects,
-                IncludeCertifications = false
+                IncludeCertifications = IncludeCertifications
             };
 
             var draft = await _apiService.CreateResumeDraftAsync(request);

@@ -32,6 +32,12 @@ public partial class ResumeListViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private async Task Appearing()
+    {
+        await LoadDrafts();
+    }
+
+    [RelayCommand]
     private async Task LoadDrafts()
     {
         if (IsBusy)

@@ -1,13 +1,14 @@
 using System.Collections.ObjectModel;
 using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using ResumeApp.Models;
 using ResumeApp.Services;
 using Shared.Models;
 
 namespace ResumeApp.ViewModels;
 
-public partial class ResumeDraftDetailViewModel : ObservableObject
+public partial class ResumeDraftDetailViewModel : ObservableObject, IQueryAttributable
 {
     private readonly IApiService _apiService;
 
@@ -27,6 +28,24 @@ public partial class ResumeDraftDetailViewModel : ObservableObject
     public ResumeDraftDetailViewModel(IApiService apiService)
     {
         _apiService = apiService;
+    }
+
+    public void ApplyQueryAttributes(IDictionary<string, object> query)
+    {
+        if (query.TryGetValue("id", out var raw) &&
+            int.TryParse(raw?.ToString(), out var id))
+        {
+            DraftId = id;
+        }
+    }
+
+    [RelayCommand]
+    private async Task Appearing()
+    {
+        if (DraftId > 0)
+        {
+            await LoadDraftAsync(DraftId);
+        }
     }
 
     public async Task LoadDraftAsync(int id)
