@@ -33,6 +33,7 @@ public static class MauiProgram
             return client;
         });
 
+        builder.Services.AddSingleton<CurrentUserService>();
         builder.Services.AddSingleton<AuthService>();
         builder.Services.AddSingleton<IApiService, ApiService>();
         builder.Services.AddSingleton<ILocalStorageService, LocalStorageService>();
