@@ -140,7 +140,7 @@ public sealed class AzureBlobStorageService : IBlobStorageService
 
     private string BuildResumePdfBlobName(string userId, int resumeId)
     {
-        var relativePath = $"users/{userId}/resumes/{resumeId}/{Guid.NewGuid():N}.pdf";
+        var relativePath = $"users/{userId}/resumes/{resumeId}/final.pdf";
 
         return string.IsNullOrWhiteSpace(_resumesBasePath)
             ? relativePath

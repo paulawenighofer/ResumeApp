@@ -143,6 +143,7 @@ public class ResumeDraftService : IResumeDraftService
         resume.ApprovedAt = DateTime.UtcNow;
         resume.PdfBlobPath = null;
         resume.PdfGeneratedAt = null;
+        resume.PdfFailureReason = null;
         resume.FailedReason = null;
         resume.UpdatedAt = DateTime.UtcNow;
 
@@ -177,7 +178,7 @@ public class ResumeDraftService : IResumeDraftService
         }
 
         resume.Status = ResumeDraftStatus.PdfGenerating;
-        resume.FailedReason = null;
+        resume.PdfFailureReason = null;
         resume.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(cancellationToken);
 
@@ -195,12 +196,12 @@ public class ResumeDraftService : IResumeDraftService
             resume.PdfBlobPath = blobPath;
             resume.PdfGeneratedAt = DateTime.UtcNow;
             resume.Status = ResumeDraftStatus.PdfReady;
-            resume.FailedReason = null;
+            resume.PdfFailureReason = null;
         }
         catch (Exception ex)
         {
             resume.Status = ResumeDraftStatus.PdfFailed;
-            resume.FailedReason = ex.Message.Length > 2000
+            resume.PdfFailureReason = ex.Message.Length > 2000
                 ? ex.Message[..2000]
                 : ex.Message;
         }
@@ -264,6 +265,7 @@ public class ResumeDraftService : IResumeDraftService
         ApprovedJson = resume.ApprovedJson,
         HasPdf = resume.PdfBlobPath != null && resume.PdfBlobPath != string.Empty,
         PdfGeneratedAt = resume.PdfGeneratedAt,
+        PdfFailureReason = resume.PdfFailureReason,
         FailedReason = resume.FailedReason,
         CreatedAt = resume.CreatedAt,
         UpdatedAt = resume.UpdatedAt,
@@ -281,6 +283,7 @@ public class ResumeDraftService : IResumeDraftService
         ApprovedJson = resume.ApprovedJson,
         HasPdf = !string.IsNullOrWhiteSpace(resume.PdfBlobPath),
         PdfGeneratedAt = resume.PdfGeneratedAt,
+        PdfFailureReason = resume.PdfFailureReason,
         FailedReason = resume.FailedReason,
         CreatedAt = resume.CreatedAt,
         UpdatedAt = resume.UpdatedAt,

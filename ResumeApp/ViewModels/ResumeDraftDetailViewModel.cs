@@ -85,7 +85,7 @@ public partial class ResumeDraftDetailViewModel : ObservableObject, IQueryAttrib
             TargetCompany = draft.TargetCompany;
             UpdateStatus(draft.Status);
 
-            FailedReason = draft.FailedReason ?? string.Empty;
+            FailedReason = ResolveFailureReason(draft);
             HasFailedReason = !string.IsNullOrWhiteSpace(FailedReason);
 
             // Store the edited JSON for later submission
@@ -223,7 +223,7 @@ public partial class ResumeDraftDetailViewModel : ObservableObject, IQueryAttrib
             }
 
             _currentDraft = updated;
-            FailedReason = updated.FailedReason ?? string.Empty;
+            FailedReason = ResolveFailureReason(updated);
             HasFailedReason = !string.IsNullOrWhiteSpace(FailedReason);
             UpdateStatus(updated.Status);
 
@@ -466,5 +466,15 @@ public partial class ResumeDraftDetailViewModel : ObservableObject, IQueryAttrib
         }
 
         return new string(chars.ToArray());
+    }
+
+    private static string ResolveFailureReason(ResumeDetailDto draft)
+    {
+        if (draft.Status == ResumeDraftStatus.PdfFailed)
+        {
+            return draft.PdfFailureReason ?? string.Empty;
+        }
+
+        return draft.FailedReason ?? string.Empty;
     }
 }
