@@ -429,7 +429,7 @@
     <Style x:Key="SubtitleStyle" TargetType="Label">
         <Setter Property="FontSize" Value="14" />
         <Setter Property="FontFamily" Value="OpenSansRegular" />
-        <Setter Property="TextColor" Value="{StaticResource TextSecondary}" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource TextSecondary}, Dark=#C4CAD5}" />
     </Style>
 
     <Style x:Key="VioletButtonStyle" TargetType="Button">

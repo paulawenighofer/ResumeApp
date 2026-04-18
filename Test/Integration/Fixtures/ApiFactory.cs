@@ -35,6 +35,7 @@ public class ApiFactory : WebApplicationFactory<Program>
     }
 
     public FakeEmailService EmailService { get; } = new();
+    public FakeAiResumeGenerationClient AiResumeGenerationClient { get; } = new();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -103,6 +104,10 @@ public class ApiFactory : WebApplicationFactory<Program>
                 foreach (var d in emailHits) services.Remove(d);
                 services.AddScoped<IEmailService>(_ => EmailService);
             }
+
+            var aiClientHits = services.Where(d => d.ServiceType == typeof(IAiResumeGenerationClient)).ToList();
+            foreach (var d in aiClientHits) services.Remove(d);
+            services.AddScoped<IAiResumeGenerationClient>(_ => AiResumeGenerationClient);
         });
     }
 }

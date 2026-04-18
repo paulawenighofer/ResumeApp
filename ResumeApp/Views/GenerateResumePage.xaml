@@ -10,143 +10,171 @@
              Shell.TabBarIsVisible="False"
              BackgroundColor="{StaticResource PageBackground}">
 
-    <ScrollView>
-        <VerticalStackLayout Padding="24,16" Spacing="20">
+    <Grid>
+        <ScrollView IsEnabled="{Binding IsBusy, Converter={StaticResource inverseBoolean}}">
+            <VerticalStackLayout Padding="24,16" Spacing="20">
 
-            <controls:PageHeader Title="Generate Resume" />
+                <controls:PageHeader Title="Generate Resume" />
 
-            <!-- Header -->
-            <Label FontSize="24"
-                   FontFamily="OpenSansSemibold"
-                   TextColor="{StaticResource TextPrimary}">
-                <Label.FormattedText>
-                    <FormattedString>
-                        <Span Text="&#xf0d0; " FontFamily="FASolid" />
-                        <Span Text="Generate Resume" />
-                    </FormattedString>
-                </Label.FormattedText>
-            </Label>
-            <Label Text="Fill in the details below and let AI build you a tailored resume."
-                   Style="{StaticResource SubtitleStyle}" />
+                <Label FontSize="24"
+                       FontFamily="OpenSansSemibold"
+                       TextColor="{StaticResource TextPrimary}">
+                    <Label.FormattedText>
+                        <FormattedString>
+                            <Span Text="&#xf0d0; " FontFamily="FASolid" />
+                            <Span Text="Generate Resume" />
+                        </FormattedString>
+                    </Label.FormattedText>
+                </Label>
+                <Label Text="Enter the role and job description, then let AI build a tailored draft."
+                       Style="{StaticResource SubtitleStyle}" />
 
-            <!-- Target job -->
-            <Border Style="{StaticResource CardStyle}">
-                <VerticalStackLayout Spacing="12">
-                    <Label Text="Target Job"
+                <Border Style="{StaticResource CardStyle}"
+                        BackgroundColor="#EEF2FF">
+                    <HorizontalStackLayout Spacing="10">
+                        <Label Text="&#xf05a;"
+                               FontFamily="FASolid"
+                               FontSize="14"
+                               TextColor="{StaticResource PrimaryViolet}"
+                               VerticalOptions="Start" />
+                        <Label Text="Tip: Better job descriptions produce better resume drafts."
+                               FontSize="13"
+                               TextColor="{StaticResource PrimaryViolet}"
+                               VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+                </Border>
+
+                <Border Style="{StaticResource CardStyle}">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="Target Role"
+                               FontFamily="OpenSansSemibold"
+                               FontSize="15"
+                               TextColor="{StaticResource TextPrimary}" />
+
+                        <Entry Placeholder="Job title *"
+                               Text="{Binding JobTitle}"
+                               PlaceholderColor="{StaticResource InactiveIcon}"
+                               ReturnType="Next" />
+
+                        <Entry Placeholder="Target company (optional)"
+                               Text="{Binding TargetCompany}"
+                               PlaceholderColor="{StaticResource InactiveIcon}"
+                               ReturnType="Done" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border Style="{StaticResource CardStyle}">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="Job Description"
+                               FontFamily="OpenSansSemibold"
+                               FontSize="15"
+                               TextColor="{StaticResource TextPrimary}" />
+
+                        <Label Text="Required"
+                               FontSize="12"
+                               TextColor="{StaticResource DangerRed}" />
+
+                        <Editor Placeholder="Paste the full job description here..."
+                                AutoSize="TextChanges"
+                                MinimumHeightRequest="140"
+                                Text="{Binding JobDescription}"
+                                PlaceholderColor="{StaticResource InactiveIcon}" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border Style="{StaticResource CardStyle}">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="Personal Summary (optional)"
+                               FontFamily="OpenSansSemibold"
+                               FontSize="15"
+                               TextColor="{StaticResource TextPrimary}" />
+                        <Editor Placeholder="Add extra context you want AI to emphasize..."
+                                AutoSize="TextChanges"
+                                MinimumHeightRequest="90"
+                                Text="{Binding PersonalSummary}"
+                                PlaceholderColor="{StaticResource InactiveIcon}" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Sections to include -->
+                <Border Style="{StaticResource CardStyle}">
+                    <VerticalStackLayout Spacing="14">
+                        <Label Text="Include Sections"
+                               FontFamily="OpenSansSemibold"
+                               FontSize="15"
+                               TextColor="{StaticResource TextPrimary}" />
+
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                            <CheckBox Grid.Column="0" IsChecked="{Binding IncludeEducation}" Color="{StaticResource PrimaryViolet}" />
+                            <Label Grid.Column="1" Text="Education" VerticalOptions="Center" TextColor="{StaticResource TextPrimary}" />
+                        </Grid>
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                            <CheckBox Grid.Column="0" IsChecked="{Binding IncludeExperience}" Color="{StaticResource PrimaryViolet}" />
+                            <Label Grid.Column="1" Text="Work Experience" VerticalOptions="Center" TextColor="{StaticResource TextPrimary}" />
+                        </Grid>
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                            <CheckBox Grid.Column="0" IsChecked="{Binding IncludeSkills}" Color="{StaticResource PrimaryViolet}" />
+                            <Label Grid.Column="1" Text="Skills" VerticalOptions="Center" TextColor="{StaticResource TextPrimary}" />
+                        </Grid>
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                            <CheckBox Grid.Column="0" IsChecked="{Binding IncludeProjects}" Color="{StaticResource PrimaryViolet}" />
+                            <Label Grid.Column="1" Text="Projects" VerticalOptions="Center" TextColor="{StaticResource TextPrimary}" />
+                        </Grid>
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                            <CheckBox Grid.Column="0" IsChecked="{Binding IncludeCertifications}" Color="{StaticResource PrimaryViolet}" />
+                            <Label Grid.Column="1" Text="Certifications" VerticalOptions="Center" TextColor="{StaticResource TextPrimary}" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Status message -->
+                <Border Style="{StaticResource CardStyle}"
+                        BackgroundColor="#EDE9FE"
+                        IsVisible="{Binding HasStatus}">
+                    <Label Text="{Binding StatusMessage}"
+                           TextColor="{StaticResource PrimaryViolet}"
+                           FontSize="14"
+                           HorizontalTextAlignment="Center" />
+                </Border>
+
+                <!-- Generate button -->
+                <Button Text="Generate Draft"
+                        Command="{Binding GenerateCommand}"
+                        IsEnabled="{Binding IsBusy, Converter={StaticResource inverseBoolean}}"
+                        Style="{StaticResource VioletButtonStyle}"
+                        ContentLayout="Left,12"
+                        Margin="0,4,0,0">
+                    <Button.ImageSource>
+                        <FontImageSource FontFamily="FASolid" Glyph="&#xf135;" Color="White" Size="18" />
+                    </Button.ImageSource>
+                </Button>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <Grid IsVisible="{Binding IsBusy}"
+              BackgroundColor="#80000000"
+              InputTransparent="False">
+            <Border HorizontalOptions="Center"
+                    VerticalOptions="Center"
+                    Padding="20"
+                    BackgroundColor="White"
+                    Stroke="{StaticResource CardBorder}"
+                    StrokeShape="RoundRectangle 16">
+                <VerticalStackLayout Spacing="12" WidthRequest="260">
+                    <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                       Color="{StaticResource PrimaryViolet}"
+                                       HorizontalOptions="Center" />
+                    <Label Text="Generating your draft..."
                            FontFamily="OpenSansSemibold"
-                           FontSize="15"
+                           HorizontalTextAlignment="Center"
                            TextColor="{StaticResource TextPrimary}" />
-
-                    <Entry Placeholder="Job title"
-                           Text="{Binding JobTitle}"
-                           PlaceholderColor="{StaticResource InactiveIcon}" />
-
-                    <Entry Placeholder="Target company (optional)"
-                           Text="{Binding TargetCompany}"
-                           PlaceholderColor="{StaticResource InactiveIcon}" />
+                    <Label Text="Please wait while we tailor your resume to this role."
+                           FontSize="13"
+                           HorizontalTextAlignment="Center"
+                           TextColor="{StaticResource InactiveIcon}" />
                 </VerticalStackLayout>
             </Border>
-
-            <!-- Job description -->
-            <Border Style="{StaticResource CardStyle}">
-                <VerticalStackLayout Spacing="12">
-                    <Label Text="Job Description"
-                           FontFamily="OpenSansSemibold"
-                           FontSize="15"
-                           TextColor="{StaticResource TextPrimary}" />
-                    <Editor Placeholder="Paste the job description here for a tailored resume..."
-                            AutoSize="TextChanges"
-                            MinimumHeightRequest="100"
-                            Text="{Binding JobDescription}"
-                            PlaceholderColor="{StaticResource InactiveIcon}" />
-                </VerticalStackLayout>
-            </Border>
-
-            <!-- Preferences -->
-            <Border Style="{StaticResource CardStyle}">
-                <VerticalStackLayout Spacing="12">
-                    <Label Text="Preferences"
-                           FontFamily="OpenSansSemibold"
-                           FontSize="15"
-                           TextColor="{StaticResource TextPrimary}" />
-
-                    <Picker Title="Experience level"
-                            ItemsSource="{Binding ExperienceLevels}"
-                            SelectedItem="{Binding SelectedExperienceLevel}" />
-
-                    <Picker Title="Output format"
-                            ItemsSource="{Binding ResumeFormats}"
-                            SelectedItem="{Binding SelectedResumeFormat}" />
-                </VerticalStackLayout>
-            </Border>
-
-            <!-- Personal summary -->
-            <Border Style="{StaticResource CardStyle}">
-                <VerticalStackLayout Spacing="12">
-                    <Label Text="Personal Summary (optional)"
-                           FontFamily="OpenSansSemibold"
-                           FontSize="15"
-                           TextColor="{StaticResource TextPrimary}" />
-                    <Editor Placeholder="Write a short professional summary or let AI generate one..."
-                            AutoSize="TextChanges"
-                            MinimumHeightRequest="80"
-                            Text="{Binding PersonalSummary}"
-                            PlaceholderColor="{StaticResource InactiveIcon}" />
-                </VerticalStackLayout>
-            </Border>
-
-            <!-- Sections to include -->
-            <Border Style="{StaticResource CardStyle}">
-                <VerticalStackLayout Spacing="14">
-                    <Label Text="Include Sections"
-                           FontFamily="OpenSansSemibold"
-                           FontSize="15"
-                           TextColor="{StaticResource TextPrimary}" />
-
-                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
-                        <CheckBox Grid.Column="0" IsChecked="{Binding IncludeEducation}" Color="{StaticResource PrimaryViolet}" />
-                        <Label Grid.Column="1" Text="Education" VerticalOptions="Center" TextColor="{StaticResource TextPrimary}" />
-                    </Grid>
-                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
-                        <CheckBox Grid.Column="0" IsChecked="{Binding IncludeExperience}" Color="{StaticResource PrimaryViolet}" />
-                        <Label Grid.Column="1" Text="Work Experience" VerticalOptions="Center" TextColor="{StaticResource TextPrimary}" />
-                    </Grid>
-                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
-                        <CheckBox Grid.Column="0" IsChecked="{Binding IncludeSkills}" Color="{StaticResource PrimaryViolet}" />
-                        <Label Grid.Column="1" Text="Skills" VerticalOptions="Center" TextColor="{StaticResource TextPrimary}" />
-                    </Grid>
-                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
-                        <CheckBox Grid.Column="0" IsChecked="{Binding IncludeProjects}" Color="{StaticResource PrimaryViolet}" />
-                        <Label Grid.Column="1" Text="Projects" VerticalOptions="Center" TextColor="{StaticResource TextPrimary}" />
-                    </Grid>
-                </VerticalStackLayout>
-            </Border>
-
-            <!-- Status message -->
-            <Border Style="{StaticResource CardStyle}"
-                    BackgroundColor="#EDE9FE"
-                    IsVisible="{Binding HasStatus}">
-                <Label Text="{Binding StatusMessage}"
-                       TextColor="{StaticResource PrimaryViolet}"
-                       FontSize="14"
-                       HorizontalTextAlignment="Center" />
-            </Border>
-
-            <!-- Generate button -->
-            <Button Text="Generate with AI"
-                    Command="{Binding GenerateCommand}"
-                    Style="{StaticResource VioletButtonStyle}"
-                    ContentLayout="Left,12"
-                    Margin="0,4,0,0">
-                <Button.ImageSource>
-                    <FontImageSource FontFamily="FASolid" Glyph="&#xf135;" Color="White" Size="18" />
-                </Button.ImageSource>
-            </Button>
-
-            <ActivityIndicator IsRunning="{Binding IsBusy}"
-                               IsVisible="{Binding IsBusy}"
-                               Color="{StaticResource PrimaryViolet}" />
-
-        </VerticalStackLayout>
-    </ScrollView>
+        </Grid>
+    </Grid>
 </ContentPage>

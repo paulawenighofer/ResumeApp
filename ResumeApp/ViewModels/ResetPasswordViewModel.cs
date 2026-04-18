@@ -11,34 +11,103 @@ public partial class ResetPasswordViewModel : ObservableObject
 {
     private readonly AuthService _authService;
 
+    private string _email = "";
+    private string _code = "";
+    private string _newPassword = "";
+    private string _confirmPassword = "";
+    private string _errorMessage = "";
+    private bool _hasError;
+    private bool _isBusy;
+    private bool _resetSucceeded;
+    private bool _isNewPasswordHidden = true;
+    private bool _isConfirmPasswordHidden = true;
+
     public ResetPasswordViewModel(AuthService authService)
     {
         _authService = authService;
     }
 
-    [ObservableProperty]
-    private string email = "";
+    public string Email
+    {
+        get => _email;
+        set => SetProperty(ref _email, value);
+    }
 
-    [ObservableProperty]
-    private string code = "";
+    public string Code
+    {
+        get => _code;
+        set => SetProperty(ref _code, value);
+    }
 
-    [ObservableProperty]
-    private string newPassword = "";
+    public string NewPassword
+    {
+        get => _newPassword;
+        set => SetProperty(ref _newPassword, value);
+    }
 
-    [ObservableProperty]
-    private string confirmPassword = "";
+    public string ConfirmPassword
+    {
+        get => _confirmPassword;
+        set => SetProperty(ref _confirmPassword, value);
+    }
 
-    [ObservableProperty]
-    private string errorMessage = "";
+    public string ErrorMessage
+    {
+        get => _errorMessage;
+        set => SetProperty(ref _errorMessage, value);
+    }
 
-    [ObservableProperty]
-    private bool hasError;
+    public bool HasError
+    {
+        get => _hasError;
+        set => SetProperty(ref _hasError, value);
+    }
 
-    [ObservableProperty]
-    private bool isBusy;
+    public bool IsBusy
+    {
+        get => _isBusy;
+        set => SetProperty(ref _isBusy, value);
+    }
 
-    [ObservableProperty]
-    private bool resetSucceeded;
+    public bool ResetSucceeded
+    {
+        get => _resetSucceeded;
+        set => SetProperty(ref _resetSucceeded, value);
+    }
+
+    public bool IsNewPasswordHidden
+    {
+        get => _isNewPasswordHidden;
+        set
+        {
+            if (SetProperty(ref _isNewPasswordHidden, value))
+            {
+                OnPropertyChanged(nameof(NewPasswordToggleIcon));
+            }
+        }
+    }
+
+    public bool IsConfirmPasswordHidden
+    {
+        get => _isConfirmPasswordHidden;
+        set
+        {
+            if (SetProperty(ref _isConfirmPasswordHidden, value))
+            {
+                OnPropertyChanged(nameof(ConfirmPasswordToggleIcon));
+            }
+        }
+    }
+
+    public string NewPasswordToggleIcon => IsNewPasswordHidden ? "\uf06e" : "\uf070";
+
+    public string ConfirmPasswordToggleIcon => IsConfirmPasswordHidden ? "\uf06e" : "\uf070";
+
+    [RelayCommand]
+    private void ToggleNewPasswordVisibility() => IsNewPasswordHidden = !IsNewPasswordHidden;
+
+    [RelayCommand]
+    private void ToggleConfirmPasswordVisibility() => IsConfirmPasswordHidden = !IsConfirmPasswordHidden;
 
     [RelayCommand]
     private async Task ResetPassword()

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:ResumeApp.Views.Controls"
              xmlns:vm="clr-namespace:ResumeApp.ViewModels"
              x:Class="ResumeApp.Views.OtpVerificationPage"
              x:DataType="vm:OtpVerificationViewModel"
@@ -8,7 +9,9 @@
              BackgroundColor="{StaticResource PageBackground}">
 
     <ScrollView>
-        <VerticalStackLayout Spacing="16" Padding="28,60,28,28" VerticalOptions="Center">
+        <VerticalStackLayout Spacing="16" Padding="28,40,28,28" VerticalOptions="Center">
+
+            <controls:PageHeader Title="Verify Email" />
 
             <Label Text="&#xf0e0;"
                    FontFamily="FASolid"

@@ -37,13 +37,22 @@
 
                         <!-- Avatar -->
                         <Border Grid.Column="1"
-                                WidthRequest="52"
-                                HeightRequest="52"
+                                WidthRequest="56"
+                                HeightRequest="56"
                                 StrokeThickness="2"
-                                StrokeShape="RoundRectangle 26"
-                                Stroke="#C4B5FD"
+                                StrokeShape="RoundRectangle 28"
+                                Stroke="#DDD6FE"
                                 BackgroundColor="#7C3AED"
                                 VerticalOptions="Center">
+                            <Border.Shadow>
+                                <Shadow Brush="#3B1D86"
+                                        Offset="0,6"
+                                        Radius="14"
+                                        Opacity="0.35" />
+                            </Border.Shadow>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding GoToProfileCommand}" />
+                            </Border.GestureRecognizers>
                             <Grid>
                                 <Image Source="{Binding ProfileImageSource}"
                                        Aspect="AspectFill"
@@ -53,7 +62,23 @@
                                        FontSize="24"
                                        HorizontalOptions="Center"
                                        VerticalOptions="Center"
+                                       TextColor="White"
                                        IsVisible="{Binding HasProfileImage, Converter={StaticResource inverseBoolean}}" />
+                                <Border WidthRequest="18"
+                                        HeightRequest="18"
+                                        BackgroundColor="#A78BFA"
+                                        StrokeThickness="0"
+                                        StrokeShape="RoundRectangle 9"
+                                        HorizontalOptions="End"
+                                        VerticalOptions="End"
+                                        Margin="0,0,-2,-2">
+                                    <Label Text="&#xf030;"
+                                           FontFamily="FASolid"
+                                           FontSize="9"
+                                           TextColor="White"
+                                           HorizontalOptions="Center"
+                                           VerticalOptions="Center" />
+                                </Border>
                             </Grid>
                         </Border>
                     </Grid>
@@ -74,16 +99,31 @@
                                     Radius="20"
                                     Opacity="0.10" />
                         </Border.Shadow>
-                        <Grid ColumnDefinitions="4,*" HeightRequest="80">
+                        <Grid ColumnDefinitions="4,*" HeightRequest="82">
                             <!-- Accent strip -->
                             <Border Grid.Column="0"
                                     BackgroundColor="{StaticResource PrimaryViolet}"
                                     StrokeThickness="0"
                                     StrokeShape="RoundRectangle 16,0,0,16" />
                             <Grid Grid.Column="1"
-                                  ColumnDefinitions="*,Auto"
+                                  ColumnDefinitions="Auto,*,Auto"
+                                  ColumnSpacing="12"
                                   Padding="16,0">
-                                <VerticalStackLayout Grid.Column="0" VerticalOptions="Center" Spacing="2">
+                                <Border Grid.Column="0"
+                                        WidthRequest="36"
+                                        HeightRequest="36"
+                                        StrokeThickness="0"
+                                        StrokeShape="RoundRectangle 12"
+                                        BackgroundColor="#EEE9FF"
+                                        VerticalOptions="Center">
+                                    <Label Text="&#xf15b;"
+                                           FontFamily="FASolid"
+                                           FontSize="16"
+                                           TextColor="{StaticResource PrimaryViolet}"
+                                           HorizontalOptions="Center"
+                                           VerticalOptions="Center" />
+                                </Border>
+                                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
                                     <Label Text="Generate Resume"
                                            FontSize="16"
                                            FontFamily="OpenSansSemibold"
@@ -92,7 +132,7 @@
                                            Style="{StaticResource SubtitleStyle}"
                                            FontSize="12" />
                                 </VerticalStackLayout>
-                                <Label Grid.Column="1" Text="&#xf054;"
+                                <Label Grid.Column="2" Text="&#xf054;"
                                        FontFamily="FASolid"
                                        FontSize="18"
                                        TextColor="{StaticResource PrimaryViolet}"
