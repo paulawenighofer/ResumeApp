@@ -65,6 +65,8 @@ public class ExperiencesController : ControllerBase
 
         experience.Id = 0;
         experience.UserId = userId;
+        experience.StartDate = ToUtcDateTime(experience.StartDate);
+        experience.EndDate = ToUtcDateTime(experience.EndDate);
 
         _db.Experiences.Add(experience);
         await _db.SaveChangesAsync();
@@ -93,8 +95,8 @@ public class ExperiencesController : ControllerBase
         existing.Company = experience.Company;
         existing.JobTitle = experience.JobTitle;
         existing.Location = experience.Location;
-        existing.StartDate = experience.StartDate;
-        existing.EndDate = experience.EndDate;
+        existing.StartDate = ToUtcDateTime(experience.StartDate);
+        existing.EndDate = ToUtcDateTime(experience.EndDate);
         existing.IsCurrentJob = experience.IsCurrentJob;
         existing.Responsibilities = experience.Responsibilities;
 
@@ -125,4 +127,12 @@ public class ExperiencesController : ControllerBase
         _metrics.RecordProfileMutation(TelemetryTags.Sections.Experience, TelemetryTags.Actions.Delete, userId);
         return NoContent();
     }
+
+    private static DateTime ToUtcDateTime(DateTime value)
+        => DateTime.SpecifyKind(value, DateTimeKind.Utc);
+
+    private static DateTime? ToUtcDateTime(DateTime? value)
+        => value.HasValue
+            ? DateTime.SpecifyKind(value.Value, DateTimeKind.Utc)
+            : null;
 }

@@ -65,6 +65,8 @@ public class EducationsController : ControllerBase
 
         education.Id = 0;
         education.UserId = userId;
+        education.StartDate = ToUtcDateTime(education.StartDate);
+        education.EndDate = ToUtcDateTime(education.EndDate);
 
         _db.Educations.Add(education);
         await _db.SaveChangesAsync();
@@ -93,8 +95,8 @@ public class EducationsController : ControllerBase
         existing.Institution = education.Institution;
         existing.Degree = education.Degree;
         existing.FieldOfStudy = education.FieldOfStudy;
-        existing.StartDate = education.StartDate;
-        existing.EndDate = education.EndDate;
+        existing.StartDate = ToUtcDateTime(education.StartDate);
+        existing.EndDate = ToUtcDateTime(education.EndDate);
         existing.GPA = education.GPA;
         existing.Description = education.Description;
 
@@ -125,4 +127,12 @@ public class EducationsController : ControllerBase
         _metrics.RecordProfileMutation(TelemetryTags.Sections.Education, TelemetryTags.Actions.Delete, userId);
         return NoContent();
     }
+
+    private static DateTime ToUtcDateTime(DateTime value)
+        => DateTime.SpecifyKind(value, DateTimeKind.Utc);
+
+    private static DateTime? ToUtcDateTime(DateTime? value)
+        => value.HasValue
+            ? DateTime.SpecifyKind(value.Value, DateTimeKind.Utc)
+            : null;
 }
