@@ -18,6 +18,8 @@ public partial class ProjectsViewModel : ObservableObject
     private bool _hasError;
     private bool _isEditing;
     private bool _hasUnsavedChanges;
+    private string _formValidationMessage = string.Empty;
+    private bool _hasFormValidation;
 
     private string? _editingProjectId;
 
@@ -87,6 +89,18 @@ public partial class ProjectsViewModel : ObservableObject
         }
     }
 
+    public string FormValidationMessage
+    {
+        get => _formValidationMessage;
+        set => SetProperty(ref _formValidationMessage, value);
+    }
+
+    public bool HasFormValidation
+    {
+        get => _hasFormValidation;
+        set => SetProperty(ref _hasFormValidation, value);
+    }
+
     public string SubmitButtonText => IsEditing ? "Save changes" : "Add project";
 
     public bool CanSave => !IsBusy && (HasUnsavedChanges || HasPendingProjectInput());
@@ -113,16 +127,9 @@ public partial class ProjectsViewModel : ObservableObject
     {
         ResetError();
 
-        if (string.IsNullOrWhiteSpace(CurrentProject.Name) ||
-            string.IsNullOrWhiteSpace(CurrentProject.Description))
+        if (!ValidateCurrentProject(showFieldErrors: true))
         {
-            ShowError("Please fill in the project name and description.");
-            return;
-        }
-
-        if (CurrentProject.EndDate < CurrentProject.StartDate)
-        {
-            ShowError("End date must be after the start date.");
+            ShowError(FormValidationMessage);
             return;
         }
 
@@ -327,7 +334,11 @@ public partial class ProjectsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void MarkDirty() => HasUnsavedChanges = true;
+    private void MarkDirty()
+    {
+        HasUnsavedChanges = true;
+        ValidateCurrentProject(showFieldErrors: true);
+    }
 
     private static Task ShowToastAsync(string message, bool isError = false)
         => ToastService.ShowAsync(message, isError);
@@ -344,21 +355,45 @@ public partial class ProjectsViewModel : ObservableObject
 
     private async Task<bool> TryAddCurrentProjectAsDraftAsync()
     {
-        if (string.IsNullOrWhiteSpace(CurrentProject.Name) ||
-            string.IsNullOrWhiteSpace(CurrentProject.Description))
+        if (!ValidateCurrentProject(showFieldErrors: true))
         {
-            ShowError("Please complete the current project form or clear it before continuing.");
-            return false;
-        }
-
-        if (CurrentProject.EndDate < CurrentProject.StartDate)
-        {
-            ShowError("End date must be after the start date.");
+            ShowError(FormValidationMessage);
             return false;
         }
 
         await AddProject();
         return !HasError;
+    }
+
+    private bool ValidateCurrentProject(bool showFieldErrors)
+    {
+        var issues = new List<string>();
+
+        if (string.IsNullOrWhiteSpace(CurrentProject.Name))
+        {
+            issues.Add("Project name is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(CurrentProject.Description))
+        {
+            issues.Add("Project description is required.");
+        }
+
+        if (CurrentProject.EndDate < CurrentProject.StartDate)
+        {
+            issues.Add("End date must be after the start date.");
+        }
+
+        if (!string.IsNullOrWhiteSpace(CurrentProject.ProjectUrl) &&
+            !Uri.TryCreate(CurrentProject.ProjectUrl, UriKind.Absolute, out _))
+        {
+            issues.Add("Project URL must be a valid absolute URL.");
+        }
+
+        FormValidationMessage = string.Join(Environment.NewLine, issues);
+        HasFormValidation = showFieldErrors && issues.Count > 0;
+
+        return issues.Count == 0;
     }
 
     private void ReplaceProject(ProjectEntry entry)
@@ -379,5 +414,7 @@ public partial class ProjectsViewModel : ObservableObject
         IsEditing = false;
         OnPropertyChanged(nameof(SubmitButtonText));
         CurrentProject = new ProjectEntry();
+        FormValidationMessage = string.Empty;
+        HasFormValidation = false;
     }
 }

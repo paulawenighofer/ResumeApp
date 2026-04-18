@@ -18,6 +18,8 @@ public partial class CertificationsViewModel : ObservableObject
     private bool _hasError;
     private bool _isEditing;
     private bool _hasUnsavedChanges;
+    private string _formValidationMessage = string.Empty;
+    private bool _hasFormValidation;
 
     private string? _editingCertificationId;
 
@@ -87,6 +89,18 @@ public partial class CertificationsViewModel : ObservableObject
         }
     }
 
+    public string FormValidationMessage
+    {
+        get => _formValidationMessage;
+        set => SetProperty(ref _formValidationMessage, value);
+    }
+
+    public bool HasFormValidation
+    {
+        get => _hasFormValidation;
+        set => SetProperty(ref _hasFormValidation, value);
+    }
+
     public string SubmitButtonText => IsEditing ? "Save changes" : "Add certification";
 
     public bool CanSave => !IsBusy && (HasUnsavedChanges || HasPendingCertificationInput());
@@ -103,16 +117,9 @@ public partial class CertificationsViewModel : ObservableObject
     {
         ResetError();
 
-        if (string.IsNullOrWhiteSpace(CurrentCertification.Name) ||
-            string.IsNullOrWhiteSpace(CurrentCertification.IssuingOrganization))
+        if (!ValidateCurrentCertification(showFieldErrors: true))
         {
-            ShowError("Please enter the certification name and issuing organization.");
-            return;
-        }
-
-        if (CurrentCertification.ExpirationDate < CurrentCertification.IssueDate)
-        {
-            ShowError("Expiration date must be after the issue date.");
+            ShowError(FormValidationMessage);
             return;
         }
 
@@ -315,7 +322,11 @@ public partial class CertificationsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void MarkDirty() => HasUnsavedChanges = true;
+    private void MarkDirty()
+    {
+        HasUnsavedChanges = true;
+        ValidateCurrentCertification(showFieldErrors: true);
+    }
 
     private static Task ShowToastAsync(string message, bool isError = false)
         => ToastService.ShowAsync(message, isError);
@@ -332,21 +343,45 @@ public partial class CertificationsViewModel : ObservableObject
 
     private async Task<bool> TryAddCurrentCertificationAsDraftAsync()
     {
-        if (string.IsNullOrWhiteSpace(CurrentCertification.Name) ||
-            string.IsNullOrWhiteSpace(CurrentCertification.IssuingOrganization))
+        if (!ValidateCurrentCertification(showFieldErrors: true))
         {
-            ShowError("Please complete the current certification form or clear it before continuing.");
-            return false;
-        }
-
-        if (CurrentCertification.ExpirationDate < CurrentCertification.IssueDate)
-        {
-            ShowError("Expiration date must be after the issue date.");
+            ShowError(FormValidationMessage);
             return false;
         }
 
         await AddCertification();
         return !HasError;
+    }
+
+    private bool ValidateCurrentCertification(bool showFieldErrors)
+    {
+        var issues = new List<string>();
+
+        if (string.IsNullOrWhiteSpace(CurrentCertification.Name))
+        {
+            issues.Add("Certification name is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(CurrentCertification.IssuingOrganization))
+        {
+            issues.Add("Issuing organization is required.");
+        }
+
+        if (CurrentCertification.ExpirationDate < CurrentCertification.IssueDate)
+        {
+            issues.Add("Expiration date must be after the issue date.");
+        }
+
+        if (!string.IsNullOrWhiteSpace(CurrentCertification.CredentialUrl) &&
+            !Uri.TryCreate(CurrentCertification.CredentialUrl, UriKind.Absolute, out _))
+        {
+            issues.Add("Credential URL must be a valid absolute URL.");
+        }
+
+        FormValidationMessage = string.Join(Environment.NewLine, issues);
+        HasFormValidation = showFieldErrors && issues.Count > 0;
+
+        return issues.Count == 0;
     }
 
     private void ReplaceCertification(CertificationEntry entry)
@@ -367,5 +402,7 @@ public partial class CertificationsViewModel : ObservableObject
         IsEditing = false;
         OnPropertyChanged(nameof(SubmitButtonText));
         CurrentCertification = new CertificationEntry();
+        FormValidationMessage = string.Empty;
+        HasFormValidation = false;
     }
 }

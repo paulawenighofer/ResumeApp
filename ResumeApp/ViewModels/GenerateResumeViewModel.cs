@@ -23,25 +23,26 @@ public partial class GenerateResumeViewModel : ObservableObject
     [ObservableProperty] private bool isBusy;
     [ObservableProperty] private string statusMessage = string.Empty;
     [ObservableProperty] private bool hasStatus;
+    [ObservableProperty] private string jobTitleValidationMessage = string.Empty;
+    [ObservableProperty] private bool hasJobTitleValidation;
+    [ObservableProperty] private string jobDescriptionValidationMessage = string.Empty;
+    [ObservableProperty] private bool hasJobDescriptionValidation;
 
     public GenerateResumeViewModel(IApiService apiService)
     {
         _apiService = apiService;
     }
 
+    partial void OnJobTitleChanged(string value) => ValidateJobTitle();
+
+    partial void OnJobDescriptionChanged(string value) => ValidateJobDescription();
+
     [RelayCommand]
     private async Task Generate()
     {
-        if (string.IsNullOrWhiteSpace(JobTitle))
+        if (!ValidateInputs())
         {
-            StatusMessage = "Please enter the job title you are applying for.";
-            HasStatus = true;
-            return;
-        }
-
-        if (string.IsNullOrWhiteSpace(JobDescription))
-        {
-            StatusMessage = "Please enter the job description.";
+            StatusMessage = "Please correct the highlighted fields.";
             HasStatus = true;
             return;
         }
@@ -100,5 +101,39 @@ public partial class GenerateResumeViewModel : ObservableObject
         {
             IsBusy = false;
         }
+    }
+
+    private bool ValidateInputs()
+    {
+        ValidateJobTitle();
+        ValidateJobDescription();
+
+        return !HasJobTitleValidation && !HasJobDescriptionValidation;
+    }
+
+    private void ValidateJobTitle()
+    {
+        if (string.IsNullOrWhiteSpace(JobTitle))
+        {
+            JobTitleValidationMessage = "Target role is required.";
+            HasJobTitleValidation = true;
+            return;
+        }
+
+        JobTitleValidationMessage = string.Empty;
+        HasJobTitleValidation = false;
+    }
+
+    private void ValidateJobDescription()
+    {
+        if (string.IsNullOrWhiteSpace(JobDescription))
+        {
+            JobDescriptionValidationMessage = "Job description is required.";
+            HasJobDescriptionValidation = true;
+            return;
+        }
+
+        JobDescriptionValidationMessage = string.Empty;
+        HasJobDescriptionValidation = false;
     }
 }

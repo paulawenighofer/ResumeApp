@@ -34,6 +34,7 @@
             <!-- Form card -->
             <Border Style="{StaticResource CardStyle}">
                 <VerticalStackLayout Spacing="12">
+                    <Label Text="Project Name *" FontSize="13" FontFamily="OpenSansSemibold" TextColor="{StaticResource TextSecondary}" />
                     <Entry Placeholder="Project name"
                            Text="{Binding CurrentProject.Name}"
                            PlaceholderColor="{StaticResource InactiveIcon}">
@@ -43,6 +44,7 @@
                         </Entry.Behaviors>
                     </Entry>
 
+                    <Label Text="Project Type (optional)" FontSize="13" FontFamily="OpenSansSemibold" TextColor="{StaticResource TextSecondary}" />
                     <Picker Title="Project type"
                             ItemsSource="{Binding ProjectTypes}"
                             SelectedItem="{Binding CurrentProject.ProjectType}">
@@ -53,22 +55,27 @@
                     </Picker>
 
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
-                        <DatePicker Grid.Column="0"
-                                    Date="{Binding CurrentProject.StartDate}">
-                            <DatePicker.Behaviors>
-                                <toolkit:EventToCommandBehavior EventName="DateSelected"
-                                                                Command="{Binding MarkDirtyCommand}" />
-                            </DatePicker.Behaviors>
-                        </DatePicker>
-                        <DatePicker Grid.Column="1"
-                                    Date="{Binding CurrentProject.EndDate}">
-                            <DatePicker.Behaviors>
-                                <toolkit:EventToCommandBehavior EventName="DateSelected"
-                                                                Command="{Binding MarkDirtyCommand}" />
-                            </DatePicker.Behaviors>
-                        </DatePicker>
+                        <VerticalStackLayout Grid.Column="0" Spacing="4">
+                            <Label Text="Start Date *" FontSize="13" FontFamily="OpenSansSemibold" TextColor="{StaticResource TextSecondary}" />
+                            <DatePicker Date="{Binding CurrentProject.StartDate}">
+                                <DatePicker.Behaviors>
+                                    <toolkit:EventToCommandBehavior EventName="DateSelected"
+                                                                    Command="{Binding MarkDirtyCommand}" />
+                                </DatePicker.Behaviors>
+                            </DatePicker>
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Grid.Column="1" Spacing="4">
+                            <Label Text="End Date *" FontSize="13" FontFamily="OpenSansSemibold" TextColor="{StaticResource TextSecondary}" />
+                            <DatePicker Date="{Binding CurrentProject.EndDate}">
+                                <DatePicker.Behaviors>
+                                    <toolkit:EventToCommandBehavior EventName="DateSelected"
+                                                                    Command="{Binding MarkDirtyCommand}" />
+                                </DatePicker.Behaviors>
+                            </DatePicker>
+                        </VerticalStackLayout>
                     </Grid>
 
+                    <Label Text="Technologies (optional)" FontSize="13" FontFamily="OpenSansSemibold" TextColor="{StaticResource TextSecondary}" />
                     <Entry Placeholder="Technologies"
                            Text="{Binding CurrentProject.Technologies}"
                            PlaceholderColor="{StaticResource InactiveIcon}">
@@ -78,6 +85,7 @@
                         </Entry.Behaviors>
                     </Entry>
 
+                    <Label Text="Project URL (optional)" FontSize="13" FontFamily="OpenSansSemibold" TextColor="{StaticResource TextSecondary}" />
                     <Entry Placeholder="Project URL"
                            Text="{Binding CurrentProject.ProjectUrl}"
                            PlaceholderColor="{StaticResource InactiveIcon}">
@@ -87,6 +95,7 @@
                         </Entry.Behaviors>
                     </Entry>
 
+                    <Label Text="Project Description *" FontSize="13" FontFamily="OpenSansSemibold" TextColor="{StaticResource TextSecondary}" />
                     <Editor Placeholder="Project description"
                             AutoSize="TextChanges"
                             Text="{Binding CurrentProject.Description}"
@@ -96,6 +105,11 @@
                                                             Command="{Binding MarkDirtyCommand}" />
                         </Editor.Behaviors>
                     </Editor>
+
+                    <Label Text="{Binding FormValidationMessage}"
+                           TextColor="{StaticResource DangerRed}"
+                           FontSize="12"
+                           IsVisible="{Binding HasFormValidation}" />
 
                     <Button Text="{Binding SubmitButtonText}"
                             Command="{Binding AddProjectCommand}"

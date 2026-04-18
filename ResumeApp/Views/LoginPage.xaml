@@ -53,7 +53,7 @@
                 <VerticalStackLayout Spacing="10">
 
                     <!-- Email Field -->
-                    <Label Text="Email"
+                    <Label Text="Email *"
                            FontSize="13"
                            FontFamily="OpenSansSemibold"
                            TextColor="{StaticResource TextSecondary}" />
@@ -64,6 +64,7 @@
                             Padding="4,0">
                         <Entry Placeholder="you@example.com"
                                Keyboard="Email"
+                               IsTextPredictionEnabled="True"
                                Text="{Binding Email}"
                                FontSize="15"
                                TextColor="{StaticResource TextPrimary}"
@@ -103,7 +104,7 @@
                            IsVisible="{Binding HasEmailValidation}" />
 
                     <!-- Password Field -->
-                    <Label Text="Password"
+                    <Label Text="Password *"
                            FontSize="13"
                            FontFamily="OpenSansSemibold"
                            TextColor="{StaticResource TextSecondary}"
