@@ -47,6 +47,11 @@ public partial class MainPageViewModel : ObservableObject
         _ = LoadUserInfoAsync();
     }
 
+    public async Task RefreshAsync()
+    {
+        await LoadUserInfoAsync();
+    }
+
     private async Task LoadUserInfoAsync()
     {
         var savedName = await SecureStorage.GetAsync("user_name");
@@ -71,9 +76,16 @@ public partial class MainPageViewModel : ObservableObject
         if (!string.IsNullOrWhiteSpace(savedImagePath))
         {
             ProfileImagePath = savedImagePath;
+            ProfileImageUrl = string.Empty;
             OnPropertyChanged(nameof(ProfileImageSource));
             OnPropertyChanged(nameof(HasProfileImage));
+            return;
         }
+
+        ProfileImagePath = string.Empty;
+        ProfileImageUrl = string.Empty;
+        OnPropertyChanged(nameof(ProfileImageSource));
+        OnPropertyChanged(nameof(HasProfileImage));
     }
 
     partial void OnProfileImagePathChanged(string value)
@@ -149,4 +161,12 @@ public partial class MainPageViewModel : ObservableObject
     [RelayCommand]
     private async Task GoToGenerateResume() =>
         await Shell.Current.GoToAsync(nameof(GenerateResumePage));
+
+    [RelayCommand]
+    private async Task GoToProfile() =>
+        await Shell.Current.GoToAsync("//main/profile");
+
+    [RelayCommand]
+    private async Task GoToResumeList() =>
+        await Shell.Current.GoToAsync("//main/resume");
 }

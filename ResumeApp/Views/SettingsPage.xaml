@@ -16,7 +16,7 @@
                 <Label Text="Settings"
                        FontSize="28"
                        FontFamily="OpenSansSemibold"
-                       TextColor="{StaticResource TextPrimary}" />
+                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark=White}" />
 
                 <!-- Appearance -->
                 <Label Text="Appearance"
@@ -28,7 +28,7 @@
                             <Label Text="Dark Mode"
                                    FontSize="15"
                                    FontFamily="OpenSansSemibold"
-                                   TextColor="{StaticResource TextPrimary}" />
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark=White}" />
                             <Label Text="Switch between light and dark theme"
                                    Style="{StaticResource SubtitleStyle}"
                                    FontSize="12" />
@@ -58,7 +58,7 @@
                             <Label Text="Clear local cache"
                                    FontSize="15"
                                    FontFamily="OpenSansSemibold"
-                                   TextColor="{StaticResource TextPrimary}" />
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark=White}" />
                             <Label Text="Remove saved drafts from this device"
                                    Style="{StaticResource SubtitleStyle}"
                                    FontSize="12" />
@@ -87,10 +87,34 @@
                             <Label Text="AI Resume Builder"
                                    FontSize="15"
                                    FontFamily="OpenSansSemibold"
-                                   TextColor="{StaticResource TextPrimary}" />
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark=White}" />
                             <Label Text="{Binding AppVersion, StringFormat='Version {0}'}"
                                    Style="{StaticResource SubtitleStyle}"
                                    FontSize="12" />
+                        </VerticalStackLayout>
+                    </Grid>
+                </Border>
+
+                <!-- Developer Credit -->
+                <Border Style="{StaticResource CardStyle}" Padding="14,12" Margin="0,-8,0,0">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                        <Label Text="&#xf004;"
+                               FontFamily="FASolid"
+                               FontSize="16"
+                               TextColor="{StaticResource DangerRed}"
+                               VerticalOptions="Center" />
+                        <VerticalStackLayout Grid.Column="1" Spacing="4">
+                            <Label Text="Developed with Care and Love By Bishwas &amp; Paula"
+                                   FontSize="13"
+                                   FontFamily="OpenSansSemibold"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark=White}" />
+                            <Label Text="https://bishwas.me"
+                                   FontSize="12"
+                                   TextColor="{StaticResource PrimaryViolet}">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding OpenDeveloperWebsiteCommand}" />
+                                </Label.GestureRecognizers>
+                            </Label>
                         </VerticalStackLayout>
                     </Grid>
                 </Border>

@@ -27,6 +27,12 @@ public partial class SettingsViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private async Task OpenDeveloperWebsite()
+    {
+        await Launcher.Default.OpenAsync(new Uri("https://bishwas.me"));
+    }
+
+    [RelayCommand]
     private async Task Logout()
     {
         bool confirmed = await Shell.Current.DisplayAlert(

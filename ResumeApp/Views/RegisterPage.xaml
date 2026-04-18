@@ -4,6 +4,7 @@
              xmlns:vm="clr-namespace:ResumeApp.ViewModels"
              x:Class="ResumeApp.Views.RegisterPage"
              x:DataType="vm:RegisterViewModel"
+             x:Name="RegisterPageRoot"
              Shell.NavBarIsVisible="False"
              BackgroundColor="{StaticResource PageBackground}">
 
@@ -28,44 +29,124 @@
                    FontFamily="OpenSansSemibold"
                    HorizontalOptions="Center"
                    TextColor="{StaticResource TextPrimary}" />
-            <Label Text="Start building tailored resumes"
+            <Label Text="Start building tailored resumes in minutes."
                    Style="{StaticResource SubtitleStyle}"
                    HorizontalOptions="Center"
-                   Margin="0,0,0,16" />
+                   HorizontalTextAlignment="Center"
+                   Margin="0,0,0,10" />
 
-            <Border BackgroundColor="{StaticResource SurfaceWhite}" Stroke="{StaticResource CardBorder}"
-                    StrokeThickness="1.5" StrokeShape="RoundRectangle 12" Padding="4,0">
-                <Entry Placeholder="First name" Text="{Binding FirstName}"
-                       FontSize="15" TextColor="{StaticResource TextPrimary}"
-                       PlaceholderColor="{StaticResource InactiveIcon}" />
-            </Border>
+            <Border Style="{StaticResource CardStyle}" Padding="16">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="First name" FontSize="13" FontFamily="OpenSansSemibold" TextColor="{StaticResource TextSecondary}" />
+                    <Border BackgroundColor="{StaticResource SurfaceWhite}" Stroke="{StaticResource CardBorder}"
+                            StrokeThickness="1.5" StrokeShape="RoundRectangle 12" Padding="4,0">
+                        <Entry Placeholder="John" Text="{Binding FirstName}"
+                               FontSize="15" TextColor="{StaticResource TextPrimary}"
+                               PlaceholderColor="{StaticResource InactiveIcon}" />
+                    </Border>
+                    <Label Text="{Binding FirstNameValidationMessage}"
+                           TextColor="{StaticResource DangerRed}"
+                           FontSize="12"
+                           IsVisible="{Binding HasFirstNameValidation}" />
 
-            <Border BackgroundColor="{StaticResource SurfaceWhite}" Stroke="{StaticResource CardBorder}"
-                    StrokeThickness="1.5" StrokeShape="RoundRectangle 12" Padding="4,0">
-                <Entry Placeholder="Last name" Text="{Binding LastName}"
-                       FontSize="15" TextColor="{StaticResource TextPrimary}"
-                       PlaceholderColor="{StaticResource InactiveIcon}" />
-            </Border>
+                    <Label Text="Last name" FontSize="13" FontFamily="OpenSansSemibold" TextColor="{StaticResource TextSecondary}" />
+                    <Border BackgroundColor="{StaticResource SurfaceWhite}" Stroke="{StaticResource CardBorder}"
+                            StrokeThickness="1.5" StrokeShape="RoundRectangle 12" Padding="4,0">
+                        <Entry Placeholder="Doe" Text="{Binding LastName}"
+                               FontSize="15" TextColor="{StaticResource TextPrimary}"
+                               PlaceholderColor="{StaticResource InactiveIcon}" />
+                    </Border>
+                    <Label Text="{Binding LastNameValidationMessage}"
+                           TextColor="{StaticResource DangerRed}"
+                           FontSize="12"
+                           IsVisible="{Binding HasLastNameValidation}" />
 
-            <Border BackgroundColor="{StaticResource SurfaceWhite}" Stroke="{StaticResource CardBorder}"
-                    StrokeThickness="1.5" StrokeShape="RoundRectangle 12" Padding="4,0">
-                <Entry Placeholder="Email address" Keyboard="Email" Text="{Binding Email}"
-                       FontSize="15" TextColor="{StaticResource TextPrimary}"
-                       PlaceholderColor="{StaticResource InactiveIcon}" />
-            </Border>
+                    <Label Text="Email" FontSize="13" FontFamily="OpenSansSemibold" TextColor="{StaticResource TextSecondary}" />
+                    <Border BackgroundColor="{StaticResource SurfaceWhite}" Stroke="{StaticResource CardBorder}"
+                            StrokeThickness="1.5" StrokeShape="RoundRectangle 12" Padding="4,0">
+                        <Entry Placeholder="you@example.com" Keyboard="Email" Text="{Binding Email}"
+                               FontSize="15" TextColor="{StaticResource TextPrimary}"
+                               PlaceholderColor="{StaticResource InactiveIcon}" />
+                    </Border>
 
-            <Border BackgroundColor="{StaticResource SurfaceWhite}" Stroke="{StaticResource CardBorder}"
-                    StrokeThickness="1.5" StrokeShape="RoundRectangle 12" Padding="4,0">
-                <Entry Placeholder="Password" IsPassword="True" Text="{Binding Password}"
-                       FontSize="15" TextColor="{StaticResource TextPrimary}"
-                       PlaceholderColor="{StaticResource InactiveIcon}" />
-            </Border>
+                    <ScrollView Orientation="Horizontal"
+                                IsVisible="{Binding ShowEmailSuggestions}"
+                                HorizontalScrollBarVisibility="Never">
+                        <HorizontalStackLayout BindableLayout.ItemsSource="{Binding EmailSuggestions}"
+                                               Spacing="8">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="{x:Null}">
+                                    <Border BackgroundColor="#EEF2FF"
+                                            Stroke="#D8D9FF"
+                                            StrokeThickness="1"
+                                            StrokeShape="RoundRectangle 14"
+                                            Padding="10,4">
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer Command="{Binding Source={x:Reference RegisterPageRoot}, Path=BindingContext.ApplyEmailSuggestionCommand}"
+                                                                  CommandParameter="{Binding .}" />
+                                        </Border.GestureRecognizers>
+                                        <Label Text="{Binding .}"
+                                               FontSize="12"
+                                               TextColor="{StaticResource PrimaryViolet}" />
+                                    </Border>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </HorizontalStackLayout>
+                    </ScrollView>
 
-            <Border BackgroundColor="{StaticResource SurfaceWhite}" Stroke="{StaticResource CardBorder}"
-                    StrokeThickness="1.5" StrokeShape="RoundRectangle 12" Padding="4,0">
-                <Entry Placeholder="Confirm password" IsPassword="True" Text="{Binding ConfirmPassword}"
-                       FontSize="15" TextColor="{StaticResource TextPrimary}"
-                       PlaceholderColor="{StaticResource InactiveIcon}" />
+                    <Label Text="{Binding EmailValidationMessage}"
+                           TextColor="{StaticResource DangerRed}"
+                           FontSize="12"
+                           IsVisible="{Binding HasEmailValidation}" />
+
+                    <Label Text="Password" FontSize="13" FontFamily="OpenSansSemibold" TextColor="{StaticResource TextSecondary}" Margin="0,4,0,0" />
+                    <Border BackgroundColor="{StaticResource SurfaceWhite}" Stroke="{StaticResource CardBorder}"
+                            StrokeThickness="1.5" StrokeShape="RoundRectangle 12" Padding="8,0">
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                            <Entry Grid.Column="0" Placeholder="At least 8 characters" IsPassword="{Binding IsPasswordHidden}" Text="{Binding Password}"
+                                   FontSize="15" TextColor="{StaticResource TextPrimary}"
+                                   PlaceholderColor="{StaticResource InactiveIcon}" />
+                            <Label Grid.Column="1"
+                                   Text="{Binding PasswordToggleIcon}"
+                                   FontFamily="FASolid"
+                                   FontSize="16"
+                                   TextColor="{StaticResource TextSecondary}"
+                                   VerticalOptions="Center">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding TogglePasswordVisibilityCommand}" />
+                                </Label.GestureRecognizers>
+                            </Label>
+                        </Grid>
+                    </Border>
+                    <Label Text="{Binding PasswordValidationMessage}"
+                           TextColor="{StaticResource DangerRed}"
+                           FontSize="12"
+                           IsVisible="{Binding HasPasswordValidation}" />
+
+                    <Label Text="Confirm password" FontSize="13" FontFamily="OpenSansSemibold" TextColor="{StaticResource TextSecondary}" />
+                    <Border BackgroundColor="{StaticResource SurfaceWhite}" Stroke="{StaticResource CardBorder}"
+                            StrokeThickness="1.5" StrokeShape="RoundRectangle 12" Padding="8,0">
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                            <Entry Grid.Column="0" Placeholder="Re-enter password" IsPassword="{Binding IsConfirmPasswordHidden}" Text="{Binding ConfirmPassword}"
+                                   FontSize="15" TextColor="{StaticResource TextPrimary}"
+                                   PlaceholderColor="{StaticResource InactiveIcon}" />
+                            <Label Grid.Column="1"
+                                   Text="{Binding ConfirmPasswordToggleIcon}"
+                                   FontFamily="FASolid"
+                                   FontSize="16"
+                                   TextColor="{StaticResource TextSecondary}"
+                                   VerticalOptions="Center">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding ToggleConfirmPasswordVisibilityCommand}" />
+                                </Label.GestureRecognizers>
+                            </Label>
+                        </Grid>
+                    </Border>
+                    <Label Text="{Binding ConfirmPasswordValidationMessage}"
+                           TextColor="{StaticResource DangerRed}"
+                           FontSize="12"
+                           IsVisible="{Binding HasConfirmPasswordValidation}" />
+                </VerticalStackLayout>
             </Border>
 
             <Label Text="{Binding ErrorMessage}"
