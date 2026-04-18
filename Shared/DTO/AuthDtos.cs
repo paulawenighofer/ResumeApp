@@ -40,6 +40,7 @@ namespace Shared.DTO
         public string Email { get; set; } = string.Empty;
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
+        public string ProfileImageUrl { get; set; } = string.Empty;
     }
 
     // Returned after registration — no token yet, OTP sent to email instead

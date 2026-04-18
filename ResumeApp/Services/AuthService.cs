@@ -9,14 +9,16 @@ namespace ResumeApp.Services;
 public class AuthService
 {
     private readonly HttpClient _httpClient;
+    private readonly ILocalStorageService _localStorageService;
     public string BaseUrl
     {
         get;
     }
 
-    public AuthService(HttpClient httpClient)
+    public AuthService(HttpClient httpClient, ILocalStorageService localStorageService)
     {
         _httpClient = httpClient;
+        _localStorageService = localStorageService;
         BaseUrl = _httpClient.BaseAddress?.ToString().TrimEnd('/') ?? "";
     }
 
@@ -46,8 +48,7 @@ public class AuthService
             if (result?.Token != null)
             {
                 await SecureStorage.SetAsync("auth_token", result.Token);
-                await SecureStorage.SetAsync("user_email", result.Email);
-                await SaveUserNameAsync(result.FirstName, result.LastName, result.Email);
+                await FetchAndSaveUserInfoAsync();
                 return new LoginResult(true);
             }
 
@@ -194,8 +195,7 @@ public class AuthService
             {
                 Debug.WriteLine($"[RegisterAsync] Saving token and user data...");
                 await SecureStorage.SetAsync("auth_token", result.Token);
-                await SecureStorage.SetAsync("user_email", result.Email);
-                await SaveUserNameAsync(result.FirstName, result.LastName, result.Email);
+                await FetchAndSaveUserInfoAsync();
                 Debug.WriteLine($"[RegisterAsync] Registration successful!");
                 return true;
             }
@@ -286,9 +286,8 @@ public class AuthService
     }
 
     /// <summary>
-    /// Calls GET /api/auth/me and persists the user's name and email to SecureStorage.
-    /// Called after social login, where the MAUI app only receives a bare JWT token
-    /// with no accompanying profile payload.
+    /// Calls GET /api/auth/me and persists the user's profile data locally.
+    /// Called after any successful auth flow to sync canonical user state.
     /// </summary>
     public async Task FetchAndSaveUserInfoAsync()
     {
@@ -303,6 +302,7 @@ public class AuthService
 
             await SecureStorage.SetAsync("user_email", result.Email);
             await SaveUserNameAsync(result.FirstName, result.LastName, result.Email);
+            await _localStorageService.SaveProfileImageUrlAsync(result.ProfileImageUrl);
         }
         catch { }
     }
