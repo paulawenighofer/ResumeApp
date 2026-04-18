@@ -12,7 +12,7 @@
 
     <Grid>
         <ScrollView IsEnabled="{Binding IsBusy, Converter={StaticResource inverseBoolean}}">
-            <VerticalStackLayout Padding="24,16" Spacing="16">
+            <VerticalStackLayout Padding="24,16" Spacing="20">
 
                 <controls:PageHeader Title="Generate Resume" />
 
@@ -22,12 +22,11 @@
                     <Label.FormattedText>
                         <FormattedString>
                             <Span Text="&#xf0d0; " FontFamily="FASolid" />
-                            <Span Text="Create Resume Draft" />
+                            <Span Text="Generate Resume" />
                         </FormattedString>
                     </Label.FormattedText>
                 </Label>
-
-                <Label Text="Paste a job description and generate a focused, job-specific draft in one step."
+                <Label Text="Enter the role and job description, then let AI build a tailored draft."
                        Style="{StaticResource SubtitleStyle}" />
 
                 <Border Style="{StaticResource CardStyle}"

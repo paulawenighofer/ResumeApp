@@ -3,23 +3,81 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:ResumeApp.Views.Controls"
              xmlns:vm="clr-namespace:ResumeApp.ViewModels"
+             xmlns:models="clr-namespace:ResumeApp.Models"
              x:Class="ResumeApp.Views.ResumeDraftDetailPage"
              x:DataType="vm:ResumeDraftDetailViewModel"
              Shell.NavBarIsVisible="False"
              Shell.TabBarIsVisible="False"
              BackgroundColor="{StaticResource PageBackground}">
 
-    <VerticalStackLayout Padding="24,16" Spacing="16">
-        <controls:PageHeader Title="Draft Preview" />
+    <ScrollView>
+        <VerticalStackLayout Padding="24,16" Spacing="16">
+            <controls:PageHeader Title="Draft Preview" />
 
-        <Label Text="Draft Preview"
-               FontSize="24"
-               FontFamily="OpenSansSemibold"
-               TextColor="{StaticResource TextPrimary}" />
+            <Label FontSize="24"
+                   FontFamily="OpenSansSemibold"
+                   TextColor="{StaticResource TextPrimary}"
+                   Text="Resume Draft" />
 
-        <Border Style="{StaticResource CardStyle}">
-            <Label Text="Draft details will appear here."
-                   Style="{StaticResource SubtitleStyle}" />
-        </Border>
-    </VerticalStackLayout>
+            <Border Style="{StaticResource CardStyle}">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="{Binding TargetCompany}"
+                           FontSize="18"
+                           FontFamily="OpenSansSemibold"
+                           TextColor="{StaticResource TextPrimary}" />
+
+                    <Border Padding="10,4"
+                            Stroke="{Binding StatusColorHex}"
+                            BackgroundColor="#F5F3FF"
+                            StrokeShape="RoundRectangle 12"
+                            HorizontalOptions="Start">
+                        <Label Text="{Binding StatusText}"
+                               FontSize="12"
+                               FontFamily="OpenSansSemibold"
+                               TextColor="{Binding StatusColorHex}" />
+                    </Border>
+
+                    <Label Text="{Binding FailedReason}"
+                           IsVisible="{Binding HasFailedReason}"
+                           TextColor="{StaticResource DangerRed}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Label Text="{Binding ErrorMessage}"
+                   IsVisible="{Binding HasError}"
+                   TextColor="{StaticResource DangerRed}" />
+
+            <CollectionView ItemsSource="{Binding Sections}"
+                            IsVisible="{Binding HasSections}"
+                            SelectionMode="None">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:ResumePreviewSection">
+                        <Border Margin="0,0,0,12"
+                                Style="{StaticResource CardStyle}">
+                            <VerticalStackLayout Spacing="10">
+                                <Label Text="{Binding Title}"
+                                       FontSize="16"
+                                       FontFamily="OpenSansSemibold"
+                                       TextColor="{StaticResource TextPrimary}" />
+
+                                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Items}" Spacing="8">
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate x:DataType="x:String">
+                                            <Label Text="{Binding .}"
+                                                   FontSize="13"
+                                                   TextColor="{StaticResource TextPrimary}" />
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}"
+                               IsVisible="{Binding IsBusy}"
+                               Color="{StaticResource PrimaryViolet}" />
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>
