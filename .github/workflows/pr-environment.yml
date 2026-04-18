@@ -85,10 +85,21 @@ jobs:
           kubectl delete -n ${PR_NAMESPACE} configmap grafana-dashboard-config-configmap || true
           kubectl create -n ${PR_NAMESPACE} configmap grafana-dashboard-config-configmap --from-file=configs/grafana-dashboard.json
 
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          kubectl rollout status deployment/resumeapp-postgres -n ${PR_NAMESPACE} --timeout=300s
+
       - name: Restart API to pull new image
         run: |
           kubectl rollout restart deployment/resumeapp-api -n ${PR_NAMESPACE}
-          kubectl rollout status deployment/resumeapp-api -n ${PR_NAMESPACE} --timeout=120s
+          kubectl rollout status deployment/resumeapp-api -n ${PR_NAMESPACE} --timeout=300s
+
+      - name: Debug rollout on failure
+        if: failure()
+        run: |
+          kubectl get pods -n ${PR_NAMESPACE} -o wide
+          kubectl describe deployment resumeapp-api -n ${PR_NAMESPACE}
+          kubectl describe pods -n ${PR_NAMESPACE} -l app=resumeapp-api
 
       - name: Restart observability pods to pick up new configmaps
         run: |
