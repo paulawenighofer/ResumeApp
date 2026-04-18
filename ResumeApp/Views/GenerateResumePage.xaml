@@ -51,12 +51,24 @@
                                FontSize="15"
                                TextColor="{StaticResource TextPrimary}" />
 
-                        <Entry Placeholder="Job title *"
+                        <Label Text="Job Title *"
+                               FontSize="13"
+                               FontFamily="OpenSansSemibold"
+                               TextColor="{StaticResource TextSecondary}" />
+                        <Entry Placeholder="Job title"
                                Text="{Binding JobTitle}"
                                PlaceholderColor="{StaticResource InactiveIcon}"
                                ReturnType="Next" />
+                        <Label Text="{Binding JobTitleValidationMessage}"
+                               TextColor="{StaticResource DangerRed}"
+                               FontSize="12"
+                               IsVisible="{Binding HasJobTitleValidation}" />
 
-                        <Entry Placeholder="Target company (optional)"
+                        <Label Text="Target Company (optional)"
+                               FontSize="13"
+                               FontFamily="OpenSansSemibold"
+                               TextColor="{StaticResource TextSecondary}" />
+                        <Entry Placeholder="Target company"
                                Text="{Binding TargetCompany}"
                                PlaceholderColor="{StaticResource InactiveIcon}"
                                ReturnType="Done" />
@@ -65,20 +77,20 @@
 
                 <Border Style="{StaticResource CardStyle}">
                     <VerticalStackLayout Spacing="10">
-                        <Label Text="Job Description"
+                        <Label Text="Job Description *"
                                FontFamily="OpenSansSemibold"
                                FontSize="15"
                                TextColor="{StaticResource TextPrimary}" />
-
-                        <Label Text="Required"
-                               FontSize="12"
-                               TextColor="{StaticResource DangerRed}" />
 
                         <Editor Placeholder="Paste the full job description here..."
                                 AutoSize="TextChanges"
                                 MinimumHeightRequest="140"
                                 Text="{Binding JobDescription}"
                                 PlaceholderColor="{StaticResource InactiveIcon}" />
+                        <Label Text="{Binding JobDescriptionValidationMessage}"
+                               TextColor="{StaticResource DangerRed}"
+                               FontSize="12"
+                               IsVisible="{Binding HasJobDescriptionValidation}" />
                     </VerticalStackLayout>
                 </Border>
 

@@ -21,7 +21,7 @@ public static class ToastService
             }
 
             var page = ResolveVisiblePage();
-            var duration = Math.Max(durationMilliseconds, isError ? 5000 : 3000);
+            var duration = Math.Max(durationMilliseconds, isError ? 3500 : 1750);
             var iconPrefix = isError ? WarningIconGlyph : SuccessIconGlyph;
 
             try

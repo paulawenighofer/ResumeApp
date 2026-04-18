@@ -19,6 +19,8 @@ public partial class ExperienceViewModel : ObservableObject
     private bool _hasError;
     private bool _isEditing;
     private bool _hasUnsavedChanges;
+    private string _formValidationMessage = string.Empty;
+    private bool _hasFormValidation;
 
     private string? _editingExperienceId;
 
@@ -88,6 +90,18 @@ public partial class ExperienceViewModel : ObservableObject
         }
     }
 
+    public string FormValidationMessage
+    {
+        get => _formValidationMessage;
+        set => SetProperty(ref _formValidationMessage, value);
+    }
+
+    public bool HasFormValidation
+    {
+        get => _hasFormValidation;
+        set => SetProperty(ref _hasFormValidation, value);
+    }
+
     public string SubmitButtonText => IsEditing ? "Save changes" : "Add entry";
 
     public bool CanSave => !IsBusy && (HasUnsavedChanges || HasPendingExperienceInput());
@@ -113,17 +127,9 @@ public partial class ExperienceViewModel : ObservableObject
     {
         ResetError();
 
-        if (string.IsNullOrWhiteSpace(CurrentExperience.Company) ||
-            string.IsNullOrWhiteSpace(CurrentExperience.JobTitle) ||
-            string.IsNullOrWhiteSpace(CurrentExperience.Description))
+        if (!ValidateCurrentExperience(showFieldErrors: true))
         {
-            ShowError("Please fill in the company, role, and description.");
-            return;
-        }
-
-        if (!CurrentExperience.IsCurrentJob && CurrentExperience.EndDate < CurrentExperience.StartDate)
-        {
-            ShowError("End date must be after the start date.");
+            ShowError(FormValidationMessage);
             return;
         }
 
@@ -332,7 +338,11 @@ public partial class ExperienceViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void MarkDirty() => HasUnsavedChanges = true;
+    private void MarkDirty()
+    {
+        HasUnsavedChanges = true;
+        ValidateCurrentExperience(showFieldErrors: true);
+    }
 
     private static Task ShowToastAsync(string message, bool isError = false)
         => ToastService.ShowAsync(message, isError);
@@ -350,22 +360,44 @@ public partial class ExperienceViewModel : ObservableObject
 
     private async Task<bool> TryAddCurrentExperienceAsDraftAsync()
     {
-        if (string.IsNullOrWhiteSpace(CurrentExperience.Company) ||
-            string.IsNullOrWhiteSpace(CurrentExperience.JobTitle) ||
-            string.IsNullOrWhiteSpace(CurrentExperience.Description))
+        if (!ValidateCurrentExperience(showFieldErrors: true))
         {
-            ShowError("Please complete the current experience form or clear it before continuing.");
-            return false;
-        }
-
-        if (!CurrentExperience.IsCurrentJob && CurrentExperience.EndDate < CurrentExperience.StartDate)
-        {
-            ShowError("End date must be after the start date.");
+            ShowError(FormValidationMessage);
             return false;
         }
 
         await AddExperience();
         return !HasError;
+    }
+
+    private bool ValidateCurrentExperience(bool showFieldErrors)
+    {
+        var issues = new List<string>();
+
+        if (string.IsNullOrWhiteSpace(CurrentExperience.Company))
+        {
+            issues.Add("Company is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(CurrentExperience.JobTitle))
+        {
+            issues.Add("Job title is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(CurrentExperience.Description))
+        {
+            issues.Add("Description is required.");
+        }
+
+        if (!CurrentExperience.IsCurrentJob && CurrentExperience.EndDate < CurrentExperience.StartDate)
+        {
+            issues.Add("End date must be after the start date.");
+        }
+
+        FormValidationMessage = string.Join(Environment.NewLine, issues);
+        HasFormValidation = showFieldErrors && issues.Count > 0;
+
+        return issues.Count == 0;
     }
 
     private void ReplaceExperience(ExperienceEntry entry)
@@ -386,5 +418,7 @@ public partial class ExperienceViewModel : ObservableObject
         IsEditing = false;
         OnPropertyChanged(nameof(SubmitButtonText));
         CurrentExperience = new ExperienceEntry();
+        FormValidationMessage = string.Empty;
+        HasFormValidation = false;
     }
 }

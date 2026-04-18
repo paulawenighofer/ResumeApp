@@ -21,6 +21,8 @@ public partial class SkillsViewModel : ObservableObject
     private bool _hasError;
     private bool _isEditing;
     private bool _hasUnsavedChanges;
+    private string _formValidationMessage = string.Empty;
+    private bool _hasFormValidation;
 
     private string? _editingSkillId;
 
@@ -114,12 +116,28 @@ public partial class SkillsViewModel : ObservableObject
         }
     }
 
+    public string FormValidationMessage
+    {
+        get => _formValidationMessage;
+        set => SetProperty(ref _formValidationMessage, value);
+    }
+
+    public bool HasFormValidation
+    {
+        get => _hasFormValidation;
+        set => SetProperty(ref _hasFormValidation, value);
+    }
+
     public string SubmitButtonText => IsEditing ? "Save changes" : "Add skill";
 
     public bool CanSave => !IsBusy && (HasUnsavedChanges || HasPendingSkillInput());
 
     [RelayCommand]
-    private void MarkDirty() => HasUnsavedChanges = true;
+    private void MarkDirty()
+    {
+        HasUnsavedChanges = true;
+        ValidateCurrentSkill(showFieldErrors: true);
+    }
 
     public IList<string> ProficiencyLevels { get; } = ["Beginner", "Intermediate", "Advanced", "Expert"];
     public IList<string> SkillCategories { get; } =
@@ -158,17 +176,9 @@ public partial class SkillsViewModel : ObservableObject
     {
         ResetError();
 
-        if (string.IsNullOrWhiteSpace(SkillInput))
+        if (!ValidateCurrentSkill(showFieldErrors: true))
         {
-            ShowError("Please enter a skill name.");
-            return;
-        }
-
-        if (SkillEntries.Any(s =>
-                s.Name.Equals(SkillInput.Trim(), StringComparison.OrdinalIgnoreCase) &&
-                s.Id != _editingSkillId))
-        {
-            ShowError("This skill has already been added.");
+            ShowError(FormValidationMessage);
             return;
         }
 
@@ -403,14 +413,35 @@ public partial class SkillsViewModel : ObservableObject
 
     private async Task<bool> TryAddCurrentSkillAsDraftAsync()
     {
-        if (string.IsNullOrWhiteSpace(SkillInput))
+        if (!ValidateCurrentSkill(showFieldErrors: true))
         {
-            ShowError("Please enter a skill name or clear the field before continuing.");
+            ShowError(FormValidationMessage);
             return false;
         }
 
         await AddSkill();
         return !HasError;
+    }
+
+    private bool ValidateCurrentSkill(bool showFieldErrors)
+    {
+        var issues = new List<string>();
+
+        if (string.IsNullOrWhiteSpace(SkillInput))
+        {
+            issues.Add("Skill name is required.");
+        }
+        else if (SkillEntries.Any(s =>
+                s.Name.Equals(SkillInput.Trim(), StringComparison.OrdinalIgnoreCase) &&
+                s.Id != _editingSkillId))
+        {
+            issues.Add("This skill has already been added.");
+        }
+
+        FormValidationMessage = string.Join(Environment.NewLine, issues);
+        HasFormValidation = showFieldErrors && issues.Count > 0;
+
+        return issues.Count == 0;
     }
 
     private void ReplaceSkill(SkillEntry skill)
@@ -433,5 +464,7 @@ public partial class SkillsViewModel : ObservableObject
         SkillInput = string.Empty;
         SelectedProficiencyLevel = "Intermediate";
         SelectedCategory = "Programming Language";
+        FormValidationMessage = string.Empty;
+        HasFormValidation = false;
     }
 }

@@ -20,6 +20,8 @@ public partial class EducationViewModel : ObservableObject
     private bool _hasError;
     private bool _isEditing;
     private bool _hasUnsavedChanges;
+    private string _formValidationMessage = string.Empty;
+    private bool _hasFormValidation;
 
     private string? _editingEducationId;
 
@@ -89,6 +91,18 @@ public partial class EducationViewModel : ObservableObject
         }
     }
 
+    public string FormValidationMessage
+    {
+        get => _formValidationMessage;
+        set => SetProperty(ref _formValidationMessage, value);
+    }
+
+    public bool HasFormValidation
+    {
+        get => _hasFormValidation;
+        set => SetProperty(ref _hasFormValidation, value);
+    }
+
     public string SubmitButtonText => IsEditing ? "Save changes" : "Add entry";
 
     public bool CanSave => !IsBusy && (HasUnsavedChanges || HasPendingEducationInput());
@@ -116,17 +130,9 @@ public partial class EducationViewModel : ObservableObject
     {
         ResetError();
 
-        if (string.IsNullOrWhiteSpace(CurrentEducation.School) ||
-            string.IsNullOrWhiteSpace(CurrentEducation.Degree) ||
-            string.IsNullOrWhiteSpace(CurrentEducation.FieldOfStudy))
+        if (!ValidateCurrentEducation(showFieldErrors: true))
         {
-            ShowError("Please fill in the school, degree, and field of study.");
-            return;
-        }
-
-        if (CurrentEducation.EndDate < CurrentEducation.StartDate)
-        {
-            ShowError("End date must be after the start date.");
+            ShowError(FormValidationMessage);
             return;
         }
 
@@ -331,7 +337,11 @@ public partial class EducationViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void MarkDirty() => HasUnsavedChanges = true;
+    private void MarkDirty()
+    {
+        HasUnsavedChanges = true;
+        ValidateCurrentEducation(showFieldErrors: true);
+    }
 
     private static Task ShowToastAsync(string message, bool isError = false)
         => ToastService.ShowAsync(message, isError);
@@ -349,22 +359,44 @@ public partial class EducationViewModel : ObservableObject
 
     private async Task<bool> TryAddCurrentEducationAsDraftAsync()
     {
-        if (string.IsNullOrWhiteSpace(CurrentEducation.School) ||
-            string.IsNullOrWhiteSpace(CurrentEducation.Degree) ||
-            string.IsNullOrWhiteSpace(CurrentEducation.FieldOfStudy))
+        if (!ValidateCurrentEducation(showFieldErrors: true))
         {
-            ShowError("Please complete the current education form or clear it before continuing.");
-            return false;
-        }
-
-        if (CurrentEducation.EndDate < CurrentEducation.StartDate)
-        {
-            ShowError("End date must be after the start date.");
+            ShowError(FormValidationMessage);
             return false;
         }
 
         await AddEducation();
         return !HasError;
+    }
+
+    private bool ValidateCurrentEducation(bool showFieldErrors)
+    {
+        var issues = new List<string>();
+
+        if (string.IsNullOrWhiteSpace(CurrentEducation.School))
+        {
+            issues.Add("School / university is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(CurrentEducation.Degree))
+        {
+            issues.Add("Degree is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(CurrentEducation.FieldOfStudy))
+        {
+            issues.Add("Field of study is required.");
+        }
+
+        if (CurrentEducation.EndDate < CurrentEducation.StartDate)
+        {
+            issues.Add("End date must be after the start date.");
+        }
+
+        FormValidationMessage = string.Join(Environment.NewLine, issues);
+        HasFormValidation = showFieldErrors && issues.Count > 0;
+
+        return issues.Count == 0;
     }
 
     private void ReplaceEducation(EducationEntry entry)
@@ -385,5 +417,7 @@ public partial class EducationViewModel : ObservableObject
         IsEditing = false;
         OnPropertyChanged(nameof(SubmitButtonText));
         CurrentEducation = new EducationEntry();
+        FormValidationMessage = string.Empty;
+        HasFormValidation = false;
     }
 }

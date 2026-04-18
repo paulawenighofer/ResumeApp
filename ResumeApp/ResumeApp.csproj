@@ -103,6 +103,9 @@
 	  <MauiXaml Update="Views\CertificationsPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="Views\Controls\SyncIndicator.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Views\EducationPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
