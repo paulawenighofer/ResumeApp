@@ -21,4 +21,6 @@ public interface ILocalStorageService
     Task ClearCertificationsDraftAsync();
     Task SaveProfileImagePathAsync(string? imagePath);
     Task<string?> LoadProfileImagePathAsync();
+    Task ClearCurrentUserDataAsync();
+    Task ClearAllLocalDataAsync();
 }

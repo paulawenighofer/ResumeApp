@@ -7,15 +7,17 @@ namespace ResumeApp.ViewModels;
 public partial class SettingsViewModel : ObservableObject
 {
     private readonly AuthService _authService;
+    private readonly ILocalStorageService _localStorageService;
 
     [ObservableProperty]
     private bool isDarkMode = Application.Current?.RequestedTheme == AppTheme.Dark;
 
     public string AppVersion => AppInfo.VersionString;
 
-    public SettingsViewModel(AuthService authService)
+    public SettingsViewModel(AuthService authService, ILocalStorageService localStorageService)
     {
         _authService = authService;
+        _localStorageService = localStorageService;
     }
 
     partial void OnIsDarkModeChanged(bool value)
@@ -48,7 +50,7 @@ public partial class SettingsViewModel : ObservableObject
 
         if (!confirmed) return;
 
-        Preferences.Clear();
+        await _localStorageService.ClearAllLocalDataAsync();
         await Shell.Current.DisplayAlert("Done", "Cache cleared.", "OK");
     }
 }
