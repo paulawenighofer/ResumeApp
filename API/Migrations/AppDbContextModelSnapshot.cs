@@ -448,29 +448,26 @@ namespace API.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("EditedResumeJson")
-                        .HasMaxLength(20000)
-                        .HasColumnType("character varying(20000)");
-
-                    b.Property<string>("FailedReason")
+                    b.Property<string>("CompanyDescription")
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
 
-                    b.Property<string>("GeneratedResumeJson")
-                        .HasMaxLength(20000)
-                        .HasColumnType("character varying(20000)");
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("GenerationRequestJson")
-                        .HasMaxLength(20000)
-                        .HasColumnType("character varying(20000)");
+                    b.Property<string>("GeneratedContent")
+                        .HasMaxLength(10000)
+                        .HasColumnType("character varying(10000)");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
+                    b.Property<string>("JobDescription")
+                        .HasMaxLength(5000)
+                        .HasColumnType("character varying(5000)");
 
-                    b.Property<string>("TargetCompany")
+                    b.Property<string>("PdfBlobUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("TargetJobTitle")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");

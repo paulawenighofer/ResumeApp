@@ -81,10 +81,6 @@ builder.Services.AddSingleton<InMemoryResumeStore>();
 builder.Services.AddFeatureManagement(builder.Configuration.GetSection("FeatureFlags"));
 
 builder.Services
-    .AddOptions<AiServiceOptions>()
-    .Bind(builder.Configuration.GetSection(AiServiceOptions.SectionName));
-
-builder.Services
     .AddOptions<AzureBlobOptions>()
     .Bind(builder.Configuration.GetSection(AzureBlobOptions.SectionName))
     .Validate(options => !string.IsNullOrWhiteSpace(options.ConnectionString), "AzureBlob:ConnectionString is required.")
@@ -175,10 +171,6 @@ builder.Services.AddAuthentication(options =>
 // =============================================
 // creating new HttpClient instances manually (for better performance in http requests)
 builder.Services.AddHttpClient();
-builder.Services.AddScoped<IAiResumeGenerationClient, AiResumeGenerationClient>();
-builder.Services.AddScoped<IResumeProfileAssembler, ResumeProfileAssembler>();
-builder.Services.AddScoped<IResumeJsonValidator, ResumeJsonValidator>();
-builder.Services.AddScoped<IResumeDraftService, ResumeDraftService>();
 // Register our custom TokenService so we can inject it into controllers
 builder.Services.AddScoped<TokenService>();
 // Register our social auth service
@@ -285,7 +277,7 @@ builder.Services.AddOpenTelemetry()
 
 var app = builder.Build();
 
-// Auto-apply migrations on startup
+// Auto-apply migrations on startup so the DB is always in sync
 if (!app.Environment.IsEnvironment("Testing"))
 {
     using var scope = app.Services.CreateScope();

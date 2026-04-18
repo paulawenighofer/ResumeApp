@@ -3,131 +3,95 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:ResumeApp.Views.Controls"
              xmlns:vm="clr-namespace:ResumeApp.ViewModels"
-             xmlns:models="clr-namespace:ResumeApp.Models"
              x:Class="ResumeApp.Views.ResumeListPage"
              x:DataType="vm:ResumeListViewModel"
-             x:Name="ResumeListPageRoot"
              Shell.NavBarIsVisible="False">
 
     <Grid RowDefinitions="*,80">
 
-        <RefreshView Grid.Row="0"
-                     Command="{Binding LoadDraftsCommand}"
-                     IsRefreshing="{Binding IsBusy}">
-            <ScrollView>
-                <VerticalStackLayout Padding="24,56,24,16" Spacing="20">
+        <ScrollView Grid.Row="0">
+            <VerticalStackLayout Padding="24,56,24,16" Spacing="20">
 
-                    <Grid ColumnDefinitions="*,Auto">
-                        <VerticalStackLayout Grid.Column="0" Spacing="2">
-                            <Label Text="My Resumes"
-                                   FontSize="28"
-                                   FontFamily="OpenSansSemibold"
-                                   TextColor="{StaticResource TextPrimary}" />
-                            <Label Text="Drafts and AI status"
-                                   Style="{StaticResource SubtitleStyle}" />
-                        </VerticalStackLayout>
+                <!-- Header -->
+                <Grid ColumnDefinitions="*,Auto">
+                    <VerticalStackLayout Grid.Column="0" Spacing="2">
+                        <Label Text="My Resumes"
+                               FontSize="28"
+                               FontFamily="OpenSansSemibold"
+                               TextColor="{StaticResource TextPrimary}" />
+                        <Label Text="Tailored &amp; AI-powered"
+                               Style="{StaticResource SubtitleStyle}" />
+                    </VerticalStackLayout>
 
-                        <Button Grid.Column="1"
-                                Text="New"
+                    <Button Grid.Column="1"
+                            Text="New"
+                            Command="{Binding GenerateResumeCommand}"
+                            BackgroundColor="{StaticResource PrimaryViolet}"
+                            TextColor="White"
+                            CornerRadius="12"
+                            Padding="16,10"
+                            HeightRequest="44"
+                            FontSize="14"
+                            ContentLayout="Left,8"
+                            VerticalOptions="Center">
+                        <Button.ImageSource>
+                            <FontImageSource FontFamily="FASolid" Glyph="&#xf067;" Color="White" Size="14" />
+                        </Button.ImageSource>
+                    </Button>
+                </Grid>
+
+                <!-- Empty state -->
+                <Border Style="{StaticResource CardStyle}"
+                        Margin="0,20,0,0">
+                    <VerticalStackLayout Spacing="16" HorizontalOptions="Center" Padding="16">
+                        <Label Text="&#xf15c;"
+                               FontFamily="FASolid"
+                               FontSize="48"
+                               HorizontalOptions="Center" />
+                        <Label Text="No resumes yet"
+                               FontSize="18"
+                               FontFamily="OpenSansSemibold"
+                               TextColor="{StaticResource TextPrimary}"
+                               HorizontalOptions="Center" />
+                        <Label Text="Generate your first AI-powered resume tailored to any job."
+                               Style="{StaticResource SubtitleStyle}"
+                               HorizontalTextAlignment="Center"
+                               HorizontalOptions="Center" />
+                        <Button Text="Generate Resume"
                                 Command="{Binding GenerateResumeCommand}"
-                                BackgroundColor="{StaticResource PrimaryViolet}"
-                                TextColor="White"
-                                CornerRadius="12"
-                                Padding="16,10"
-                                HeightRequest="44"
-                                FontSize="14"
-                                ContentLayout="Left,8"
-                                VerticalOptions="Center">
-                            <Button.ImageSource>
-                                <FontImageSource FontFamily="FASolid" Glyph="&#xf067;" Color="White" Size="14" />
-                            </Button.ImageSource>
-                        </Button>
-                    </Grid>
+                                Style="{StaticResource VioletButtonStyle}"
+                                HorizontalOptions="Center"
+                                Padding="32,14" />
+                    </VerticalStackLayout>
+                </Border>
 
-                    <Label Text="{Binding ErrorMessage}"
-                           IsVisible="{Binding HasError}"
-                           TextColor="{StaticResource DangerRed}" />
+                <!-- Quick tips -->
+                <Label Text="Tips"
+                       Style="{StaticResource SectionHeaderStyle}"
+                       Margin="0,8,0,0" />
 
-                    <CollectionView ItemsSource="{Binding Drafts}"
-                                    IsVisible="{Binding HasResumes}"
-                                    SelectionMode="None">
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate x:DataType="models:ResumeDraftListItem">
-                                <Border Margin="0,0,0,12"
-                                        Padding="16"
-                                        BackgroundColor="{StaticResource SurfaceWhite}"
-                                        Stroke="{StaticResource CardBorder}"
-                                        StrokeShape="RoundRectangle 14">
-                                    <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="10">
-                                        <Grid ColumnDefinitions="*,Auto">
-                                            <Label Grid.Column="0"
-                                                   Text="{Binding TargetCompany}"
-                                                   FontFamily="OpenSansSemibold"
-                                                   FontSize="16"
-                                                   TextColor="{StaticResource TextPrimary}" />
+                <Border Style="{StaticResource CardStyle}" Padding="16">
+                    <HorizontalStackLayout Spacing="12">
+                        <Label Text="&#xf0eb;" FontFamily="FASolid" FontSize="24" VerticalOptions="Center" />
+                        <Label Text="Complete your profile sections first for better AI suggestions."
+                               Style="{StaticResource SubtitleStyle}"
+                               VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+                </Border>
 
-                                            <Border Grid.Column="1"
-                                                    Padding="10,4"
-                                                    Stroke="{Binding StatusColorHex}"
-                                                    BackgroundColor="#F5F3FF"
-                                                    StrokeShape="RoundRectangle 12">
-                                                <Label Text="{Binding StatusText}"
-                                                       TextColor="{Binding StatusColorHex}"
-                                                       FontSize="12"
-                                                       FontFamily="OpenSansSemibold" />
-                                            </Border>
-                                        </Grid>
+                <Border Style="{StaticResource CardStyle}" Padding="16">
+                    <HorizontalStackLayout Spacing="12">
+                        <Label Text="&#xf140;" FontFamily="FASolid" FontSize="24" VerticalOptions="Center" />
+                        <Label Text="Tailor each resume to a specific job description for best results."
+                               Style="{StaticResource SubtitleStyle}"
+                               VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+                </Border>
 
-                                        <Label Grid.Row="1"
-                                               Text="{Binding CreatedAtText}"
-                                               FontSize="12"
-                                               TextColor="{StaticResource InactiveIcon}" />
+            </VerticalStackLayout>
+        </ScrollView>
 
-                                        <Button Grid.Row="2"
-                                                Text="View Draft"
-                                                x:DataType="{x:Null}"
-                                                Command="{Binding Source={x:Reference ResumeListPageRoot}, Path=BindingContext.OpenDraftCommand}"
-                                                CommandParameter="{Binding .}"
-                                                Style="{StaticResource OutlineButtonStyle}"
-                                                HeightRequest="38" />
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
-
-                    <Border Style="{StaticResource CardStyle}"
-                            Margin="0,20,0,0"
-                            IsVisible="{Binding HasResumes, Converter={StaticResource inverseBoolean}}">
-                        <VerticalStackLayout Spacing="16" HorizontalOptions="Center" Padding="16">
-                            <Label Text="&#xf15c;"
-                                   FontFamily="FASolid"
-                                   FontSize="48"
-                                   HorizontalOptions="Center" />
-                            <Label Text="No drafts yet"
-                                   FontSize="18"
-                                   FontFamily="OpenSansSemibold"
-                                   TextColor="{StaticResource TextPrimary}"
-                                   HorizontalOptions="Center" />
-                            <Label Text="Generate your first AI-powered draft tailored to a specific job."
-                                   Style="{StaticResource SubtitleStyle}"
-                                   HorizontalTextAlignment="Center"
-                                   HorizontalOptions="Center" />
-                            <Button Text="Generate Draft"
-                                    Command="{Binding GenerateResumeCommand}"
-                                    Style="{StaticResource VioletButtonStyle}"
-                                    HorizontalOptions="Center"
-                                    Padding="32,14" />
-                        </VerticalStackLayout>
-                    </Border>
-
-                    <ActivityIndicator IsRunning="{Binding IsBusy}"
-                                       IsVisible="{Binding IsBusy}"
-                                       Color="{StaticResource PrimaryViolet}" />
-                </VerticalStackLayout>
-            </ScrollView>
-        </RefreshView>
-
+        <!-- Bottom nav bar -->
         <controls:BottomNavBar Grid.Row="1" VerticalOptions="End" />
     </Grid>
 </ContentPage>

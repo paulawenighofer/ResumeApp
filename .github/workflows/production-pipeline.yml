@@ -13,10 +13,6 @@ jobs:
       contents: read
     env:
       FEATURES_EMAIL_OTP_DELIVERY: ${{ vars.PRODUCTION_FEATURES_EMAIL_OTP_DELIVERY }}
-      AI_SERVICE_BASE_URL: ${{ vars.PRODUCTION_AI_SERVICE_BASEURL }}
-      AI_SERVICE_MODEL: ${{ vars.PRODUCTION_AI_SERVICE_MODEL }}
-      AI_SERVICE_TIMEOUT_SECONDS: ${{ vars.PRODUCTION_AI_SERVICE_TIMEOUTSECONDS }}
-      AI_SERVICE_API_KEY: ${{ secrets.PRODUCTION_AI_SERVICE_APIKEY }}
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -52,7 +48,7 @@ jobs:
           az containerapp update \
             --name "${{ secrets.AZURE_CONTAINER_APP_NAME }}" \
             --resource-group "${{ secrets.AZURE_RESOURCE_GROUP }}" \
-            --set-env-vars FeatureFlags__EmailOtpDelivery="${FEATURES_EMAIL_OTP_DELIVERY:-true}" AiService__BaseUrl="${AI_SERVICE_BASE_URL}" AiService__ApiKey="${AI_SERVICE_API_KEY}" AiService__Model="${AI_SERVICE_MODEL}" AiService__TimeoutSeconds="${AI_SERVICE_TIMEOUT_SECONDS:-60}"
+            --set-env-vars FeatureFlags__EmailOtpDelivery="${FEATURES_EMAIL_OTP_DELIVERY:-true}" \
             
 
 

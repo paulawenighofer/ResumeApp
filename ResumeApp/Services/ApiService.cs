@@ -1,7 +1,6 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using ResumeApp.Models;
-using Shared.DTO;
 using Shared.Models;
 
 namespace ResumeApp.Services;
@@ -376,40 +375,6 @@ public class ApiService : IApiService
 
         var result = await response.Content.ReadFromJsonAsync<ImageUploadResponse>();
         return result?.ImageUrl;
-    }
-
-    public async Task<ResumeDraftResponse?> CreateResumeDraftAsync(CreateResumeDraftRequest request)
-    {
-        var response = await SendAsync(HttpMethod.Post, "api/resumes/drafts", JsonContent.Create(request));
-        if (response is null || !response.IsSuccessStatusCode)
-        {
-            return null;
-        }
-
-        return await response.Content.ReadFromJsonAsync<ResumeDraftResponse>();
-    }
-
-    public async Task<List<ResumeListItemDto>> GetResumeDraftsAsync()
-    {
-        var response = await SendAsync(HttpMethod.Get, "api/resumes");
-        if (response is null || !response.IsSuccessStatusCode)
-        {
-            return [];
-        }
-
-        var items = await response.Content.ReadFromJsonAsync<List<ResumeListItemDto>>();
-        return items ?? [];
-    }
-
-    public async Task<ResumeDetailDto?> GetResumeDraftAsync(int id)
-    {
-        var response = await SendAsync(HttpMethod.Get, $"api/resumes/{id}");
-        if (response is null || !response.IsSuccessStatusCode)
-        {
-            return null;
-        }
-
-        return await response.Content.ReadFromJsonAsync<ResumeDetailDto>();
     }
 
     private async Task<bool> SendJsonAsync(HttpMethod method, string url, object payload)

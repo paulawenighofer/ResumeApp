@@ -1,5 +1,4 @@
 using ResumeApp.Models;
-using Shared.DTO;
 
 namespace ResumeApp.Services;
 
@@ -25,8 +24,5 @@ public interface IApiService
     Task<bool> PostCertificationAsync(CertificationEntry entry);
     Task<bool> UpdateCertificationAsync(CertificationEntry entry);
     Task<bool> DeleteCertificationAsync(string id);
-    Task<ResumeDraftResponse?> CreateResumeDraftAsync(CreateResumeDraftRequest request);
-    Task<List<ResumeListItemDto>> GetResumeDraftsAsync();
-    Task<ResumeDetailDto?> GetResumeDraftAsync(int id);
     Task<string?> UploadProfileImageAsync(string imagePath);
 }

@@ -65,8 +65,6 @@ public static class MauiProgram
         builder.Services.AddTransient<ResumeListPage>();
         builder.Services.AddTransient<GenerateResumeViewModel>();
         builder.Services.AddTransient<GenerateResumePage>();
-        builder.Services.AddTransient<ResumeDraftDetailViewModel>();
-        builder.Services.AddTransient<ResumeDraftDetailPage>();
         builder.Services.AddTransient<SettingsViewModel>();
         builder.Services.AddTransient<SettingsPage>();
         builder.Services.AddSingleton<BottomNavBarViewModel>();
