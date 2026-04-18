@@ -26,6 +26,10 @@ public sealed class AzureBlobStorageService : IBlobStorageService
         string contentType,
         CancellationToken cancellationToken = default)
     {
+        await _profileImagesContainerClient.CreateIfNotExistsAsync(
+            PublicAccessType.Blob,
+            cancellationToken: cancellationToken);
+
         var blobName = BuildProfileImageBlobName(userId, extension);
         var blobClient = _profileImagesContainerClient.GetBlobClient(blobName);
 
