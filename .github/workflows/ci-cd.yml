@@ -9,6 +9,9 @@ jobs:
     runs-on: self-hosted
     env:
       FEATURES_EMAIL_OTP_DELIVERY: ${{ vars.STAGING_FEATURES_EMAIL_OTP_DELIVERY }}
+      AI_SERVICE_BASE_URL: ${{ vars.STAGING_AI_SERVICE_BASEURL }}
+      AI_SERVICE_MODEL: ${{ vars.STAGING_AI_SERVICE_MODEL }}
+      AI_SERVICE_TIMEOUT_SECONDS: ${{ vars.STAGING_AI_SERVICE_TIMEOUTSECONDS }}
     steps:
       - name: Check out repository code
         uses: actions/checkout@v5
@@ -64,6 +67,10 @@ jobs:
             --from-literal=POSTGRES_DB="${{ secrets.POSTGRES_DB }}" \
             --from-literal=Smtp__Username="${{ secrets.SMTP_USERNAME }}" \
             --from-literal=Smtp__Password="${{ secrets.SMTP_PASSWORD }}" \
+            --from-literal=AiService__BaseUrl="${AI_SERVICE_BASE_URL}" \
+            --from-literal=AiService__ApiKey="${{ secrets.AI_SERVICE_APIKEY }}" \
+            --from-literal=AiService__Model="${AI_SERVICE_MODEL}" \
+            --from-literal=AiService__TimeoutSeconds="${AI_SERVICE_TIMEOUT_SECONDS:-60}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Deploy Manifests
@@ -93,4 +100,3 @@ jobs:
         if: failure()
         run: |
           curl -d "App Deployment Failed for Resume APP - Please fix it" ntfy.sh/resume-app-pb
-        

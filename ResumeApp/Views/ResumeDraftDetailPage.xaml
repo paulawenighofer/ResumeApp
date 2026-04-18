@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:ResumeApp.Views.Controls"
+             xmlns:vm="clr-namespace:ResumeApp.ViewModels"
+             x:Class="ResumeApp.Views.ResumeDraftDetailPage"
+             x:DataType="vm:ResumeDraftDetailViewModel"
+             Shell.NavBarIsVisible="False"
+             Shell.TabBarIsVisible="False"
+             BackgroundColor="{StaticResource PageBackground}">
+
+    <VerticalStackLayout Padding="24,16" Spacing="16">
+        <controls:PageHeader Title="Draft Preview" />
+
+        <Label Text="Draft Preview"
+               FontSize="24"
+               FontFamily="OpenSansSemibold"
+               TextColor="{StaticResource TextPrimary}" />
+
+        <Border Style="{StaticResource CardStyle}">
+            <Label Text="Draft details will appear here."
+                   Style="{StaticResource SubtitleStyle}" />
+        </Border>
+    </VerticalStackLayout>
+</ContentPage>
