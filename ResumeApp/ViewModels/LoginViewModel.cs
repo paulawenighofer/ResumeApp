@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ResumeApp.Services;
+using System.Collections.Generic;
 
 namespace ResumeApp.ViewModels;
 
@@ -112,9 +113,16 @@ public partial class LoginViewModel : ObservableObject
 
             if (authResult.Properties.TryGetValue("token", out var t))
                 token = t;
+            else if (TryGetPropertyIgnoreCase(authResult.Properties, "token", out var tokenValue))
+                token = tokenValue;
             else if (authResult.Properties.TryGetValue("error", out var error))
             {
                 await ShowErrorAsync($"Login failed: {error}");
+                return;
+            }
+            else if (TryGetPropertyIgnoreCase(authResult.Properties, "error", out var errorValue))
+            {
+                await ShowErrorAsync($"Login failed: {errorValue}");
                 return;
             }
 #endif
@@ -134,7 +142,7 @@ public partial class LoginViewModel : ObservableObject
         }
         catch (TaskCanceledException)
         {
-            // User cancelled — do nothing
+            await ShowErrorAsync("Login was cancelled or the callback did not complete.");
         }
         catch (Exception)
         {
@@ -163,5 +171,23 @@ public partial class LoginViewModel : ObservableObject
         ErrorMessage = message;
         HasError = true;
         await ToastService.ShowAsync(message, isError: true, durationMilliseconds: 4500);
+    }
+
+    private static bool TryGetPropertyIgnoreCase(
+        IDictionary<string, string> properties,
+        string key,
+        out string? value)
+    {
+        foreach (var pair in properties)
+        {
+            if (string.Equals(pair.Key, key, StringComparison.OrdinalIgnoreCase))
+            {
+                value = pair.Value;
+                return true;
+            }
+        }
+
+        value = null;
+        return false;
     }
 }
