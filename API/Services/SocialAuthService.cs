@@ -54,7 +54,7 @@ public class SocialAuthService
                $"?response_type=code" +
                $"&client_id={clientId}" +
                $"&redirect_uri={Uri.EscapeDataString(redirectUri)}" +
-               $"&state={state}" +
+               $"&state={Uri.EscapeDataString(state)}" +
                $"&scope=openid%20email%20profile";
     }
 
@@ -131,7 +131,7 @@ public class SocialAuthService
                $"?response_type=code" +
                $"&client_id={clientId}" +
                $"&redirect_uri={Uri.EscapeDataString(redirectUri)}" +
-               $"&state={state}" +
+               $"&state={Uri.EscapeDataString(state)}" +
                $"&scope=openid%20profile%20email";
     }
 
@@ -208,7 +208,7 @@ public class SocialAuthService
         return $"https://github.com/login/oauth/authorize" +
                $"?client_id={clientId}" +
                $"&redirect_uri={Uri.EscapeDataString(redirectUri)}" +
-               $"&state={state}" +
+               $"&state={Uri.EscapeDataString(state)}" +
                $"&scope=user:email%20read:user";
     }
 

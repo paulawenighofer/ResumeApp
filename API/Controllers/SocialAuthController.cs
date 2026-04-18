@@ -180,11 +180,18 @@ public class SocialAuthController : ControllerBase
         string? returnUrl = null;
         if (state.Contains('|'))
         {
-            var parts = state.Split('|', 2);
-            returnUrl = Encoding.UTF8.GetString(Convert.FromBase64String(parts[1]));
+            try
+            {
+                var parts = state.Split('|', 2);
+                returnUrl = Encoding.UTF8.GetString(Convert.FromBase64String(parts[1]));
+            }
+            catch
+            {
+                returnUrl = null;
+            }
         }
 
-        var appScheme = _config["AppScheme"];
+        var appScheme = _config["AppScheme"] ?? "myresumebuilder";
 
         if (token == null)
         {
@@ -232,7 +239,7 @@ public class SocialAuthController : ControllerBase
                 "Social login callback processing failed for provider {Provider}",
                 provider);
             _metrics.RecordSocialLogin(provider, TelemetryTags.Outcomes.Failure);
-            throw;
+            return BuildCallbackRedirect(null, state, errorCode);
         }
     }
 }

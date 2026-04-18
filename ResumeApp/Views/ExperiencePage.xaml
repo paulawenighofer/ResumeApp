@@ -174,12 +174,14 @@
                                 <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,4,0,0">
                                     <Button Grid.Column="0"
                                             Text="Edit"
+                                            x:DataType="{x:Null}"
                                             Command="{Binding Source={x:Reference ExperiencePageRoot}, Path=BindingContext.EditExperienceCommand}"
                                             CommandParameter="{Binding .}"
                                             Style="{StaticResource OutlineButtonStyle}"
                                             HeightRequest="36" />
                                     <Button Grid.Column="1"
                                             Text="Delete"
+                                            x:DataType="{x:Null}"
                                             Command="{Binding Source={x:Reference ExperiencePageRoot}, Path=BindingContext.DeleteExperienceCommand}"
                                             CommandParameter="{Binding .}"
                                             Style="{StaticResource DangerButtonStyle}"

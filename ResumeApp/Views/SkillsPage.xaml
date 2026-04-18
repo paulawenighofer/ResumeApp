@@ -92,6 +92,7 @@
                                 Padding="12,8">
                             <Border.GestureRecognizers>
                                 <TapGestureRecognizer
+                                    x:DataType="{x:Null}"
                                     Command="{Binding Source={x:Reference SkillsPageRoot}, Path=BindingContext.AddSuggestedSkillCommand}"
                                     CommandParameter="{Binding .}" />
                             </Border.GestureRecognizers>
@@ -139,12 +140,14 @@
                                 </VerticalStackLayout>
                                 <VerticalStackLayout Grid.Column="1" Spacing="8" VerticalOptions="Center">
                                     <Button Text="Edit"
+                                            x:DataType="{x:Null}"
                                             Command="{Binding Source={x:Reference SkillsPageRoot}, Path=BindingContext.EditSkillCommand}"
                                             CommandParameter="{Binding .}"
                                             Style="{StaticResource OutlineButtonStyle}"
                                             HeightRequest="36"
                                             Padding="12,4" />
                                     <Button Text="Delete"
+                                            x:DataType="{x:Null}"
                                             Command="{Binding Source={x:Reference SkillsPageRoot}, Path=BindingContext.DeleteSkillCommand}"
                                             CommandParameter="{Binding .}"
                                             Style="{StaticResource DangerButtonStyle}"

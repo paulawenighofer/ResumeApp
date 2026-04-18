@@ -22,6 +22,7 @@
 		<RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
 		<RunAnalyzersDuringLiveAnalysis>true</RunAnalyzersDuringLiveAnalysis>
 		<MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
+		<NoWarn>$(NoWarn);MVVMTK0045;XC0023</NoWarn>
 
 		<!-- Display name -->
 		<ApplicationTitle>ResumeApp</ApplicationTitle>
@@ -42,6 +43,12 @@
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)' == 'Release' and $([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
+		<RuntimeIdentifier>android-arm64</RuntimeIdentifier>
+		<AndroidSupportedAbis>arm64-v8a</AndroidSupportedAbis>
+		<AndroidPackageFormats>apk</AndroidPackageFormats>
 	</PropertyGroup>
 
 	<ItemGroup>
