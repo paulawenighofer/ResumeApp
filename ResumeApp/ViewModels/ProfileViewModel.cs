@@ -8,6 +8,7 @@ namespace ResumeApp.ViewModels;
 public partial class ProfileViewModel : ObservableObject
 {
     private readonly AuthService _authService;
+    private readonly IApiService _apiService;
     private readonly ILocalStorageService _localStorageService;
 
     [ObservableProperty]
@@ -19,14 +20,33 @@ public partial class ProfileViewModel : ObservableObject
     [ObservableProperty]
     private string profileImagePath = "";
 
-    public ImageSource? ProfileImageSource =>
-        !string.IsNullOrWhiteSpace(ProfileImagePath)
-            ? ImageSource.FromFile(ProfileImagePath)
-            : null;
+    private string profileImageUrl = "";
+    public string ProfileImageUrl
+    {
+        get => profileImageUrl;
+        set
+        {
+            if (SetProperty(ref profileImageUrl, value))
+            {
+                OnPropertyChanged(nameof(ProfileImageSource));
+                OnPropertyChanged(nameof(HasProfileImage));
+            }
+        }
+    }
 
-    public ProfileViewModel(AuthService authService, ILocalStorageService localStorageService)
+    public bool HasProfileImage => !string.IsNullOrWhiteSpace(ProfileImagePath) || !string.IsNullOrWhiteSpace(ProfileImageUrl);
+
+    public ImageSource? ProfileImageSource =>
+        !string.IsNullOrWhiteSpace(ProfileImageUrl)
+            ? ImageSource.FromUri(new Uri(ProfileImageUrl))
+            : !string.IsNullOrWhiteSpace(ProfileImagePath)
+                ? ImageSource.FromFile(ProfileImagePath)
+                : null;
+
+    public ProfileViewModel(AuthService authService, IApiService apiService, ILocalStorageService localStorageService)
     {
         _authService = authService;
+        _apiService = apiService;
         _localStorageService = localStorageService;
         _ = LoadUserInfoAsync();
     }
@@ -41,12 +61,29 @@ public partial class ProfileViewModel : ObservableObject
         if (!string.IsNullOrWhiteSpace(savedEmail))
             UserEmail = savedEmail;
 
+        var savedImageUrl = await _localStorageService.LoadProfileImageUrlAsync();
+        if (!string.IsNullOrWhiteSpace(savedImageUrl))
+        {
+            ProfileImageUrl = savedImageUrl;
+            ProfileImagePath = string.Empty;
+            OnPropertyChanged(nameof(ProfileImageSource));
+            OnPropertyChanged(nameof(HasProfileImage));
+            return;
+        }
+
         var savedImagePath = await _localStorageService.LoadProfileImagePathAsync();
         if (!string.IsNullOrWhiteSpace(savedImagePath))
         {
             ProfileImagePath = savedImagePath;
             OnPropertyChanged(nameof(ProfileImageSource));
+            OnPropertyChanged(nameof(HasProfileImage));
         }
+    }
+
+    partial void OnProfileImagePathChanged(string value)
+    {
+        OnPropertyChanged(nameof(ProfileImageSource));
+        OnPropertyChanged(nameof(HasProfileImage));
     }
 
     [RelayCommand]
@@ -62,9 +99,19 @@ public partial class ProfileViewModel : ObservableObject
 
             if (result?.FullPath is null) return;
 
+            ProfileImageUrl = string.Empty;
             ProfileImagePath = result.FullPath;
             await _localStorageService.SaveProfileImagePathAsync(ProfileImagePath);
-            OnPropertyChanged(nameof(ProfileImageSource));
+
+            var uploadedUrl = await _apiService.UploadProfileImageAsync(ProfileImagePath);
+            if (!string.IsNullOrWhiteSpace(uploadedUrl))
+            {
+                ProfileImageUrl = uploadedUrl;
+                ProfileImagePath = string.Empty;
+
+                await _localStorageService.SaveProfileImageUrlAsync(ProfileImageUrl);
+                await _localStorageService.SaveProfileImagePathAsync(null);
+            }
         }
         catch (Exception ex)
         {

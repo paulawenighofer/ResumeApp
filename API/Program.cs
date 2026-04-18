@@ -80,6 +80,13 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddSingleton<InMemoryResumeStore>();
 builder.Services.AddFeatureManagement(builder.Configuration.GetSection("FeatureFlags"));
 
+builder.Services
+    .AddOptions<AzureBlobOptions>()
+    .Bind(builder.Configuration.GetSection(AzureBlobOptions.SectionName))
+    .Validate(options => !string.IsNullOrWhiteSpace(options.ConnectionString), "AzureBlob:ConnectionString is required.")
+    .Validate(options => !string.IsNullOrWhiteSpace(options.ProfileImagesContainer), "AzureBlob:ProfileImagesContainer is required.")
+    .ValidateOnStart();
+
 // =============================================
 // SECTION 1: DATABASE
 // =============================================
@@ -168,6 +175,7 @@ builder.Services.AddHttpClient();
 builder.Services.AddScoped<TokenService>();
 // Register our social auth service
 builder.Services.AddScoped<SocialAuthService>();
+builder.Services.AddSingleton<IBlobStorageService, AzureBlobStorageService>();
 
 // Register email service implementations and select one by feature flag at resolve time.
 builder.Services.AddScoped<SmtpEmailService>();
