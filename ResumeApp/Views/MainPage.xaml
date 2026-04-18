@@ -46,13 +46,14 @@
                                 VerticalOptions="Center">
                             <Grid>
                                 <Image Source="{Binding ProfileImageSource}"
-                                       Aspect="AspectFill" />
+                                       Aspect="AspectFill"
+                                       IsVisible="{Binding HasProfileImage}" />
                                 <Label Text="&#xf007;"
                                        FontFamily="FASolid"
                                        FontSize="24"
                                        HorizontalOptions="Center"
                                        VerticalOptions="Center"
-                                       IsVisible="{Binding ProfileImageSource, Converter={StaticResource inverseBoolean}}" />
+                                       IsVisible="{Binding HasProfileImage, Converter={StaticResource inverseBoolean}}" />
                             </Grid>
                         </Border>
                     </Grid>

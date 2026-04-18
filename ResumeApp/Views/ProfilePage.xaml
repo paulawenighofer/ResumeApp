@@ -31,13 +31,13 @@
                             <Grid>
                                 <Image Source="{Binding ProfileImageSource}"
                                        Aspect="AspectFill"
-                                       IsVisible="{Binding ProfileImagePath, Converter={StaticResource inverseBoolean}}" />
+                                       IsVisible="{Binding HasProfileImage}" />
                                 <Label Text="&#xf007;"
                                        FontFamily="FASolid"
                                        FontSize="30"
                                        HorizontalOptions="Center"
                                        VerticalOptions="Center"
-                                       IsVisible="{Binding ProfileImagePath, Converter={StaticResource inverseBoolean}}" />
+                                       IsVisible="{Binding HasProfileImage, Converter={StaticResource inverseBoolean}}" />
                             </Grid>
                         </Border>
 

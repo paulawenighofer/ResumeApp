@@ -38,6 +38,12 @@ spec:
               value: ResumeApp
             - name: FeatureFlags__EmailOtpDelivery
               value: "${FEATURES_EMAIL_OTP_DELIVERY}"
+            - name: AzureBlob__ConnectionString
+              value: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite-service:10000/devstoreaccount1;"
+            - name: AzureBlob__ProfileImagesContainer
+              value: profile-images
+            - name: AzureBlob__ProfileImagesBasePath
+              value: ""
           envFrom:
             - secretRef:
                 name: resume-app-secrets

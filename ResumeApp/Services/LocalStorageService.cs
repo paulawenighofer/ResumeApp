@@ -14,6 +14,7 @@ public class LocalStorageService : ILocalStorageService
     private const string ProjectsKey = "draft_projects";
     private const string CertificationsKey = "draft_certifications";
     private const string ProfileImageKey = "profile_image_path";
+    private const string ProfileImageUrlKey = "profile_image_url";
 
     private static readonly string[] LegacyKeys =
     {
@@ -22,7 +23,8 @@ public class LocalStorageService : ILocalStorageService
         SkillsKey,
         ProjectsKey,
         CertificationsKey,
-        ProfileImageKey
+        ProfileImageKey,
+        ProfileImageUrlKey
     };
 
     public LocalStorageService(CurrentUserService currentUserService)
@@ -70,6 +72,33 @@ public class LocalStorageService : ILocalStorageService
         }
 
         RemoveLegacyKey(ProfileImageKey);
+        return null;
+    }
+
+    public async Task SaveProfileImageUrlAsync(string? imageUrl)
+    {
+        var key = await GetScopedKeyAsync(ProfileImageUrlKey);
+        if (string.IsNullOrWhiteSpace(imageUrl))
+        {
+            Preferences.Default.Remove(key);
+        }
+        else
+        {
+            Preferences.Default.Set(key, imageUrl);
+        }
+
+        Preferences.Default.Remove(ProfileImageUrlKey);
+    }
+
+    public async Task<string?> LoadProfileImageUrlAsync()
+    {
+        var key = await GetScopedKeyAsync(ProfileImageUrlKey);
+        if (Preferences.Default.ContainsKey(key))
+        {
+            return Preferences.Default.Get(key, string.Empty);
+        }
+
+        RemoveLegacyKey(ProfileImageUrlKey);
         return null;
     }
 

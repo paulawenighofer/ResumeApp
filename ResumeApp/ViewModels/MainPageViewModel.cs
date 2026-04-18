@@ -23,15 +23,17 @@ public partial class MainPageViewModel : ObservableObject
     [ObservableProperty]
     private string profileImageUrl = "";
 
+    public bool HasProfileImage => !string.IsNullOrWhiteSpace(ProfileImagePath) || !string.IsNullOrWhiteSpace(ProfileImageUrl);
+
     public string AppHeading { get; } = "AI Resume Builder";
 
     public string Greeting => $"Hi, {UserName} 👋";
 
     public ImageSource? ProfileImageSource =>
-        !string.IsNullOrWhiteSpace(ProfileImagePath)
-            ? ImageSource.FromFile(ProfileImagePath)
-            : !string.IsNullOrWhiteSpace(ProfileImageUrl)
-                ? ImageSource.FromUri(new Uri(ProfileImageUrl))
+        !string.IsNullOrWhiteSpace(ProfileImageUrl)
+            ? ImageSource.FromUri(new Uri(ProfileImageUrl))
+            : !string.IsNullOrWhiteSpace(ProfileImagePath)
+                ? ImageSource.FromFile(ProfileImagePath)
                 : null;
 
     public MainPageViewModel(
@@ -55,12 +57,35 @@ public partial class MainPageViewModel : ObservableObject
         if (!string.IsNullOrWhiteSpace(savedEmail))
             UserEmail = savedEmail;
 
+        var savedImageUrl = await _localStorageService.LoadProfileImageUrlAsync();
+        if (!string.IsNullOrWhiteSpace(savedImageUrl))
+        {
+            ProfileImageUrl = savedImageUrl;
+            ProfileImagePath = string.Empty;
+            OnPropertyChanged(nameof(ProfileImageSource));
+            OnPropertyChanged(nameof(HasProfileImage));
+            return;
+        }
+
         var savedImagePath = await _localStorageService.LoadProfileImagePathAsync();
         if (!string.IsNullOrWhiteSpace(savedImagePath))
         {
             ProfileImagePath = savedImagePath;
             OnPropertyChanged(nameof(ProfileImageSource));
+            OnPropertyChanged(nameof(HasProfileImage));
         }
+    }
+
+    partial void OnProfileImagePathChanged(string value)
+    {
+        OnPropertyChanged(nameof(ProfileImageSource));
+        OnPropertyChanged(nameof(HasProfileImage));
+    }
+
+    partial void OnProfileImageUrlChanged(string value)
+    {
+        OnPropertyChanged(nameof(ProfileImageSource));
+        OnPropertyChanged(nameof(HasProfileImage));
     }
 
     [RelayCommand]
@@ -86,15 +111,18 @@ public partial class MainPageViewModel : ObservableObject
                 return;
             }
 
+            ProfileImageUrl = string.Empty;
             ProfileImagePath = result.FullPath;
             await _localStorageService.SaveProfileImagePathAsync(ProfileImagePath);
-            OnPropertyChanged(nameof(ProfileImageSource));
 
             var uploadedUrl = await _apiService.UploadProfileImageAsync(ProfileImagePath);
             if (!string.IsNullOrWhiteSpace(uploadedUrl))
             {
                 ProfileImageUrl = uploadedUrl;
-                OnPropertyChanged(nameof(ProfileImageSource));
+                ProfileImagePath = string.Empty;
+
+                await _localStorageService.SaveProfileImageUrlAsync(ProfileImageUrl);
+                await _localStorageService.SaveProfileImagePathAsync(null);
             }
         }
         catch (Exception ex)
