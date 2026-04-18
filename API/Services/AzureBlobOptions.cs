@@ -4,9 +4,9 @@ public sealed class AzureBlobOptions
 {
     public const string SectionName = "AzureBlob";
 
-    public string ConnectionString { get; init; } = string.Empty;
+    public string ConnectionString { get; set; } = string.Empty;
 
-    public string ProfileImagesContainer { get; init; } = string.Empty;
+    public string ProfileImagesContainer { get; set; } = string.Empty;
 
-    public string? ProfileImagesBasePath { get; init; }
+    public string? ProfileImagesBasePath { get; set; }
 }

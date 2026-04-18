@@ -49,6 +49,9 @@ public class ApiFactory : WebApplicationFactory<Program>
                 ["Jwt:Audience"] = "TestAudience",
                 ["Jwt:ExpirationInMinutes"] = "60",
                 ["FeatureFlags:EmailOtpDelivery"] = _emailOtpDeliveryEnabled.ToString(),
+                ["AzureBlob:ConnectionString"] = "UseDevelopmentStorage=true",
+                ["AzureBlob:ProfileImagesContainer"] = "profile-images",
+                ["AzureBlob:ProfileImagesBasePath"] = "",
             };
 
             if (!_useProductionRateLimits)
