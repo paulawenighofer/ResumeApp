@@ -4,6 +4,8 @@ namespace API.Services;
 
 public class ResumeJsonValidator : IResumeJsonValidator
 {
+    private const int MaxGeneratedJsonLength = 20000;
+
     private static readonly HashSet<string> AllowedTopLevelFields =
     [
         "user",
@@ -21,6 +23,12 @@ public class ResumeJsonValidator : IResumeJsonValidator
         if (string.IsNullOrWhiteSpace(generatedResumeJson))
         {
             failureReason = "AI returned an empty response.";
+            return false;
+        }
+
+        if (generatedResumeJson.Length > MaxGeneratedJsonLength)
+        {
+            failureReason = $"AI response exceeded the maximum allowed size of {MaxGeneratedJsonLength} characters.";
             return false;
         }
 
@@ -46,7 +54,7 @@ public class ResumeJsonValidator : IResumeJsonValidator
 
             foreach (var property in root.EnumerateObject())
             {
-                if (!AllowedTopLevelFields.Contains(property.Name))
+                if (string.IsNullOrWhiteSpace(property.Name) || !AllowedTopLevelFields.Contains(property.Name))
                 {
                     failureReason = $"Unsupported top-level field '{property.Name}' in AI response.";
                     return false;

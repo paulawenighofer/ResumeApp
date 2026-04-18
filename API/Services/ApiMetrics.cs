@@ -24,6 +24,12 @@ public sealed class ApiMetrics : IDisposable
     private readonly Counter<long> _uploadOperations;
     private readonly Histogram<long> _uploadBytes;
     private readonly Histogram<double> _uploadDurationMs;
+    private readonly Counter<long> _resumeDraftGenerations;
+    private readonly Histogram<double> _resumeDraftGenerationDurationMs;
+    private readonly Counter<long> _resumePdfGenerations;
+    private readonly Histogram<double> _resumePdfGenerationDurationMs;
+    private readonly Counter<long> _blobOperations;
+    private readonly Histogram<double> _blobOperationDurationMs;
 
     public ApiMetrics(UserActivityTracker activityTracker, IWebHostEnvironment environment)
     {
@@ -83,6 +89,33 @@ public sealed class ApiMetrics : IDisposable
             unit: "ms",
             description: "Duration of upload operations");
 
+        _resumeDraftGenerations = _meter.CreateCounter<long>(
+            "resumeapp_resume_draft_generations_total",
+            description: "Count of AI resume draft generation attempts by outcome");
+
+        _resumeDraftGenerationDurationMs = _meter.CreateHistogram<double>(
+            "resumeapp_resume_draft_generation_duration_ms",
+            unit: "ms",
+            description: "Time to complete AI resume draft generation");
+
+        _resumePdfGenerations = _meter.CreateCounter<long>(
+            "resumeapp_resume_pdf_generations_total",
+            description: "Count of resume PDF generation attempts by outcome");
+
+        _resumePdfGenerationDurationMs = _meter.CreateHistogram<double>(
+            "resumeapp_resume_pdf_generation_duration_ms",
+            unit: "ms",
+            description: "Time to complete resume PDF generation");
+
+        _blobOperations = _meter.CreateCounter<long>(
+            "resumeapp_blob_operations_total",
+            description: "Count of blob storage operations by category, action, and outcome");
+
+        _blobOperationDurationMs = _meter.CreateHistogram<double>(
+            "resumeapp_blob_operation_duration_ms",
+            unit: "ms",
+            description: "Duration of blob storage operations");
+
         _meter.CreateObservableGauge<long>(
             "resumeapp_active_users",
             ObserveActiveUsers,
@@ -141,6 +174,42 @@ public sealed class ApiMetrics : IDisposable
         _uploadOperations.Add(1, tags);
         _uploadBytes.Record(totalBytes, tags);
         _uploadDurationMs.Record(durationMs, tags);
+
+        if (!string.IsNullOrWhiteSpace(userId))
+        {
+            _activityTracker.RecordActivity(userId);
+        }
+    }
+
+    public void RecordResumeDraftGeneration(string outcome, double durationMs, string? userId = null)
+    {
+        var tags = CreateTags(("outcome", outcome));
+        _resumeDraftGenerations.Add(1, tags);
+        _resumeDraftGenerationDurationMs.Record(durationMs, tags);
+
+        if (!string.IsNullOrWhiteSpace(userId))
+        {
+            _activityTracker.RecordActivity(userId);
+        }
+    }
+
+    public void RecordResumePdfGeneration(string outcome, double durationMs, string? userId = null)
+    {
+        var tags = CreateTags(("outcome", outcome));
+        _resumePdfGenerations.Add(1, tags);
+        _resumePdfGenerationDurationMs.Record(durationMs, tags);
+
+        if (!string.IsNullOrWhiteSpace(userId))
+        {
+            _activityTracker.RecordActivity(userId);
+        }
+    }
+
+    public void RecordBlobOperation(string category, string operation, string outcome, double durationMs, string? userId = null)
+    {
+        var tags = CreateTags(("category", category), ("operation", operation), ("outcome", outcome));
+        _blobOperations.Add(1, tags);
+        _blobOperationDurationMs.Record(durationMs, tags);
 
         if (!string.IsNullOrWhiteSpace(userId))
         {

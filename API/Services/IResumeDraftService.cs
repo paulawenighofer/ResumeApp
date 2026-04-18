@@ -13,4 +13,4 @@ public interface IResumeDraftService
     Task<ResumePdfDownloadResult?> GetPdfAsync(string userId, int id, CancellationToken cancellationToken = default);
 }
 
-public sealed record ResumePdfDownloadResult(Stream Content, string FileName);
+public sealed record ResumePdfDownloadResult(Stream Content, string FileName, string ContentType);

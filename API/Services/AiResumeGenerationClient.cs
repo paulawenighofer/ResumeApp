@@ -23,6 +23,11 @@ public class AiResumeGenerationClient : IAiResumeGenerationClient
             throw new InvalidOperationException("AiService:BaseUrl is not configured.");
         }
 
+        if (string.IsNullOrWhiteSpace(config.Model))
+        {
+            throw new InvalidOperationException("AiService:Model is not configured.");
+        }
+
         var timeoutSeconds = config.TimeoutSeconds <= 0 ? 60 : config.TimeoutSeconds;
         using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeoutCts.CancelAfter(TimeSpan.FromSeconds(timeoutSeconds));
@@ -46,15 +51,22 @@ public class AiResumeGenerationClient : IAiResumeGenerationClient
             request.Headers.TryAddWithoutValidation("Authorization", $"Bearer {config.ApiKey}");
         }
 
-        using var response = await client.SendAsync(request, timeoutCts.Token);
-        var body = await response.Content.ReadAsStringAsync(timeoutCts.Token);
-
-        if (!response.IsSuccessStatusCode)
+        try
         {
-            throw new InvalidOperationException($"AI generation failed with status {(int)response.StatusCode}: {body}");
-        }
+            using var response = await client.SendAsync(request, timeoutCts.Token);
+            var body = await response.Content.ReadAsStringAsync(timeoutCts.Token);
 
-        return ExtractGeneratedJson(body);
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new InvalidOperationException($"AI generation failed with status {(int)response.StatusCode}: {body}");
+            }
+
+            return ExtractGeneratedJson(body);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            throw new TimeoutException($"AI generation timed out after {timeoutSeconds} seconds.");
+        }
     }
 
     private static string ExtractGeneratedJson(string responseBody)

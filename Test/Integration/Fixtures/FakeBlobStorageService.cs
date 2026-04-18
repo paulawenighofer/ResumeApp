@@ -21,16 +21,22 @@ public sealed class FakeBlobStorageService : IBlobStorageService
         return path;
     }
 
-    public Task<Stream?> DownloadResumePdfAsync(string blobPath, CancellationToken cancellationToken = default)
+    public Task<ResumePdfDownloadResult?> DownloadResumePdfAsync(string blobPath, CancellationToken cancellationToken = default)
     {
         if (!_resumePdfs.TryGetValue(blobPath, out var bytes))
         {
-            return Task.FromResult<Stream?>(null);
+            return Task.FromResult<ResumePdfDownloadResult?>(null);
         }
 
         Stream stream = new MemoryStream(bytes, writable: false);
-        return Task.FromResult<Stream?>(stream);
+        return Task.FromResult<ResumePdfDownloadResult?>(new ResumePdfDownloadResult(stream, Path.GetFileName(blobPath), "application/pdf"));
     }
+
+    public Task<bool> ResumePdfExistsAsync(string blobPath, CancellationToken cancellationToken = default)
+        => Task.FromResult(_resumePdfs.ContainsKey(blobPath));
+
+    public Task<bool> DeleteResumePdfAsync(string blobPath, CancellationToken cancellationToken = default)
+        => Task.FromResult(_resumePdfs.Remove(blobPath));
 
     public Task<bool> TryDeleteAsync(string blobUrl, CancellationToken cancellationToken = default)
         => Task.FromResult(true);

@@ -119,7 +119,7 @@ public class ProfileController : ControllerBase
             if (!string.IsNullOrWhiteSpace(previousImageUrl) &&
                 !string.Equals(previousImageUrl, uploadedImageUrl, StringComparison.OrdinalIgnoreCase))
             {
-                _ = _blobStorageService.TryDeleteAsync(previousImageUrl, cancellationToken);
+                await _blobStorageService.TryDeleteAsync(previousImageUrl, cancellationToken);
             }
 
             stopwatch.Stop();
