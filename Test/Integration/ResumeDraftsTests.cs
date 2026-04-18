@@ -5,17 +5,23 @@ using Test.Integration.Fixtures;
 
 namespace Test.Integration;
 
-public class ResumeDraftsTests : IClassFixture<ApiFactory>
+public class ResumeDraftsTests : IDisposable
 {
     private readonly ApiFactory _factory;
     private readonly HttpClient _client;
 
-    public ResumeDraftsTests(ApiFactory factory)
+    public ResumeDraftsTests()
     {
-        _factory = factory;
-        _client = factory.CreateClient();
-        factory.EmailService.Reset();
-        factory.AiResumeGenerationClient.Reset();
+        _factory = new ApiFactory();
+        _client = _factory.CreateClient();
+        _factory.EmailService.Reset();
+        _factory.AiResumeGenerationClient.Reset();
+    }
+
+    public void Dispose()
+    {
+        _client.Dispose();
+        _factory.Dispose();
     }
 
     [Fact]
