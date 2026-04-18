@@ -28,5 +28,7 @@ public interface IApiService
     Task<ResumeDraftResponse?> CreateResumeDraftAsync(CreateResumeDraftRequest request);
     Task<List<ResumeListItemDto>> GetResumeDraftsAsync();
     Task<ResumeDetailDto?> GetResumeDraftAsync(int id);
+    Task<ResumeDetailDto?> SaveResumeDraftEditAsync(int id, SaveDraftEditRequest request);
+    Task<ApproveDraftResponse?> ApproveResumeDraftAsync(int id, ApproveDraftRequest request);
     Task<string?> UploadProfileImageAsync(string imagePath);
 }

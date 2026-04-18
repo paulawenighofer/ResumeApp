@@ -57,7 +57,29 @@ public class ResumeDetailDto
     public string? GenerationRequestJson { get; set; }
     public string? GeneratedResumeJson { get; set; }
     public string? EditedResumeJson { get; set; }
+    public string? ApprovedJson { get; set; }
     public string? FailedReason { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
+    public DateTime? ApprovedAt { get; set; }
+}
+
+public class SaveDraftEditRequest
+{
+    [Required, MaxLength(20000)]
+    public string EditedResumeJson { get; set; } = string.Empty;
+}
+
+public class ApproveDraftRequest
+{
+    [Required, MaxLength(20000)]
+    public string FinalResumeJson { get; set; } = string.Empty;
+}
+
+public class ApproveDraftResponse
+{
+    public int Id { get; set; }
+    public ResumeDraftStatus Status { get; set; }
+    public DateTime ApprovedAt { get; set; }
+    public string TargetCompany { get; set; } = string.Empty;
 }

@@ -98,11 +98,79 @@ public class ResumeDraftService : IResumeDraftService
                 GenerationRequestJson = x.GenerationRequestJson,
                 GeneratedResumeJson = x.GeneratedResumeJson,
                 EditedResumeJson = x.EditedResumeJson,
+                ApprovedJson = x.ApprovedJson,
                 FailedReason = x.FailedReason,
                 CreatedAt = x.CreatedAt,
-                UpdatedAt = x.UpdatedAt
+                UpdatedAt = x.UpdatedAt,
+                ApprovedAt = x.ApprovedAt
             })
             .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<ResumeDetailDto?> SaveDraftEditAsync(string userId, int id, SaveDraftEditRequest request, CancellationToken cancellationToken = default)
+    {
+        var resume = await _db.Resumes.FirstOrDefaultAsync(x => x.UserId == userId && x.Id == id, cancellationToken);
+        
+        if (resume is null)
+        {
+            return null;
+        }
+
+        if (resume.Status == ResumeDraftStatus.Approved)
+        {
+            throw new InvalidOperationException("Cannot edit an approved draft.");
+        }
+
+        resume.EditedResumeJson = request.EditedResumeJson;
+        resume.Status = ResumeDraftStatus.DraftReady;
+        resume.UpdatedAt = DateTime.UtcNow;
+
+        await _db.SaveChangesAsync(cancellationToken);
+
+        return new ResumeDetailDto
+        {
+            Id = resume.Id,
+            Status = resume.Status,
+            TargetCompany = resume.TargetCompany,
+            GenerationRequestJson = resume.GenerationRequestJson,
+            GeneratedResumeJson = resume.GeneratedResumeJson,
+            EditedResumeJson = resume.EditedResumeJson,
+            ApprovedJson = resume.ApprovedJson,
+            FailedReason = resume.FailedReason,
+            CreatedAt = resume.CreatedAt,
+            UpdatedAt = resume.UpdatedAt,
+            ApprovedAt = resume.ApprovedAt
+        };
+    }
+
+    public async Task<ApproveDraftResponse?> ApproveDraftAsync(string userId, int id, ApproveDraftRequest request, CancellationToken cancellationToken = default)
+    {
+        var resume = await _db.Resumes.FirstOrDefaultAsync(x => x.UserId == userId && x.Id == id, cancellationToken);
+        
+        if (resume is null)
+        {
+            return null;
+        }
+
+        if (resume.Status == ResumeDraftStatus.Approved)
+        {
+            throw new InvalidOperationException("Draft is already approved.");
+        }
+
+        resume.ApprovedJson = request.FinalResumeJson;
+        resume.Status = ResumeDraftStatus.Approved;
+        resume.ApprovedAt = DateTime.UtcNow;
+        resume.UpdatedAt = DateTime.UtcNow;
+
+        await _db.SaveChangesAsync(cancellationToken);
+
+        return new ApproveDraftResponse
+        {
+            Id = resume.Id,
+            Status = resume.Status,
+            ApprovedAt = resume.ApprovedAt.Value,
+            TargetCompany = resume.TargetCompany
+        };
     }
 
     private static ResumeDraftResponse MapToDraftResponse(Resume resume) => new()

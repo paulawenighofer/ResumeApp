@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ResumeApp.Models;
 using ResumeApp.Services;
+using Shared.DTO;
 using Shared.Models;
 
 namespace ResumeApp.ViewModels;
@@ -11,6 +12,8 @@ namespace ResumeApp.ViewModels;
 public partial class ResumeDraftDetailViewModel : ObservableObject, IQueryAttributable
 {
     private readonly IApiService _apiService;
+    private ResumeDetailDto? _currentDraft;
+    private string? _currentEditedJson;
 
     [ObservableProperty] private int draftId;
     [ObservableProperty] private string targetCompany = string.Empty;
@@ -22,6 +25,11 @@ public partial class ResumeDraftDetailViewModel : ObservableObject, IQueryAttrib
     [ObservableProperty] private bool hasFailedReason;
     [ObservableProperty] private string failedReason = string.Empty;
     [ObservableProperty] private bool hasSections;
+    [ObservableProperty] private bool canEdit;
+    [ObservableProperty] private bool canApprove;
+    [ObservableProperty] private bool isApproved;
+    [ObservableProperty] private string saveDraftStatusMessage = string.Empty;
+    [ObservableProperty] private bool showSaveDraftStatus;
 
     public ObservableCollection<ResumePreviewSection> Sections { get; } = [];
 
@@ -70,11 +78,15 @@ public partial class ResumeDraftDetailViewModel : ObservableObject, IQueryAttrib
                 return;
             }
 
+            _currentDraft = draft;
             TargetCompany = draft.TargetCompany;
             UpdateStatus(draft.Status);
 
             FailedReason = draft.FailedReason ?? string.Empty;
             HasFailedReason = !string.IsNullOrWhiteSpace(FailedReason);
+
+            // Store the edited JSON for later submission
+            _currentEditedJson = draft.EditedResumeJson ?? draft.GeneratedResumeJson;
 
             BuildSections(draft.EditedResumeJson, draft.GeneratedResumeJson);
         }
@@ -89,18 +101,128 @@ public partial class ResumeDraftDetailViewModel : ObservableObject, IQueryAttrib
         }
     }
 
+    [RelayCommand]
+    public async Task SaveDraftEdit()
+    {
+        if (IsBusy || DraftId <= 0 || _currentEditedJson is null)
+        {
+            return;
+        }
+
+        IsBusy = true;
+        ShowSaveDraftStatus = true;
+
+        try
+        {
+            var request = new SaveDraftEditRequest
+            {
+                EditedResumeJson = _currentEditedJson
+            };
+
+            var updated = await _apiService.SaveResumeDraftEditAsync(DraftId, request);
+            if (updated is null)
+            {
+                SaveDraftStatusMessage = "Failed to save draft edits.";
+                return;
+            }
+
+            _currentDraft = updated;
+            UpdateStatus(updated.Status);
+            SaveDraftStatusMessage = "Draft edits saved successfully!";
+            
+            // Auto-hide success message after 2 seconds
+            await Task.Delay(2000);
+            ShowSaveDraftStatus = false;
+        }
+        catch (Exception ex)
+        {
+            SaveDraftStatusMessage = $"Error saving draft: {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    [RelayCommand]
+    public async Task ApproveDraft()
+    {
+        if (IsBusy || DraftId <= 0 || _currentEditedJson is null)
+        {
+            return;
+        }
+
+        var confirmed = await Shell.Current.DisplayAlert(
+            "Approve Resume",
+            "Are you sure you want to approve this resume? It will be locked for PDF generation.",
+            "Approve", "Cancel");
+
+        if (!confirmed)
+        {
+            return;
+        }
+
+        IsBusy = true;
+
+        try
+        {
+            var request = new ApproveDraftRequest
+            {
+                FinalResumeJson = _currentEditedJson
+            };
+
+            var approved = await _apiService.ApproveResumeDraftAsync(DraftId, request);
+            if (approved is null)
+            {
+                HasError = true;
+                ErrorMessage = "Failed to approve draft.";
+                return;
+            }
+
+            IsApproved = true;
+            UpdateStatus(ResumeDraftStatus.Approved);
+            await Shell.Current.DisplayAlert("Success", "Resume approved and locked for PDF generation!", "OK");
+            
+            // Reload to show updated state
+            await LoadDraftAsync(DraftId);
+        }
+        catch (Exception ex)
+        {
+            HasError = true;
+            ErrorMessage = $"Error approving draft: {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    public void UpdateEditedJson(string jsonContent)
+    {
+        _currentEditedJson = jsonContent;
+    }
+
     private void UpdateStatus(ResumeDraftStatus status)
     {
+        IsApproved = status == ResumeDraftStatus.Approved;
+        CanEdit = status is ResumeDraftStatus.Generated or ResumeDraftStatus.DraftReady;
+        CanApprove = status is ResumeDraftStatus.Generated or ResumeDraftStatus.DraftReady;
+
         StatusText = status switch
         {
             ResumeDraftStatus.Generated => "Ready",
+            ResumeDraftStatus.DraftReady => "Ready to Approve",
+            ResumeDraftStatus.Approved => "Approved",
             ResumeDraftStatus.Failed => "Failed",
+            ResumeDraftStatus.Pending => "Generating",
             _ => "Generating"
         };
 
         StatusColorHex = status switch
         {
             ResumeDraftStatus.Generated => "#16A34A",
+            ResumeDraftStatus.DraftReady => "#0284C7",
+            ResumeDraftStatus.Approved => "#1E40AF",
             ResumeDraftStatus.Failed => "#DC2626",
             _ => "#7C3AED"
         };

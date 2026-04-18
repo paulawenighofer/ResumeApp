@@ -211,22 +211,32 @@ builder.Services.AddSingleton<UserActivityTracker>();
 //   a single code, making automated attacks impractical within the 10-minute OTP window.
 // "otp-send"    — applied to forgot-password and resend-otp: 3 sends per 10 min per IP.
 //   Prevents email flooding / SMS-bombing style abuse.
+// "resume-generation" — applied to POST /api/resumes/drafts: 10 per hour per user.
+//   Protects AI generation service from being hammered.
 builder.Services.AddRateLimiter(options =>
 {
     options.AddSlidingWindowLimiter("otp-verify", opt =>
     {
-        opt.PermitLimit = 5;
-        opt.Window = TimeSpan.FromMinutes(15);
+        opt.PermitLimit = 15;
+        opt.Window = TimeSpan.FromMinutes(5);
         opt.SegmentsPerWindow = 3;
         opt.QueueLimit = 0;
     });
 
     options.AddSlidingWindowLimiter("otp-send", opt =>
     {
-        opt.PermitLimit = 3;
-        opt.Window = TimeSpan.FromMinutes(10);
+        opt.PermitLimit = 15;
+        opt.Window = TimeSpan.FromMinutes(5);
         opt.SegmentsPerWindow = 2;
         opt.QueueLimit = 0;
+    });
+
+    options.AddFixedWindowLimiter("resume-generation", opt =>
+    {
+        opt.PermitLimit = 300;
+        opt.Window = TimeSpan.FromHours(6);
+        opt.QueueLimit = 0;
+        opt.AutoReplenishment = true;
     });
 
     options.OnRejected = async (ctx, token) =>

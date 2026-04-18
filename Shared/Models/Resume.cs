@@ -22,10 +22,15 @@ public class Resume
     [MaxLength(20000)]
     public string? EditedResumeJson { get; set; }
 
+    [MaxLength(20000)]
+    public string? ApprovedJson { get; set; }
+
     [MaxLength(2000)]
     public string? FailedReason { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public DateTime? UpdatedAt { get; set; }
+
+    public DateTime? ApprovedAt { get; set; }
 }
