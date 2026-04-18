@@ -188,7 +188,8 @@ namespace API.Controllers
                 Token = token,
                 Email = user.Email!,
                 FirstName = user.FirstName ?? "",
-                LastName = user.LastName ?? ""
+                LastName = user.LastName ?? "",
+                ProfileImageUrl = user.ProfileImageUrl ?? ""
             });
         }
 
@@ -278,7 +279,8 @@ namespace API.Controllers
                 Token = token,
                 Email = user.Email!,
                 FirstName = user.FirstName ?? "",
-                LastName = user.LastName ?? ""
+                LastName = user.LastName ?? "",
+                ProfileImageUrl = user.ProfileImageUrl ?? ""
             });
         }
 
@@ -380,7 +382,8 @@ namespace API.Controllers
                 Token = "",   // Not returning a new token — caller already has one
                 Email = user.Email!,
                 FirstName = user.FirstName ?? "",
-                LastName = user.LastName ?? ""
+                LastName = user.LastName ?? "",
+                ProfileImageUrl = user.ProfileImageUrl ?? ""
             });
         }
 
