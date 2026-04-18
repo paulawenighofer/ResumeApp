@@ -58,6 +58,8 @@ public class ResumeDetailDto
     public string? GeneratedResumeJson { get; set; }
     public string? EditedResumeJson { get; set; }
     public string? ApprovedJson { get; set; }
+    public bool HasPdf { get; set; }
+    public DateTime? PdfGeneratedAt { get; set; }
     public string? FailedReason { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }

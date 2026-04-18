@@ -98,4 +98,49 @@ public class ResumesController : ControllerBase
             return BadRequest(new { message = ex.Message });
         }
     }
+
+    [HttpPost("{id:int}/generate-pdf")]
+    public async Task<ActionResult<ResumeDetailDto>> GeneratePdf(int id, CancellationToken cancellationToken)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            var updated = await _resumeDraftService.GeneratePdfAsync(userId, id, cancellationToken);
+            return updated is null ? NotFound() : Ok(updated);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpGet("{id:int}/pdf")]
+    public async Task<IActionResult> GetPdf(int id, CancellationToken cancellationToken)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            var pdf = await _resumeDraftService.GetPdfAsync(userId, id, cancellationToken);
+            if (pdf is null)
+            {
+                return NotFound();
+            }
+
+            return File(pdf.Content, "application/pdf", pdf.FileName);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
 }

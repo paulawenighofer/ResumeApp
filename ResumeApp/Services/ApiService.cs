@@ -434,6 +434,28 @@ public class ApiService : IApiService
         return await response.Content.ReadFromJsonAsync<ApproveDraftResponse>();
     }
 
+    public async Task<ResumeDetailDto?> GenerateResumePdfAsync(int id)
+    {
+        var response = await SendAsync(HttpMethod.Post, $"api/resumes/{id}/generate-pdf");
+        if (response is null || !response.IsSuccessStatusCode)
+        {
+            return null;
+        }
+
+        return await response.Content.ReadFromJsonAsync<ResumeDetailDto>();
+    }
+
+    public async Task<byte[]?> DownloadResumePdfAsync(int id)
+    {
+        var response = await SendAsync(HttpMethod.Get, $"api/resumes/{id}/pdf");
+        if (response is null || !response.IsSuccessStatusCode)
+        {
+            return null;
+        }
+
+        return await response.Content.ReadAsByteArrayAsync();
+    }
+
     private async Task<bool> SendJsonAsync(HttpMethod method, string url, object payload)
     {
         var response = await SendAsync(method, url, JsonContent.Create(payload));
