@@ -9,4 +9,8 @@ public sealed class AzureBlobOptions
     public string ProfileImagesContainer { get; set; } = string.Empty;
 
     public string? ProfileImagesBasePath { get; set; }
+
+    public string ResumesContainer { get; set; } = "resumes";
+
+    public string? ResumesBasePath { get; set; }
 }

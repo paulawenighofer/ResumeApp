@@ -13,6 +13,7 @@ using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using QuestPDF.Infrastructure;
 using Scalar.AspNetCore;
 using Shared.Models;
 using System.Security.Claims;
@@ -21,6 +22,8 @@ using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 var startupCompleted = false;
+
+QuestPDF.Settings.License = LicenseType.Community;
 
 var telemetryServiceName = "ResumeApp.API";
 var telemetryServiceVersion = "1.0.0";
@@ -89,6 +92,7 @@ builder.Services
     .Bind(builder.Configuration.GetSection(AzureBlobOptions.SectionName))
     .Validate(options => !string.IsNullOrWhiteSpace(options.ConnectionString), "AzureBlob:ConnectionString is required.")
     .Validate(options => !string.IsNullOrWhiteSpace(options.ProfileImagesContainer), "AzureBlob:ProfileImagesContainer is required.")
+    .Validate(options => !string.IsNullOrWhiteSpace(options.ResumesContainer), "AzureBlob:ResumesContainer is required.")
     .ValidateOnStart();
 
 // =============================================
@@ -179,6 +183,7 @@ builder.Services.AddScoped<IAiResumeGenerationClient, AiResumeGenerationClient>(
 builder.Services.AddScoped<IResumeProfileAssembler, ResumeProfileAssembler>();
 builder.Services.AddScoped<IResumeJsonValidator, ResumeJsonValidator>();
 builder.Services.AddScoped<IResumeDraftService, ResumeDraftService>();
+builder.Services.AddSingleton<IPdfRenderer, QuestPdfRenderer>();
 // Register our custom TokenService so we can inject it into controllers
 builder.Services.AddScoped<TokenService>();
 // Register our social auth service

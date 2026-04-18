@@ -16,6 +16,7 @@ public class ResumeDraftsTests : IDisposable
         _client = _factory.CreateClient();
         _factory.EmailService.Reset();
         _factory.AiResumeGenerationClient.Reset();
+        _factory.PdfRenderer.ShouldFail = false;
     }
 
     public void Dispose()
@@ -399,5 +400,151 @@ public class ResumeDraftsTests : IDisposable
         Assert.Equal(System.Net.HttpStatusCode.TooManyRequests, exceededRes.StatusCode);
 
         var errorResponse = await exceededRes.Content.ReadFromJsonAsync<JsonElement>(AuthTestHelpers.JsonOpts);
+    }
+
+    [Fact]
+    public async Task GeneratePdf_ForApprovedResume_SetsPdfReady_AndAllowsOwnerDownload()
+    {
+        var jwt = await AuthTestHelpers.RegisterAndVerifyAsync(
+            _client,
+            _factory,
+            email: "pdf_owner@example.com",
+            firstName: "Pdf",
+            lastName: "Owner");
+
+        using var authed = AuthTestHelpers.CreateAuthenticatedClient(_factory, jwt);
+
+        var createRes = await authed.PostAsJsonAsync("api/resumes/drafts", new
+        {
+            jobTitle = "Platform Engineer",
+            targetCompany = "PdfCo",
+            includeEducation = false,
+            includeExperience = false,
+            includeSkills = false,
+            includeProjects = false,
+            includeCertifications = false
+        });
+
+        var created = await createRes.Content.ReadFromJsonAsync<JsonElement>(AuthTestHelpers.JsonOpts);
+        var id = created.GetProperty("id").GetInt32();
+
+        var approveRes = await authed.PostAsJsonAsync($"api/resumes/{id}/approve", new
+        {
+            finalResumeJson = "{\"user\":{\"name\":\"PDF Owner\"},\"skills\":[\"C#\"]}"
+        });
+
+        Assert.Equal(HttpStatusCode.OK, approveRes.StatusCode);
+
+        var generateRes = await authed.PostAsync($"api/resumes/{id}/generate-pdf", null);
+        Assert.Equal(HttpStatusCode.OK, generateRes.StatusCode);
+
+        var generated = await generateRes.Content.ReadFromJsonAsync<JsonElement>(AuthTestHelpers.JsonOpts);
+        Assert.Equal(6, generated.GetProperty("status").GetInt32()); // PdfReady = 6
+        Assert.True(generated.GetProperty("hasPdf").GetBoolean());
+
+        var pdfRes = await authed.GetAsync($"api/resumes/{id}/pdf");
+        Assert.Equal(HttpStatusCode.OK, pdfRes.StatusCode);
+        Assert.Equal("application/pdf", pdfRes.Content.Headers.ContentType?.MediaType);
+
+        var pdfBytes = await pdfRes.Content.ReadAsByteArrayAsync();
+        Assert.NotEmpty(pdfBytes);
+    }
+
+    [Fact]
+    public async Task GetPdf_AsAnotherUser_ReturnsNotFound()
+    {
+        var jwtOwner = await AuthTestHelpers.RegisterAndVerifyAsync(
+            _client,
+            _factory,
+            email: "pdf_owner2@example.com",
+            firstName: "Pdf",
+            lastName: "OwnerTwo");
+
+        var jwtOther = await AuthTestHelpers.RegisterAndVerifyAsync(
+            _client,
+            _factory,
+            email: "pdf_other@example.com",
+            firstName: "Pdf",
+            lastName: "Other");
+
+        using var owner = AuthTestHelpers.CreateAuthenticatedClient(_factory, jwtOwner);
+        using var other = AuthTestHelpers.CreateAuthenticatedClient(_factory, jwtOther);
+
+        var createRes = await owner.PostAsJsonAsync("api/resumes/drafts", new
+        {
+            jobTitle = "Backend Engineer",
+            targetCompany = "PrivatePdf",
+            includeEducation = false,
+            includeExperience = false,
+            includeSkills = false,
+            includeProjects = false,
+            includeCertifications = false
+        });
+
+        var created = await createRes.Content.ReadFromJsonAsync<JsonElement>(AuthTestHelpers.JsonOpts);
+        var id = created.GetProperty("id").GetInt32();
+
+        await owner.PostAsJsonAsync($"api/resumes/{id}/approve", new
+        {
+            finalResumeJson = "{\"user\":{\"name\":\"Private PDF\"}}"
+        });
+
+        await owner.PostAsync($"api/resumes/{id}/generate-pdf", null);
+
+        var otherRes = await other.GetAsync($"api/resumes/{id}/pdf");
+        Assert.Equal(HttpStatusCode.NotFound, otherRes.StatusCode);
+    }
+
+    [Fact]
+    public async Task GeneratePdf_WhenRendererFails_MarksPdfFailed_AndRetryKeepsApprovedContent()
+    {
+        var jwt = await AuthTestHelpers.RegisterAndVerifyAsync(
+            _client,
+            _factory,
+            email: "pdf_retry@example.com",
+            firstName: "Pdf",
+            lastName: "Retry");
+
+        using var authed = AuthTestHelpers.CreateAuthenticatedClient(_factory, jwt);
+
+        var createRes = await authed.PostAsJsonAsync("api/resumes/drafts", new
+        {
+            jobTitle = "DevOps Engineer",
+            targetCompany = "RetryCo",
+            includeEducation = false,
+            includeExperience = false,
+            includeSkills = false,
+            includeProjects = false,
+            includeCertifications = false
+        });
+
+        var created = await createRes.Content.ReadFromJsonAsync<JsonElement>(AuthTestHelpers.JsonOpts);
+        var id = created.GetProperty("id").GetInt32();
+
+        var approvedJson = "{\"user\":{\"name\":\"Retry User\"},\"experience\":[\"Ops\"]}";
+
+        await authed.PostAsJsonAsync($"api/resumes/{id}/approve", new
+        {
+            finalResumeJson = approvedJson
+        });
+
+        _factory.PdfRenderer.ShouldFail = true;
+
+        var failedGenerateRes = await authed.PostAsync($"api/resumes/{id}/generate-pdf", null);
+        Assert.Equal(HttpStatusCode.OK, failedGenerateRes.StatusCode);
+
+        var failedGenerate = await failedGenerateRes.Content.ReadFromJsonAsync<JsonElement>(AuthTestHelpers.JsonOpts);
+        Assert.Equal(7, failedGenerate.GetProperty("status").GetInt32()); // PdfFailed = 7
+
+        _factory.PdfRenderer.ShouldFail = false;
+
+        var retryRes = await authed.PostAsync($"api/resumes/{id}/generate-pdf", null);
+        Assert.Equal(HttpStatusCode.OK, retryRes.StatusCode);
+
+        var detailRes = await authed.GetAsync($"api/resumes/{id}");
+        var detail = await detailRes.Content.ReadFromJsonAsync<JsonElement>(AuthTestHelpers.JsonOpts);
+
+        Assert.Equal(6, detail.GetProperty("status").GetInt32()); // PdfReady = 6
+        Assert.Equal(approvedJson, detail.GetProperty("approvedJson").GetString());
     }
 }

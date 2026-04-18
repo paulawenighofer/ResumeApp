@@ -9,11 +9,11 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Test.Integration.Fixtures;
 
-/// <summary>
-/// Spins up the full ASP.NET Core pipeline in-memory for integration tests.
-/// Replaces PostgreSQL with an in-memory database and the real email service
-/// with FakeEmailService so tests never hit external systems.
-/// </summary>
+// /// <summary>
+// /// Spins up the full ASP.NET Core pipeline in-memory for integration tests.
+// /// Replaces PostgreSQL with an in-memory database and the real email service
+// /// with FakeEmailService so tests never hit external systems.
+// /// </summary>
 public class ApiFactory : WebApplicationFactory<Program>
 {
     private readonly bool _useProductionRateLimits;
@@ -36,6 +36,8 @@ public class ApiFactory : WebApplicationFactory<Program>
 
     public FakeEmailService EmailService { get; } = new();
     public FakeAiResumeGenerationClient AiResumeGenerationClient { get; } = new();
+    public FakeBlobStorageService BlobStorageService { get; } = new();
+    public FakePdfRenderer PdfRenderer { get; } = new();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -53,6 +55,8 @@ public class ApiFactory : WebApplicationFactory<Program>
                 ["AzureBlob:ConnectionString"] = "UseDevelopmentStorage=true",
                 ["AzureBlob:ProfileImagesContainer"] = "profile-images",
                 ["AzureBlob:ProfileImagesBasePath"] = "",
+                ["AzureBlob:ResumesContainer"] = "resumes",
+                ["AzureBlob:ResumesBasePath"] = "",
             };
 
             if (!_useProductionRateLimits)
@@ -110,6 +114,14 @@ public class ApiFactory : WebApplicationFactory<Program>
             var aiClientHits = services.Where(d => d.ServiceType == typeof(IAiResumeGenerationClient)).ToList();
             foreach (var d in aiClientHits) services.Remove(d);
             services.AddScoped<IAiResumeGenerationClient>(_ => AiResumeGenerationClient);
+
+            var blobServiceHits = services.Where(d => d.ServiceType == typeof(IBlobStorageService)).ToList();
+            foreach (var d in blobServiceHits) services.Remove(d);
+            services.AddSingleton<IBlobStorageService>(BlobStorageService);
+
+            var pdfRendererHits = services.Where(d => d.ServiceType == typeof(IPdfRenderer)).ToList();
+            foreach (var d in pdfRendererHits) services.Remove(d);
+            services.AddSingleton<IPdfRenderer>(PdfRenderer);
         });
     }
 }

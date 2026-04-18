@@ -115,6 +115,28 @@
                         Style="{StaticResource PrimaryButtonStyle}" />
             </VerticalStackLayout>
 
+            <VerticalStackLayout Spacing="8"
+                                 IsVisible="{Binding CanGeneratePdf, Mode=OneWay}"
+                                 Margin="0,8,0,0">
+                <Button Text="Generate PDF"
+                        Command="{Binding GeneratePdfCommand}"
+                        IsEnabled="{Binding IsBusy, Converter={toolkit:InvertedBoolConverter}}"
+                        Style="{StaticResource PrimaryButtonStyle}" />
+            </VerticalStackLayout>
+
+            <VerticalStackLayout Spacing="8"
+                                 IsVisible="{Binding CanOpenPdf, Mode=OneWay}"
+                                 Margin="0,8,0,0">
+                <Button Text="Open / Download PDF"
+                        Command="{Binding OpenPdfCommand}"
+                        IsEnabled="{Binding IsBusy, Converter={toolkit:InvertedBoolConverter}}"
+                        Style="{StaticResource PrimaryButtonStyle}" />
+            </VerticalStackLayout>
+
+            <Label IsVisible="{Binding ShowPdfRetry}"
+                   Text="PDF generation failed. You can retry."
+                   TextColor="{StaticResource DangerRed}" />
+
             <Border IsVisible="{Binding IsApproved}"
                     Padding="12,8"
                     Stroke="#1E40AF"

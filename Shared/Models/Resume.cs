@@ -25,6 +25,11 @@ public class Resume
     [MaxLength(20000)]
     public string? ApprovedJson { get; set; }
 
+    [MaxLength(500)]
+    public string? PdfBlobPath { get; set; }
+
+    public DateTime? PdfGeneratedAt { get; set; }
+
     [MaxLength(2000)]
     public string? FailedReason { get; set; }
 

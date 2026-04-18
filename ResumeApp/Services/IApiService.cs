@@ -30,5 +30,7 @@ public interface IApiService
     Task<ResumeDetailDto?> GetResumeDraftAsync(int id);
     Task<ResumeDetailDto?> SaveResumeDraftEditAsync(int id, SaveDraftEditRequest request);
     Task<ApproveDraftResponse?> ApproveResumeDraftAsync(int id, ApproveDraftRequest request);
+    Task<ResumeDetailDto?> GenerateResumePdfAsync(int id);
+    Task<byte[]?> DownloadResumePdfAsync(int id);
     Task<string?> UploadProfileImageAsync(string imagePath);
 }

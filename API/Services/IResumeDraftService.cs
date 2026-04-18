@@ -9,4 +9,8 @@ public interface IResumeDraftService
     Task<ResumeDetailDto?> GetDraftAsync(string userId, int id, CancellationToken cancellationToken = default);
     Task<ResumeDetailDto?> SaveDraftEditAsync(string userId, int id, SaveDraftEditRequest request, CancellationToken cancellationToken = default);
     Task<ApproveDraftResponse?> ApproveDraftAsync(string userId, int id, ApproveDraftRequest request, CancellationToken cancellationToken = default);
+    Task<ResumeDetailDto?> GeneratePdfAsync(string userId, int id, CancellationToken cancellationToken = default);
+    Task<ResumePdfDownloadResult?> GetPdfAsync(string userId, int id, CancellationToken cancellationToken = default);
 }
+
+public sealed record ResumePdfDownloadResult(Stream Content, string FileName);

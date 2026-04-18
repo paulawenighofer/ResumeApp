@@ -6,5 +6,8 @@ public enum ResumeDraftStatus
     Generated = 1,
     Failed = 2,
     DraftReady = 3,
-    Approved = 4
+    Approved = 4,
+    PdfGenerating = 5,
+    PdfReady = 6,
+    PdfFailed = 7
 }

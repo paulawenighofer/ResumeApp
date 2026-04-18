@@ -27,6 +27,9 @@ public partial class ResumeDraftDetailViewModel : ObservableObject, IQueryAttrib
     [ObservableProperty] private bool hasSections;
     [ObservableProperty] private bool canEdit;
     [ObservableProperty] private bool canApprove;
+    [ObservableProperty] private bool canGeneratePdf;
+    [ObservableProperty] private bool canOpenPdf;
+    [ObservableProperty] private bool showPdfRetry;
     [ObservableProperty] private bool isApproved;
     [ObservableProperty] private string saveDraftStatusMessage = string.Empty;
     [ObservableProperty] private bool showSaveDraftStatus;
@@ -197,6 +200,90 @@ public partial class ResumeDraftDetailViewModel : ObservableObject, IQueryAttrib
         }
     }
 
+    [RelayCommand]
+    public async Task GeneratePdf()
+    {
+        if (IsBusy || DraftId <= 0 || !CanGeneratePdf)
+        {
+            return;
+        }
+
+        IsBusy = true;
+        HasError = false;
+        ErrorMessage = string.Empty;
+
+        try
+        {
+            var updated = await _apiService.GenerateResumePdfAsync(DraftId);
+            if (updated is null)
+            {
+                HasError = true;
+                ErrorMessage = "Failed to generate PDF.";
+                return;
+            }
+
+            _currentDraft = updated;
+            FailedReason = updated.FailedReason ?? string.Empty;
+            HasFailedReason = !string.IsNullOrWhiteSpace(FailedReason);
+            UpdateStatus(updated.Status);
+
+            if (updated.Status == ResumeDraftStatus.PdfReady)
+            {
+                await Shell.Current.DisplayAlert("Success", "PDF generated successfully.", "OK");
+            }
+        }
+        catch (Exception ex)
+        {
+            HasError = true;
+            ErrorMessage = $"Error generating PDF: {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    [RelayCommand]
+    public async Task OpenPdf()
+    {
+        if (IsBusy || DraftId <= 0 || !CanOpenPdf)
+        {
+            return;
+        }
+
+        IsBusy = true;
+        HasError = false;
+        ErrorMessage = string.Empty;
+
+        try
+        {
+            var bytes = await _apiService.DownloadResumePdfAsync(DraftId);
+            if (bytes is null || bytes.Length == 0)
+            {
+                HasError = true;
+                ErrorMessage = "PDF is not available yet.";
+                return;
+            }
+
+            var filePath = Path.Combine(FileSystem.CacheDirectory, $"resume-{DraftId}.pdf");
+            await File.WriteAllBytesAsync(filePath, bytes);
+
+            await Launcher.Default.OpenAsync(new OpenFileRequest
+            {
+                File = new ReadOnlyFile(filePath)
+            });
+        }
+        catch (Exception ex)
+        {
+            HasError = true;
+            ErrorMessage = $"Error opening PDF: {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
     public void UpdateEditedJson(string jsonContent)
     {
         _currentEditedJson = jsonContent;
@@ -204,15 +291,25 @@ public partial class ResumeDraftDetailViewModel : ObservableObject, IQueryAttrib
 
     private void UpdateStatus(ResumeDraftStatus status)
     {
-        IsApproved = status == ResumeDraftStatus.Approved;
+        IsApproved = status is ResumeDraftStatus.Approved
+            or ResumeDraftStatus.PdfGenerating
+            or ResumeDraftStatus.PdfReady
+            or ResumeDraftStatus.PdfFailed;
+
         CanEdit = status is ResumeDraftStatus.Generated or ResumeDraftStatus.DraftReady;
         CanApprove = status is ResumeDraftStatus.Generated or ResumeDraftStatus.DraftReady;
+        CanGeneratePdf = status is ResumeDraftStatus.Approved or ResumeDraftStatus.PdfFailed;
+        CanOpenPdf = status == ResumeDraftStatus.PdfReady || (_currentDraft?.HasPdf ?? false);
+        ShowPdfRetry = status == ResumeDraftStatus.PdfFailed;
 
         StatusText = status switch
         {
             ResumeDraftStatus.Generated => "Ready",
             ResumeDraftStatus.DraftReady => "Ready to Approve",
             ResumeDraftStatus.Approved => "Approved",
+            ResumeDraftStatus.PdfGenerating => "PDF Generating",
+            ResumeDraftStatus.PdfReady => "PDF Ready",
+            ResumeDraftStatus.PdfFailed => "PDF Failed",
             ResumeDraftStatus.Failed => "Failed",
             ResumeDraftStatus.Pending => "Generating",
             _ => "Generating"
@@ -223,6 +320,9 @@ public partial class ResumeDraftDetailViewModel : ObservableObject, IQueryAttrib
             ResumeDraftStatus.Generated => "#16A34A",
             ResumeDraftStatus.DraftReady => "#0284C7",
             ResumeDraftStatus.Approved => "#1E40AF",
+            ResumeDraftStatus.PdfGenerating => "#7C3AED",
+            ResumeDraftStatus.PdfReady => "#0F766E",
+            ResumeDraftStatus.PdfFailed => "#DC2626",
             ResumeDraftStatus.Failed => "#DC2626",
             _ => "#7C3AED"
         };
