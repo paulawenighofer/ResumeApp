@@ -38,6 +38,7 @@ public class ApiFactory : WebApplicationFactory<Program>
     }
 
     public FakeEmailService EmailService { get; } = new();
+    public FakeBlobStorageService BlobStorageService { get; } = new();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -63,6 +64,14 @@ public class ApiFactory : WebApplicationFactory<Program>
                 testConfig["RateLimiting:OtpSend:SegmentsPerWindow"] = "1";
             }
 
+            testConfig["AiService:BaseUrl"] = "https://ai.test.local/generate";
+            testConfig["AiService:ApiKey"] = "test-api-key";
+            testConfig["AiService:Model"] = "test-model";
+            testConfig["AiService:TimeoutSeconds"] = "60";
+            testConfig["AzureBlob:ConnectionString"] = "UseDevelopmentStorage=true";
+            testConfig["AzureBlob:ProfileImagesContainer"] = "profile-images";
+            testConfig["AzureBlob:ResumesContainer"] = "resumes";
+
             if (_useRealPostgres)
             {
                 EnsureRealPostgresDatabaseCreated();
@@ -77,6 +86,7 @@ public class ApiFactory : WebApplicationFactory<Program>
             if (_useRealPostgres)
             {
                 ReplaceEmailService(services);
+                ReplaceBlobStorageService(services);
 
                 using var provider = services.BuildServiceProvider();
                 using var scope = provider.CreateScope();
@@ -113,6 +123,7 @@ public class ApiFactory : WebApplicationFactory<Program>
                 opts.UseInMemoryDatabase(dbName));
 
             ReplaceEmailService(services);
+            ReplaceBlobStorageService(services);
         });
     }
 
@@ -137,6 +148,13 @@ public class ApiFactory : WebApplicationFactory<Program>
         var emailHits = services.Where(d => d.ServiceType == typeof(IEmailService)).ToList();
         foreach (var d in emailHits) services.Remove(d);
         services.AddScoped<IEmailService>(_ => EmailService);
+    }
+
+    private void ReplaceBlobStorageService(IServiceCollection services)
+    {
+        var blobHits = services.Where(d => d.ServiceType == typeof(IBlobStorageService)).ToList();
+        foreach (var d in blobHits) services.Remove(d);
+        services.AddSingleton<IBlobStorageService>(_ => BlobStorageService);
     }
 
     private void EnsureRealPostgresDatabaseCreated()
