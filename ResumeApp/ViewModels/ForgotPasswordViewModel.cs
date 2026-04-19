@@ -112,6 +112,12 @@ public partial class ForgotPasswordViewModel : ObservableObject
     {
         ErrorMessage = message;
         HasError = true;
-        await ToastService.ShowAsync(message, isError: true, durationMilliseconds: 4500);
+        try
+        {
+            await ToastService.ShowAsync(message, isError: true, durationMilliseconds: 4500);
+        }
+        catch
+        {
+        }
     }
 }

@@ -4,7 +4,7 @@ using Shared.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
-namespace Test.Unit;
+namespace MauiTests.Unit;
 
 public class TokenServiceTests
 {
@@ -44,7 +44,6 @@ public class TokenServiceTests
     public void GenerateToken_IsWellFormedJwt()
     {
         var token = CreateService().GenerateToken(MakeUser());
-        // A valid JWT has exactly three base64url segments separated by dots
         Assert.Equal(3, token.Split('.').Length);
         Assert.True(new JwtSecurityTokenHandler().CanReadToken(token));
     }

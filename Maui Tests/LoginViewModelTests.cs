@@ -17,7 +17,9 @@ public class LoginViewModelTests
         await ((IAsyncRelayCommand)viewModel.LoginCommand).ExecuteAsync(null);
 
         Assert.True(viewModel.HasError);
-        Assert.Equal("Please enter your email and password.", viewModel.ErrorMessage);
+        Assert.Equal("Please correct the highlighted fields.", viewModel.ErrorMessage);
+        Assert.True(viewModel.HasEmailValidation);
+        Assert.True(viewModel.HasPasswordValidation);
         Assert.False(viewModel.IsBusy);
     }
 }
