@@ -4,9 +4,97 @@ on:
     branches:
       - main
   workflow_dispatch:
+
 jobs:
+  # Stage 1: Linting and Unit Tests
+  unit-tests:
+    runs-on: self-hosted
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v5
+ 
+      - name: Linting
+        run: |
+          nix-shell -p dotnetCorePackages.sdk_9_0 \
+           --run "dotnet restore API/API.csproj && dotnet restore Test/Test.csproj && dotnet format API/API.csproj --verify-no-changes --no-restore && dotnet format Test/Test.csproj --verify-no-changes --no-restore"
+ 
+      - name: Unit Tests
+        run: |
+          nix-shell -p dotnetCorePackages.sdk_9_0 \
+           --run "dotnet restore Test/Test.csproj && dotnet test Test/Test.csproj --no-restore"
+
+  # Stage 2: Integration Tests with Real PostgreSQL Database
+  integration-tests:
+    runs-on: self-hosted
+    # Only run if unit tests pass
+    needs: unit-tests
+    
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: integrationuser
+          POSTGRES_PASSWORD: integrationpass123
+          POSTGRES_DB: resumeapp_integration
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    env:
+      INTEGRATION_TEST_USE_REAL_POSTGRES: "true"
+      ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=resumeapp_integration;Username=integrationuser;Password=integrationpass123"
+    
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v5
+      
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          nix-shell -p postgresql \
+           --run "until psql -h localhost -U integrationuser -d resumeapp_integration -c '\q' 2>/dev/null; do echo 'Waiting for PostgreSQL...'; sleep 2; done"
+        env:
+          PGPASSWORD: integrationpass123
+      
+      - name: Run Integration Tests with Real Database
+        run: |
+          nix-shell -p dotnetCorePackages.sdk_9_0 \
+           --run "dotnet restore IntegrationTests/IntegrationTests.csproj && dotnet test IntegrationTests/IntegrationTests.csproj --no-restore --logger 'console;verbosity=normal' --logger 'trx;LogFileName=IntegrationTestResults.trx'"
+        env:
+          PGPASSWORD: integrationpass123
+      
+      - name: Upload Integration Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-results
+          path: "**/IntegrationTestResults.trx"
+      
+      - name: Database Cleanup (Explicit)
+        if: always()
+        run: |
+          nix-shell -p postgresql \
+           --run "psql -h localhost -U integrationuser -d postgres -c \"DROP DATABASE IF EXISTS resumeapp_integration;\" 2>/dev/null || true"
+        env:
+          PGPASSWORD: integrationpass123
+        continue-on-error: true
+      
+      - name: Verify Database Cleanup
+        if: always()
+        run: |
+          nix-shell -p postgresql \
+           --run "psql -h localhost -U integrationuser -d postgres -c \"SELECT datname FROM pg_database WHERE datname = 'resumeapp_integration';\" || echo 'Database cleaned up successfully'"
+        env:
+          PGPASSWORD: integrationpass123
+        continue-on-error: true
+
+  # Stage 3: Build and Deploy
   deploy-on-kubernetes:
     runs-on: self-hosted
+    needs: [unit-tests, integration-tests]
     env:
       FEATURES_EMAIL_OTP_DELIVERY: ${{ vars.STAGING_FEATURES_EMAIL_OTP_DELIVERY }}
       AI_SERVICE_BASE_URL: ${{ vars.STAGING_AI_SERVICE_BASEURL }}
@@ -21,17 +109,6 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
- 
-        
-      - name: linting
-        run: |
-          nix-shell -p dotnetCorePackages.sdk_9_0 \
-           --run "dotnet restore API/API.csproj && dotnet restore Test/Test.csproj && dotnet format API/API.csproj --verify-no-changes --no-restore && dotnet format Test/Test.csproj --verify-no-changes --no-restore"
- 
-      - name: testing
-        run: |
-          nix-shell -p dotnetCorePackages.sdk_9_0 \
-           --run "dotnet restore Test/Test.csproj && dotnet test Test/Test.csproj --no-restore"
  
       - name: Building and Pushing to Docker Hub
         run: |
