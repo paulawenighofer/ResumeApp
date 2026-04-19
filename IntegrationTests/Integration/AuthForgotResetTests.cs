@@ -17,6 +17,7 @@ public class AuthForgotResetTests : IDisposable
     public AuthForgotResetTests()
     {
         _factory = new ApiFactory();
+        _factory.ResetDatabaseAsync().GetAwaiter().GetResult();
         _client = _factory.CreateClient();
         _factory.EmailService.Reset();
     }

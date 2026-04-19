@@ -5,47 +5,106 @@ on:
       - main
   workflow_dispatch:
 jobs:
+  unit-tests:
+    name: Unit Tests
+    runs-on: self-hosted
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v5
+
+      - name: linting
+        run: |
+          nix-shell -p dotnetCorePackages.sdk_9_0 \
+           --run "dotnet restore API/API.csproj && dotnet restore Test/Test.csproj && dotnet format API/API.csproj --verify-no-changes --no-restore && dotnet format Test/Test.csproj --verify-no-changes --no-restore"
+
+      - name: testing
+        run: |
+          nix-shell -p dotnetCorePackages.sdk_9_0 \
+           --run "dotnet restore Test/Test.csproj && dotnet test Test/Test.csproj --no-restore"
+
+  integration-tests:
+    name: Integration Tests (Real PostgreSQL)
+    runs-on: self-hosted
+    needs: unit-tests
+    env:
+      KUBECONFIG: /home/bishwas/.kube/config
+      INTEGRATION_TEST_NAMESPACE: resumeapp-it-${{ github.run_id }}-${{ github.run_attempt }}
+      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v5
+
+      - name: Apply integration testing manifests
+        run: |
+          for file in ./kubernetes/integration-template/*.yml; do
+            echo "$file"
+            cat "$file" | envsubst | kubectl apply -f -
+          done
+
+      - name: Wait for integration PostgreSQL to be ready
+        run: |
+          kubectl rollout status deployment/resumeapp-it-postgres -n ${INTEGRATION_TEST_NAMESPACE} --timeout=300s
+
+      - name: Wait for integration test runner pod to be ready
+        run: |
+          kubectl wait --for=condition=Ready pod/resumeapp-it-test-runner -n ${INTEGRATION_TEST_NAMESPACE} --timeout=180s
+
+      - name: Copy repository into integration test runner pod
+        run: |
+          kubectl cp . ${INTEGRATION_TEST_NAMESPACE}/resumeapp-it-test-runner:/workspace
+
+      - name: Run real-Postgres integration tests in-cluster
+        run: |
+          kubectl exec -n ${INTEGRATION_TEST_NAMESPACE} resumeapp-it-test-runner -- /bin/sh -c "cd /workspace && export INTEGRATION_TEST_DB_CONNECTION='Host=resumeapp-it-postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}' && export ConnectionStrings__DefaultConnection='Host=resumeapp-it-postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}' && dotnet restore IntegrationTests/IntegrationTests.csproj && dotnet test IntegrationTests/IntegrationTests.csproj --no-restore"
+
+      - name: Cleanup integration testing namespace
+        if: always()
+        run: |
+          kubectl delete namespace ${INTEGRATION_TEST_NAMESPACE} --wait=true --ignore-not-found=true
+
+  integration-tests-cleanup:
+    name: Integration Test Namespace Cleanup Fallback
+    runs-on: self-hosted
+    if: always()
+    needs: integration-tests
+    env:
+      KUBECONFIG: /home/bishwas/.kube/config
+      INTEGRATION_TEST_NAMESPACE: resumeapp-it-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - name: Retry deleting integration namespace
+        run: |
+          kubectl delete namespace ${INTEGRATION_TEST_NAMESPACE} --wait=true --ignore-not-found=true
+
   deploy-on-kubernetes:
     runs-on: self-hosted
+    needs: [unit-tests, integration-tests]
     env:
       FEATURES_EMAIL_OTP_DELIVERY: ${{ vars.STAGING_FEATURES_EMAIL_OTP_DELIVERY }}
       AI_SERVICE_BASE_URL: ${{ vars.STAGING_AI_SERVICE_BASEURL }}
       AI_SERVICE_MODEL: ${{ vars.STAGING_AI_SERVICE_MODEL }}
       AI_SERVICE_TIMEOUT_SECONDS: ${{ vars.STAGING_AI_SERVICE_TIMEOUTSECONDS }}
+      KUBECONFIG: /home/bishwas/.kube/config
     steps:
       - name: Check out repository code
         uses: actions/checkout@v5
- 
+
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
- 
-        
-      - name: linting
-        run: |
-          nix-shell -p dotnetCorePackages.sdk_9_0 \
-           --run "dotnet restore API/API.csproj && dotnet restore Test/Test.csproj && dotnet format API/API.csproj --verify-no-changes --no-restore && dotnet format Test/Test.csproj --verify-no-changes --no-restore"
- 
-      - name: testing
-        run: |
-          nix-shell -p dotnetCorePackages.sdk_9_0 \
-           --run "dotnet restore Test/Test.csproj && dotnet test Test/Test.csproj --no-restore"
- 
+
       - name: Building and Pushing to Docker Hub
         run: |
             docker build -t paulawenighofer/resumeapp:$GITHUB_RUN_NUMBER .
             docker push paulawenighofer/resumeapp:$GITHUB_RUN_NUMBER
- 
+
       - name: Apply Namespace
-        env:
-            KUBECONFIG: /home/bishwas/.kube/config
         run: kubectl apply -f kubernetes/0-namespace.yml
 
       - name: Create Kubernetes Secret
-        env:
-            KUBECONFIG: /home/bishwas/.kube/config
         run: |
           kubectl create secret generic resume-app-secrets \
             --namespace=resumeapp \
@@ -74,8 +133,6 @@ jobs:
             --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Deploy Manifests
-        env:
-            KUBECONFIG: /home/bishwas/.kube/config
         run: |
           for file in ./kubernetes/*.yml; do
             echo "$file"
@@ -83,15 +140,11 @@ jobs:
           done
 
       - name: Update grafana dashboard configmap
-        env:
-            KUBECONFIG: /home/bishwas/.kube/config
         run: |
           kubectl delete -n resumeapp configmap grafana-dashboard-config-configmap || true
           kubectl create -n resumeapp configmap grafana-dashboard-config-configmap --from-file=configs/grafana-dashboard.json
 
       - name: Restart observability pods to pick up new configmaps
-        env:
-            KUBECONFIG: /home/bishwas/.kube/config
         run: |
           kubectl rollout restart deployment/grafana -n resumeapp
           kubectl rollout restart deployment/otel-collector -n resumeapp

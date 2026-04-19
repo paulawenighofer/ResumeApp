@@ -3,29 +3,26 @@ using API.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Npgsql;
+using Respawn;
 
 namespace Test.Integration.Fixtures;
 
-// /// <summary>
-// /// Spins up the full ASP.NET Core pipeline in-memory for integration tests.
-// /// Replaces PostgreSQL with an in-memory database and the real email service
-// /// with FakeEmailService so tests never hit external systems.
-// /// </summary>
-public class ApiFactory : WebApplicationFactory<Program>
+public class PostgresApiFactory : WebApplicationFactory<Program>
 {
     private readonly bool _useProductionRateLimits;
     private readonly bool _overrideEmailService;
     private readonly bool _emailOtpDeliveryEnabled;
+    private Respawner? _respawner;
 
-    public ApiFactory() : this(useProductionRateLimits: false)
+    public PostgresApiFactory() : this(useProductionRateLimits: false)
     {
     }
 
-    internal ApiFactory(
+    internal PostgresApiFactory(
         bool useProductionRateLimits,
         bool overrideEmailService = true,
         bool emailOtpDeliveryEnabled = true)
@@ -42,12 +39,18 @@ public class ApiFactory : WebApplicationFactory<Program>
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.UseEnvironment("Testing");
+        builder.UseEnvironment("Development");
 
         builder.ConfigureAppConfiguration((_, config) =>
         {
+            var integrationDbConnection =
+                Environment.GetEnvironmentVariable("INTEGRATION_TEST_DB_CONNECTION")
+                ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+                ?? throw new InvalidOperationException("Integration tests require INTEGRATION_TEST_DB_CONNECTION or ConnectionStrings__DefaultConnection.");
+
             var testConfig = new Dictionary<string, string?>
             {
+                ["ConnectionStrings:DefaultConnection"] = integrationDbConnection,
                 ["Jwt:Key"] = "TestSecretKeyThatIsLongEnoughForHS256!!",
                 ["Jwt:Issuer"] = "TestIssuer",
                 ["Jwt:Audience"] = "TestAudience",
@@ -85,32 +88,8 @@ public class ApiFactory : WebApplicationFactory<Program>
 
         builder.ConfigureServices(services =>
         {
-            // EF Core 9 accumulates options via IDbContextOptionsConfiguration<T>.
-            // If we only remove DbContextOptions<AppDbContext>, the Npgsql config
-            // delegate still runs when the options are rebuilt, producing two providers.
-            // Remove all three layers:
-            //   1. The lazy option-config delegates (EF Core 9 internal interface)
-            //   2. The cached DbContextOptions<T> and base DbContextOptions
-            //   3. The AppDbContext scoped registration itself
-            Type[] toStrip =
-            [
-                typeof(IDbContextOptionsConfiguration<AppDbContext>),
-                typeof(DbContextOptions<AppDbContext>),
-                typeof(DbContextOptions),
-                typeof(AppDbContext),
-            ];
-            foreach (var type in toStrip) services.RemoveAll(type);
-
-            // Register a fresh DbContext backed by a unique in-memory database.
-            // The name is evaluated ONCE here (not inside the lambda) so that all
-            // requests within a factory share the same in-memory store.
-            var dbName = Guid.NewGuid().ToString();
-            services.AddDbContext<AppDbContext>(opts =>
-                opts.UseInMemoryDatabase(dbName));
-
             if (_overrideEmailService)
             {
-                // Replace the app-registered email service with our capturable fake.
                 services.RemoveAll(typeof(IEmailService));
                 services.AddScoped<IEmailService>(_ => EmailService);
             }
@@ -124,5 +103,54 @@ public class ApiFactory : WebApplicationFactory<Program>
             services.RemoveAll(typeof(IPdfRenderer));
             services.AddSingleton<IPdfRenderer>(PdfRenderer);
         });
+    }
+
+    public async Task ResetDatabaseAsync()
+    {
+        await EnsureRespawnerInitializedAsync();
+
+        using var scope = Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var connectionString = db.Database.GetDbConnection().ConnectionString;
+
+        await using var conn = new NpgsqlConnection(connectionString);
+        await conn.OpenAsync();
+        await _respawner!.ResetAsync(conn);
+    }
+
+    private async Task EnsureRespawnerInitializedAsync()
+    {
+        if (_respawner != null)
+        {
+            return;
+        }
+
+        using var scope = Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var connectionString = db.Database.GetDbConnection().ConnectionString;
+
+        await using var conn = new NpgsqlConnection(connectionString);
+        await conn.OpenAsync();
+        _respawner = await Respawner.CreateAsync(conn, new RespawnerOptions
+        {
+            DbAdapter = DbAdapter.Postgres,
+            SchemasToInclude = ["public"],
+            TablesToIgnore = ["__EFMigrationsHistory"],
+        });
+    }
+}
+
+public class ApiFactory : PostgresApiFactory
+{
+    public ApiFactory() : base(useProductionRateLimits: false)
+    {
+    }
+
+    internal ApiFactory(
+        bool useProductionRateLimits,
+        bool overrideEmailService = true,
+        bool emailOtpDeliveryEnabled = true)
+        : base(useProductionRateLimits, overrideEmailService, emailOtpDeliveryEnabled)
+    {
     }
 }

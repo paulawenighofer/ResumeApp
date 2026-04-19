@@ -13,6 +13,7 @@ public class AuthAuthorizationTests : IClassFixture<ApiFactory>
     public AuthAuthorizationTests(ApiFactory factory)
     {
         _factory = factory;
+        _factory.ResetDatabaseAsync().GetAwaiter().GetResult();
         _client = factory.CreateClient();
         factory.EmailService.Reset();
     }

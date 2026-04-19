@@ -15,6 +15,7 @@ public class AuthRegisterTests : IClassFixture<ApiFactory>
     public AuthRegisterTests(ApiFactory factory)
     {
         _factory = factory;
+        _factory.ResetDatabaseAsync().GetAwaiter().GetResult();
         _client = factory.CreateClient();
         factory.EmailService.Reset();
     }

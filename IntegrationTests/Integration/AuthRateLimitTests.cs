@@ -16,6 +16,7 @@ public class AuthRateLimitTests : IDisposable
     public AuthRateLimitTests()
     {
         _factory = new ApiFactory(useProductionRateLimits: true);
+        _factory.ResetDatabaseAsync().GetAwaiter().GetResult();
         _client = _factory.CreateClient();
     }
 

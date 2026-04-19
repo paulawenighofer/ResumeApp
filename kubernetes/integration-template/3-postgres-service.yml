@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: resumeapp-it-postgres
+  namespace: ${INTEGRATION_TEST_NAMESPACE}
+spec:
+  type: ClusterIP
+  selector:
+    app: resumeapp-it-postgres
+  ports:
+    - name: postgres
+      protocol: TCP
+      port: 5432
+      targetPort: 5432

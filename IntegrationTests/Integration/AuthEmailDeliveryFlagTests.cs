@@ -17,6 +17,7 @@ public class AuthEmailDeliveryFlagTests
             useProductionRateLimits: false,
             overrideEmailService: false,
             emailOtpDeliveryEnabled: true);
+        factory.ResetDatabaseAsync().GetAwaiter().GetResult();
         using var scope = factory.Services.CreateScope();
 
         var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
@@ -31,6 +32,7 @@ public class AuthEmailDeliveryFlagTests
             useProductionRateLimits: false,
             overrideEmailService: false,
             emailOtpDeliveryEnabled: false);
+        factory.ResetDatabaseAsync().GetAwaiter().GetResult();
         using var scope = factory.Services.CreateScope();
 
         var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
@@ -45,6 +47,7 @@ public class AuthEmailDeliveryFlagTests
             useProductionRateLimits: false,
             overrideEmailService: false,
             emailOtpDeliveryEnabled: false);
+        await factory.ResetDatabaseAsync();
         using var client = factory.CreateClient();
 
         const string email = "flag_register@example.com";
@@ -75,6 +78,7 @@ public class AuthEmailDeliveryFlagTests
             useProductionRateLimits: false,
             overrideEmailService: false,
             emailOtpDeliveryEnabled: false);
+        await factory.ResetDatabaseAsync();
         using var client = factory.CreateClient();
 
         const string email = "flag_resend@example.com";
@@ -120,6 +124,7 @@ public class AuthEmailDeliveryFlagTests
             useProductionRateLimits: false,
             overrideEmailService: false,
             emailOtpDeliveryEnabled: false);
+        await factory.ResetDatabaseAsync();
         using var client = factory.CreateClient();
 
         const string email = "flag_forgot@example.com";

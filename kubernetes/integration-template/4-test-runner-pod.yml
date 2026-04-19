@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: resumeapp-it-test-runner
+  namespace: ${INTEGRATION_TEST_NAMESPACE}
+  labels:
+    app: resumeapp-it-test-runner
+spec:
+  restartPolicy: Never
+  containers:
+    - name: dotnet-test-runner
+      image: mcr.microsoft.com/dotnet/sdk:9.0
+      imagePullPolicy: IfNotPresent
+      command:
+        - /bin/sh
+        - -c
+        - sleep 36000
