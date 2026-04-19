@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:ResumeApp.Views.Controls"
@@ -12,14 +11,14 @@
 
     <ContentPage.Behaviors>
         <toolkit:EventToCommandBehavior EventName="Appearing"
-                                        Command="{Binding AppearingCommand}" />
+                                        Command="{Binding LoadDraftsCommand}" />
     </ContentPage.Behaviors>
 
     <Grid RowDefinitions="*,80">
 
         <RefreshView Grid.Row="0"
                      Command="{Binding LoadDraftsCommand}"
-                     IsRefreshing="{Binding IsBusy}">
+                     IsRefreshing="{Binding IsRefreshing}">
             <ScrollView>
                 <VerticalStackLayout Padding="24,56,24,16" Spacing="20">
 
@@ -54,10 +53,9 @@
                            IsVisible="{Binding HasError}"
                            TextColor="{StaticResource DangerRed}" />
 
-                    <CollectionView ItemsSource="{Binding Drafts}"
-                                    IsVisible="{Binding HasResumes}"
-                                    SelectionMode="None">
-                        <CollectionView.ItemTemplate>
+                    <VerticalStackLayout IsVisible="{Binding HasResumes}"
+                                         BindableLayout.ItemsSource="{Binding Drafts}">
+                        <BindableLayout.ItemTemplate>
                             <DataTemplate x:DataType="models:ResumeDraftListItem">
                                 <Border Margin="0,0,0,12"
                                         Padding="16"
@@ -99,8 +97,8 @@
                                     </Grid>
                                 </Border>
                             </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
 
                     <Border Style="{StaticResource CardStyle}"
                             Margin="0,20,0,0"

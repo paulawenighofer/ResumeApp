@@ -1,5 +1,6 @@
 using API.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Shared.DTO;
 using Shared.Models;
 using System.Diagnostics;
@@ -18,6 +19,8 @@ public class ResumeDraftService : IResumeDraftService
     private readonly IResumeJsonValidator _jsonValidator;
     private readonly IPdfRenderer _pdfRenderer;
     private readonly IBlobStorageService _blobStorageService;
+    private readonly IResumeDraftGenerationQueue _generationQueue;
+    private readonly ResumeDraftProcessingOptions _processingOptions;
     private readonly ApiMetrics _metrics;
     private readonly ILogger<ResumeDraftService> _logger;
 
@@ -28,6 +31,8 @@ public class ResumeDraftService : IResumeDraftService
         IResumeJsonValidator jsonValidator,
         IPdfRenderer pdfRenderer,
         IBlobStorageService blobStorageService,
+        IResumeDraftGenerationQueue generationQueue,
+        IOptions<ResumeDraftProcessingOptions> processingOptions,
         ApiMetrics metrics,
         ILogger<ResumeDraftService> logger)
     {
@@ -37,13 +42,14 @@ public class ResumeDraftService : IResumeDraftService
         _jsonValidator = jsonValidator;
         _pdfRenderer = pdfRenderer;
         _blobStorageService = blobStorageService;
+        _generationQueue = generationQueue;
+        _processingOptions = processingOptions.Value;
         _metrics = metrics;
         _logger = logger;
     }
 
     public async Task<ResumeDraftResponse> CreateDraftAsync(string userId, CreateResumeDraftRequest request, CancellationToken cancellationToken = default)
     {
-        var stopwatch = Stopwatch.StartNew();
         var assembled = await _profileAssembler.AssembleAsync(userId, request, cancellationToken);
 
         var draft = new Resume
@@ -59,13 +65,36 @@ public class ResumeDraftService : IResumeDraftService
         _db.Resumes.Add(draft);
         await _db.SaveChangesAsync(cancellationToken);
 
+        if (_processingOptions.ProcessInBackground)
+        {
+            await _generationQueue.EnqueueAsync(new ResumeDraftGenerationWorkItem(userId, draft.Id, assembled.Prompt), cancellationToken);
+            _logger.LogInformation("Resume draft queued for background generation for user {UserId} and resume {ResumeId}", userId, draft.Id);
+        }
+        else
+        {
+            await ProcessDraftGenerationAsync(userId, draft.Id, assembled.Prompt, cancellationToken);
+            await _db.Entry(draft).ReloadAsync(cancellationToken);
+        }
+
+        return MapToDraftResponse(draft);
+    }
+
+    public async Task ProcessDraftGenerationAsync(string userId, int resumeId, string prompt, CancellationToken cancellationToken = default)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        var draft = await _db.Resumes.FirstOrDefaultAsync(x => x.UserId == userId && x.Id == resumeId, cancellationToken);
+        if (draft is null || draft.Status != ResumeDraftStatus.Pending)
+        {
+            return;
+        }
+
         try
         {
             var generatedJson = await ExecuteWithRetryAsync(
                 "draft_generation",
                 userId,
                 draft.Id,
-                () => _aiClient.GenerateResumeJsonAsync(assembled.Prompt, cancellationToken),
+                () => _aiClient.GenerateResumeJsonAsync(prompt, cancellationToken),
                 cancellationToken);
 
             if (!_jsonValidator.TryValidate(generatedJson, out var failureReason))
@@ -93,8 +122,6 @@ public class ResumeDraftService : IResumeDraftService
             draft.Status is ResumeDraftStatus.Generated ? "success" : "failure",
             stopwatch.Elapsed.TotalMilliseconds,
             userId);
-
-        return MapToDraftResponse(draft);
     }
 
     public async Task<IReadOnlyList<ResumeListItemDto>> ListDraftsAsync(string userId, CancellationToken cancellationToken = default)

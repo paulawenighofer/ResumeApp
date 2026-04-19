@@ -11,12 +11,16 @@ namespace ResumeApp.ViewModels;
 public partial class ResumeListViewModel : ObservableObject
 {
     private readonly IApiService _apiService;
+    private bool _isLoading;
 
     [ObservableProperty]
     private bool hasResumes;
 
     [ObservableProperty]
     private bool isBusy;
+
+    [ObservableProperty]
+    private bool isRefreshing;
 
     [ObservableProperty]
     private bool hasError;
@@ -40,12 +44,14 @@ public partial class ResumeListViewModel : ObservableObject
     [RelayCommand]
     private async Task LoadDrafts()
     {
-        if (IsBusy)
+        if (_isLoading)
         {
             return;
         }
 
+        _isLoading = true;
         IsBusy = true;
+        IsRefreshing = true;
         HasError = false;
         ErrorMessage = string.Empty;
 
@@ -99,7 +105,9 @@ public partial class ResumeListViewModel : ObservableObject
         }
         finally
         {
+            IsRefreshing = false;
             IsBusy = false;
+            _isLoading = false;
         }
     }
 
