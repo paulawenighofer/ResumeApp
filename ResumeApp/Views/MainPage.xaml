@@ -194,6 +194,9 @@
 
                     <!-- Education progress -->
                     <Border Style="{StaticResource CardStyle}" Padding="16">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding GoToEducationCommand}" />
+                        </Border.GestureRecognizers>
                         <Grid ColumnDefinitions="40,*,Auto" ColumnSpacing="12">
                             <Border WidthRequest="40" HeightRequest="40"
                                     StrokeThickness="0"
@@ -206,12 +209,15 @@
                                        FontSize="14"
                                        FontFamily="OpenSansSemibold"
                                        TextColor="{StaticResource TextPrimary}" />
-                                <ProgressBar Progress="0.5"
+                                <ProgressBar Progress="{Binding EducationCompletionProgress}"
                                              ProgressColor="{StaticResource PrimaryViolet}"
                                              HeightRequest="6" />
+                                <Label Text="{Binding EducationEntryCount, StringFormat='{}{0}/2 entries'}"
+                                       Style="{StaticResource SubtitleStyle}"
+                                       FontSize="11" />
                             </VerticalStackLayout>
                             <Label Grid.Column="2"
-                                   Text="50%"
+                                   Text="{Binding EducationCompletionText}"
                                    FontSize="13"
                                    TextColor="{StaticResource PrimaryViolet}"
                                    FontFamily="OpenSansSemibold"
@@ -221,6 +227,9 @@
 
                     <!-- Experience progress -->
                     <Border Style="{StaticResource CardStyle}" Padding="16">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding GoToExperienceCommand}" />
+                        </Border.GestureRecognizers>
                         <Grid ColumnDefinitions="40,*,Auto" ColumnSpacing="12">
                             <Border WidthRequest="40" HeightRequest="40"
                                     StrokeThickness="0"
@@ -233,12 +242,15 @@
                                        FontSize="14"
                                        FontFamily="OpenSansSemibold"
                                        TextColor="{StaticResource TextPrimary}" />
-                                <ProgressBar Progress="0.3"
+                                <ProgressBar Progress="{Binding ExperienceCompletionProgress}"
                                              ProgressColor="{StaticResource SecondaryBlue}"
                                              HeightRequest="6" />
+                                <Label Text="{Binding ExperienceEntryCount, StringFormat='{}{0}/2 entries'}"
+                                       Style="{StaticResource SubtitleStyle}"
+                                       FontSize="11" />
                             </VerticalStackLayout>
                             <Label Grid.Column="2"
-                                   Text="30%"
+                                   Text="{Binding ExperienceCompletionText}"
                                    FontSize="13"
                                    TextColor="{StaticResource SecondaryBlue}"
                                    FontFamily="OpenSansSemibold"

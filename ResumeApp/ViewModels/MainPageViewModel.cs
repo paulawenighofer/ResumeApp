@@ -23,6 +23,24 @@ public partial class MainPageViewModel : ObservableObject
     [ObservableProperty]
     private string profileImageUrl = "";
 
+    [ObservableProperty]
+    private double educationCompletionProgress;
+
+    [ObservableProperty]
+    private string educationCompletionText = "0%";
+
+    [ObservableProperty]
+    private int educationEntryCount;
+
+    [ObservableProperty]
+    private double experienceCompletionProgress;
+
+    [ObservableProperty]
+    private string experienceCompletionText = "0%";
+
+    [ObservableProperty]
+    private int experienceEntryCount;
+
     public bool HasProfileImage => !string.IsNullOrWhiteSpace(ProfileImagePath) || !string.IsNullOrWhiteSpace(ProfileImageUrl);
 
     public string AppHeading { get; } = "AI Resume Builder";
@@ -44,12 +62,13 @@ public partial class MainPageViewModel : ObservableObject
         _authService = authService;
         _apiService = apiService;
         _localStorageService = localStorageService;
-        _ = LoadUserInfoAsync();
+        _ = RefreshAsync();
     }
 
     public async Task RefreshAsync()
     {
         await LoadUserInfoAsync();
+        await LoadProfileCompletionAsync();
     }
 
     private async Task LoadUserInfoAsync()
@@ -87,6 +106,51 @@ public partial class MainPageViewModel : ObservableObject
         OnPropertyChanged(nameof(ProfileImageSource));
         OnPropertyChanged(nameof(HasProfileImage));
     }
+
+    private async Task LoadProfileCompletionAsync()
+    {
+        try
+        {
+            var educationTask = _apiService.GetEducationAsync();
+            var experienceTask = _apiService.GetExperienceAsync();
+
+            await Task.WhenAll(educationTask, experienceTask);
+
+            var educationCount = educationTask.Result.Count;
+            var experienceCount = experienceTask.Result.Count;
+
+            EducationEntryCount = educationCount;
+            ExperienceEntryCount = experienceCount;
+
+            EducationCompletionProgress = CalculateCompletionProgress(educationCount, targetCount: 2);
+            ExperienceCompletionProgress = CalculateCompletionProgress(experienceCount, targetCount: 2);
+
+            EducationCompletionText = ToPercentageText(EducationCompletionProgress);
+            ExperienceCompletionText = ToPercentageText(ExperienceCompletionProgress);
+        }
+        catch
+        {
+            EducationEntryCount = 0;
+            ExperienceEntryCount = 0;
+            EducationCompletionProgress = 0;
+            ExperienceCompletionProgress = 0;
+            EducationCompletionText = "0%";
+            ExperienceCompletionText = "0%";
+        }
+    }
+
+    private static double CalculateCompletionProgress(int currentCount, int targetCount)
+    {
+        if (targetCount <= 0)
+        {
+            return 0;
+        }
+
+        return Math.Min(currentCount / (double)targetCount, 1.0);
+    }
+
+    private static string ToPercentageText(double progress)
+        => $"{(int)Math.Round(progress * 100)}%";
 
     partial void OnProfileImagePathChanged(string value)
     {
@@ -149,6 +213,10 @@ public partial class MainPageViewModel : ObservableObject
     [RelayCommand]
     private async Task GoToEducation() =>
         await Shell.Current.GoToAsync(nameof(EducationPage));
+
+    [RelayCommand]
+    private async Task GoToExperience() =>
+        await Shell.Current.GoToAsync(nameof(ExperiencePage));
 
     [RelayCommand]
     private async Task GoToSkills() =>

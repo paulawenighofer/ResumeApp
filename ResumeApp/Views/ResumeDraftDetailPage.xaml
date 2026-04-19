@@ -105,7 +105,7 @@
                 <Button Text="Save Draft Edits"
                         Command="{Binding SaveDraftEditCommand}"
                         IsEnabled="{Binding IsBusy, Converter={toolkit:InvertedBoolConverter}}"
-                        Style="{StaticResource PrimaryButtonStyle}" />
+                        Style="{StaticResource VioletButtonStyle}" />
             </VerticalStackLayout>
 
             <VerticalStackLayout Spacing="8" 
@@ -114,7 +114,7 @@
                 <Button Text="Approve and Finalize"
                         Command="{Binding ApproveDraftCommand}"
                         IsEnabled="{Binding IsBusy, Converter={toolkit:InvertedBoolConverter}}"
-                        Style="{StaticResource PrimaryButtonStyle}" />
+                        Style="{StaticResource VioletButtonStyle}" />
             </VerticalStackLayout>
 
             <VerticalStackLayout Spacing="8"
@@ -123,7 +123,7 @@
                 <Button Text="Generate PDF"
                         Command="{Binding GeneratePdfCommand}"
                         IsEnabled="{Binding IsBusy, Converter={toolkit:InvertedBoolConverter}}"
-                        Style="{StaticResource PrimaryButtonStyle}" />
+                        Style="{StaticResource VioletButtonStyle}" />
             </VerticalStackLayout>
 
             <VerticalStackLayout Spacing="8"
@@ -132,7 +132,7 @@
                 <Button Text="Open / Download PDF"
                         Command="{Binding OpenPdfCommand}"
                         IsEnabled="{Binding IsBusy, Converter={toolkit:InvertedBoolConverter}}"
-                        Style="{StaticResource PrimaryButtonStyle}" />
+                        Style="{StaticResource VioletButtonStyle}" />
             </VerticalStackLayout>
 
             <Label IsVisible="{Binding ShowPdfRetry}"
