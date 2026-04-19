@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
@@ -34,31 +35,32 @@ public class AiResumeGenerationClient : IAiResumeGenerationClient
 
         var client = _httpClientFactory.CreateClient();
 
-        using var request = new HttpRequestMessage(HttpMethod.Post, config.BaseUrl)
+        var chatPayload = new
         {
-            Content = new StringContent(
-                JsonSerializer.Serialize(new
+            model = config.Model,
+            stream = false,
+            messages = new[]
+            {
+                new
                 {
-                    model = config.Model,
-                    prompt
-                }),
-                Encoding.UTF8,
-                "application/json")
+                    role = "system",
+                    content = "You generate resume drafts and must return JSON only."
+                },
+                new
+                {
+                    role = "user",
+                    content = prompt
+                }
+            }
         };
-
-        if (!string.IsNullOrWhiteSpace(config.ApiKey))
-        {
-            request.Headers.TryAddWithoutValidation("Authorization", $"Bearer {config.ApiKey}");
-        }
 
         try
         {
-            using var response = await client.SendAsync(request, timeoutCts.Token);
-            var body = await response.Content.ReadAsStringAsync(timeoutCts.Token);
+            var (statusCode, body) = await SendAsync(client, config.BaseUrl, chatPayload, config.ApiKey, timeoutCts.Token);
 
-            if (!response.IsSuccessStatusCode)
+            if (!IsSuccess(statusCode))
             {
-                throw new InvalidOperationException($"AI generation failed with status {(int)response.StatusCode}: {body}");
+                throw new InvalidOperationException($"AI generation failed with status {(int)statusCode}: {body}");
             }
 
             return ExtractGeneratedJson(body);
@@ -68,6 +70,34 @@ public class AiResumeGenerationClient : IAiResumeGenerationClient
             throw new TimeoutException($"AI generation timed out after {timeoutSeconds} seconds.");
         }
     }
+
+    private static async Task<(HttpStatusCode statusCode, string body)> SendAsync(
+        HttpClient client,
+        string url,
+        object payload,
+        string apiKey,
+        CancellationToken cancellationToken)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Post, url)
+        {
+            Content = new StringContent(
+                JsonSerializer.Serialize(payload),
+                Encoding.UTF8,
+                "application/json")
+        };
+
+        if (!string.IsNullOrWhiteSpace(apiKey))
+        {
+            request.Headers.TryAddWithoutValidation("Authorization", $"Bearer {apiKey}");
+        }
+
+        using var response = await client.SendAsync(request, cancellationToken);
+        var body = await response.Content.ReadAsStringAsync(cancellationToken);
+        return (response.StatusCode, body);
+    }
+
+    private static bool IsSuccess(HttpStatusCode statusCode)
+        => (int)statusCode is >= 200 and < 300;
 
     private static string ExtractGeneratedJson(string responseBody)
     {
@@ -93,6 +123,43 @@ public class AiResumeGenerationClient : IAiResumeGenerationClient
                 if (root.TryGetProperty("content", out var content) && content.ValueKind == JsonValueKind.String)
                 {
                     return content.GetString() ?? string.Empty;
+                }
+
+                if (root.TryGetProperty("response", out var response) && response.ValueKind == JsonValueKind.String)
+                {
+                    return response.GetString() ?? string.Empty;
+                }
+
+                if (root.TryGetProperty("message", out var message)
+                    && message.ValueKind == JsonValueKind.Object
+                    && message.TryGetProperty("content", out var messageContent)
+                    && messageContent.ValueKind == JsonValueKind.String)
+                {
+                    return messageContent.GetString() ?? string.Empty;
+                }
+
+                if (root.TryGetProperty("choices", out var choices)
+                    && choices.ValueKind == JsonValueKind.Array
+                    && choices.GetArrayLength() > 0)
+                {
+                    var firstChoice = choices[0];
+
+                    if (firstChoice.ValueKind == JsonValueKind.Object)
+                    {
+                        if (firstChoice.TryGetProperty("message", out var choiceMessage)
+                            && choiceMessage.ValueKind == JsonValueKind.Object
+                            && choiceMessage.TryGetProperty("content", out var choiceMessageContent)
+                            && choiceMessageContent.ValueKind == JsonValueKind.String)
+                        {
+                            return choiceMessageContent.GetString() ?? string.Empty;
+                        }
+
+                        if (firstChoice.TryGetProperty("text", out var choiceText)
+                            && choiceText.ValueKind == JsonValueKind.String)
+                        {
+                            return choiceText.GetString() ?? string.Empty;
+                        }
+                    }
                 }
             }
         }
