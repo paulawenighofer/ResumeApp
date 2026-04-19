@@ -12,6 +12,7 @@ public partial class ResumeListViewModel : ObservableObject
 {
     private readonly IApiService _apiService;
     private bool _isLoading;
+    private bool _hasLoadedOnce;
 
     [ObservableProperty]
     private bool hasResumes;
@@ -33,11 +34,23 @@ public partial class ResumeListViewModel : ObservableObject
     public ResumeListViewModel(IApiService apiService)
     {
         _apiService = apiService;
+        MainThread.BeginInvokeOnMainThread(async () => await EnsureInitialLoadAsync());
     }
 
     [RelayCommand]
     private async Task Appearing()
     {
+        await LoadDrafts();
+    }
+
+    private async Task EnsureInitialLoadAsync()
+    {
+        if (_hasLoadedOnce)
+        {
+            return;
+        }
+
+        _hasLoadedOnce = true;
         await LoadDrafts();
     }
 
@@ -119,7 +132,15 @@ public partial class ResumeListViewModel : ObservableObject
             return;
         }
 
-        await Shell.Current.GoToAsync($"{nameof(ResumeDraftDetailPage)}?id={item.Id}");
+        try
+        {
+            await Shell.Current.GoToAsync($"{nameof(ResumeDraftDetailPage)}?id={item.Id}");
+        }
+        catch (Exception ex)
+        {
+            HasError = true;
+            ErrorMessage = $"Could not open draft. {ex.Message}";
+        }
     }
 
     [RelayCommand]
