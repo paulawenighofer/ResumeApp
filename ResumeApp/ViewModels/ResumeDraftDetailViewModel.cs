@@ -48,9 +48,15 @@ public partial class ResumeDraftDetailViewModel : ObservableObject, IQueryAttrib
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
         if (query.TryGetValue("id", out var raw) &&
-            int.TryParse(raw?.ToString(), out var id))
+            int.TryParse(raw?.ToString(), out var id) &&
+            id > 0)
         {
             DraftId = id;
+            Microsoft.Maui.ApplicationModel.MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                await LoadDraftAsync(id);
+                StartPollingIfPending();
+            });
         }
     }
 
