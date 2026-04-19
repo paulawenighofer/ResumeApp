@@ -16,12 +16,12 @@ jobs:
       - name: Linting
         run: |
           nix-shell -p dotnetCorePackages.sdk_9_0 \
-           --run "dotnet restore API/API.csproj && dotnet restore Test/Test.csproj && dotnet format API/API.csproj --verify-no-changes --no-restore && dotnet format Test/Test.csproj --verify-no-changes --no-restore"
+           --run "dotnet restore API/API.csproj && dotnet restore \"Maui Tests/Maui Tests.csproj\" && dotnet restore IntegrationTests/IntegrationTests.csproj && dotnet format API/API.csproj --verify-no-changes --no-restore && dotnet format \"Maui Tests/Maui Tests.csproj\" --verify-no-changes --no-restore && dotnet format IntegrationTests/IntegrationTests.csproj --verify-no-changes --no-restore"
 
       - name: Testing
         run: |
           nix-shell -p dotnetCorePackages.sdk_9_0 \
-           --run "dotnet restore Test/Test.csproj && dotnet test Test/Test.csproj --no-restore"
+           --run "dotnet restore \"Maui Tests/Maui Tests.csproj\" && dotnet test \"Maui Tests/Maui Tests.csproj\" --no-restore"
 
   integration-tests:
     name: Integration Tests (Real PostgreSQL)
