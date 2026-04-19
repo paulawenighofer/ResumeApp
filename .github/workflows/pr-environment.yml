@@ -168,6 +168,46 @@ jobs:
         run: |
           curl -d "PR #${PR_NUMBER} environment deployment failed" ntfy.sh/resume-app-pb
 
+  integration-tests:
+    name: Integration Tests with Real PostgreSQL
+    runs-on: self-hosted
+    if: github.event.action != 'closed'
+    needs: deploy-pr-environment
+    env:
+      INTEGRATION_TEST_USE_REAL_POSTGRES: "true"
+      ConnectionStrings__DefaultConnection: "Host=localhost;Port=5433;Database=resumeapp_integration;Username=integrationuser;Password=integrationpass123"
+      PGPASSWORD: integrationpass123
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v5
+
+      - name: Start PostgreSQL container
+        run: |
+          docker rm -f pr-env-integration-postgres 2>/dev/null || true
+          docker run -d --name pr-env-integration-postgres \
+            -e POSTGRES_USER=integrationuser \
+            -e POSTGRES_PASSWORD=integrationpass123 \
+            -e POSTGRES_DB=resumeapp_integration \
+            -p 5433:5432 postgres:16
+
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          until docker exec pr-env-integration-postgres pg_isready -U integrationuser -d resumeapp_integration >/dev/null 2>&1; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+
+      - name: Run Integration Tests with Real Database
+        run: |
+          nix-shell -p dotnetCorePackages.sdk_9_0 \
+           --run "dotnet restore IntegrationTests/IntegrationTests.csproj && dotnet test IntegrationTests/IntegrationTests.csproj --no-restore --logger 'console;verbosity=minimal'"
+
+      - name: Cleanup PostgreSQL container
+        if: always()
+        run: |
+          docker rm -f pr-env-integration-postgres 2>/dev/null || true
+
   cleanup-pr-environment:
     name: Cleanup PR Environment
     runs-on: self-hosted
