@@ -6,6 +6,7 @@ using ResumeApp.Models;
 using ResumeApp.Services;
 using Shared.DTO;
 using Shared.Models;
+using System.Threading;
 
 namespace ResumeApp.ViewModels;
 
@@ -14,6 +15,9 @@ public partial class ResumeDraftDetailViewModel : ObservableObject, IQueryAttrib
     private readonly IApiService _apiService;
     private ResumeDetailDto? _currentDraft;
     private string? _currentEditedJson;
+    private CancellationTokenSource? _pollingCts;
+    private const int PollIntervalSeconds = 3;
+    private const int MaxPollAttempts = 120;
 
     [ObservableProperty] private int draftId;
     [ObservableProperty] private string targetCompany = string.Empty;
@@ -56,20 +60,31 @@ public partial class ResumeDraftDetailViewModel : ObservableObject, IQueryAttrib
         if (DraftId > 0)
         {
             await LoadDraftAsync(DraftId);
+            StartPollingIfPending();
         }
     }
 
-    public async Task LoadDraftAsync(int id)
+    [RelayCommand]
+    private void Disappearing()
     {
-        if (id <= 0 || IsBusy)
+        StopPolling();
+    }
+
+    public async Task LoadDraftAsync(int id, bool showBusy = true)
+    {
+        if (id <= 0 || (showBusy && IsBusy))
         {
             return;
         }
 
         DraftId = id;
-        IsBusy = true;
-        HasError = false;
-        ErrorMessage = string.Empty;
+
+        if (showBusy)
+        {
+            IsBusy = true;
+            HasError = false;
+            ErrorMessage = string.Empty;
+        }
 
         try
         {
@@ -100,7 +115,10 @@ public partial class ResumeDraftDetailViewModel : ObservableObject, IQueryAttrib
         }
         finally
         {
-            IsBusy = false;
+            if (showBusy)
+            {
+                IsBusy = false;
+            }
         }
     }
 
@@ -476,5 +494,58 @@ public partial class ResumeDraftDetailViewModel : ObservableObject, IQueryAttrib
         }
 
         return draft.FailedReason ?? string.Empty;
+    }
+
+    private void StartPollingIfPending()
+    {
+        if (_currentDraft?.Status != ResumeDraftStatus.Pending || DraftId <= 0 || _pollingCts is not null)
+        {
+            return;
+        }
+
+        _pollingCts = new CancellationTokenSource();
+        _ = PollDraftUntilCompletedAsync(_pollingCts.Token);
+    }
+
+    private void StopPolling()
+    {
+        _pollingCts?.Cancel();
+        _pollingCts?.Dispose();
+        _pollingCts = null;
+    }
+
+    private async Task PollDraftUntilCompletedAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            for (var attempt = 0; attempt < MaxPollAttempts && !cancellationToken.IsCancellationRequested; attempt++)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(PollIntervalSeconds), cancellationToken);
+
+                await LoadDraftAsync(DraftId, showBusy: false);
+
+                if (_currentDraft?.Status != ResumeDraftStatus.Pending)
+                {
+                    StopPolling();
+                    return;
+                }
+            }
+
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                HasError = true;
+                ErrorMessage = "Draft is still generating. Please reopen this page in a moment.";
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        finally
+        {
+            if (_currentDraft?.Status != ResumeDraftStatus.Pending)
+            {
+                StopPolling();
+            }
+        }
     }
 }

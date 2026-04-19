@@ -91,6 +91,10 @@ builder.Services
     .ValidateOnStart();
 
 builder.Services
+    .AddOptions<ResumeDraftProcessingOptions>()
+    .Bind(builder.Configuration.GetSection(ResumeDraftProcessingOptions.SectionName));
+
+builder.Services
     .AddOptions<AzureBlobOptions>()
     .Bind(builder.Configuration.GetSection(AzureBlobOptions.SectionName))
     .Validate(options => !string.IsNullOrWhiteSpace(options.ConnectionString), "AzureBlob:ConnectionString is required.")
@@ -182,10 +186,13 @@ builder.Services.AddAuthentication(options =>
 // =============================================
 // creating new HttpClient instances manually (for better performance in http requests)
 builder.Services.AddHttpClient();
+builder.Services.AddSingleton<IResumeDraftGenerationQueue, ResumeDraftGenerationQueue>();
+builder.Services.AddHostedService<ResumeDraftGenerationWorker>();
+builder.Services.AddScoped<ResumeDraftService>();
+builder.Services.AddScoped<IResumeDraftService>(sp => sp.GetRequiredService<ResumeDraftService>());
 builder.Services.AddScoped<IAiResumeGenerationClient, AiResumeGenerationClient>();
 builder.Services.AddScoped<IResumeProfileAssembler, ResumeProfileAssembler>();
 builder.Services.AddScoped<IResumeJsonValidator, ResumeJsonValidator>();
-builder.Services.AddScoped<IResumeDraftService, ResumeDraftService>();
 builder.Services.AddSingleton<IPdfRenderer, QuestPdfRenderer>();
 // Register our custom TokenService so we can inject it into controllers
 builder.Services.AddScoped<TokenService>();

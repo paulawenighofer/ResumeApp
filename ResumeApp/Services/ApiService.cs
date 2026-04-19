@@ -368,7 +368,7 @@ public class ApiService : IApiService
     public async Task<string?> UploadProfileImageAsync(string imagePath)
     {
         var content = BuildMultipartContent([imagePath], "file");
-        var response = await SendAsync(HttpMethod.Post, "api/profile/image", content);
+        using var response = await SendAsync(HttpMethod.Post, "api/profile/image", content);
         if (response is null || !response.IsSuccessStatusCode)
         {
             return null;
@@ -381,10 +381,14 @@ public class ApiService : IApiService
     public async Task<ResumeDraftResponse?> CreateResumeDraftAsync(CreateResumeDraftRequest request)
     {
         var startedAtUtc = DateTime.UtcNow;
-        var response = await SendAsync(HttpMethod.Post, "api/resumes/drafts", JsonContent.Create(request));
+        using var response = await SendAsync(HttpMethod.Post, "api/resumes/drafts", JsonContent.Create(request));
         if (response is not null && response.IsSuccessStatusCode)
         {
-            return await response.Content.ReadFromJsonAsync<ResumeDraftResponse>();
+            var created = await response.Content.ReadFromJsonAsync<ResumeDraftResponse>();
+            if (created is not null)
+            {
+                return created;
+            }
         }
 
         return await TryRecoverDraftAfterCreateFailureAsync(request.TargetCompany, startedAtUtc);
@@ -392,10 +396,20 @@ public class ApiService : IApiService
 
     public async Task<List<ResumeListItemDto>> GetResumeDraftsAsync()
     {
-        var response = await SendAsync(HttpMethod.Get, "api/resumes");
-        if (response is null || !response.IsSuccessStatusCode)
+        using var response = await SendAsync(HttpMethod.Get, "api/resumes", timeout: TimeSpan.FromSeconds(30));
+        if (response is null)
         {
-            return [];
+            throw new InvalidOperationException("Unable to reach server.");
+        }
+
+        if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized or System.Net.HttpStatusCode.Forbidden)
+        {
+            throw new InvalidOperationException("Your session has expired. Please sign in again.");
+        }
+
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new InvalidOperationException($"Could not load drafts ({(int)response.StatusCode}).");
         }
 
         var items = await response.Content.ReadFromJsonAsync<List<ResumeListItemDto>>();
@@ -404,7 +418,7 @@ public class ApiService : IApiService
 
     public async Task<ResumeDetailDto?> GetResumeDraftAsync(int id)
     {
-        var response = await SendAsync(HttpMethod.Get, $"api/resumes/{id}");
+        using var response = await SendAsync(HttpMethod.Get, $"api/resumes/{id}");
         if (response is null || !response.IsSuccessStatusCode)
         {
             return null;
@@ -415,7 +429,7 @@ public class ApiService : IApiService
 
     public async Task<ResumeDetailDto?> SaveResumeDraftEditAsync(int id, SaveDraftEditRequest request)
     {
-        var response = await SendAsync(HttpMethod.Put, $"api/resumes/{id}/draft", JsonContent.Create(request));
+        using var response = await SendAsync(HttpMethod.Put, $"api/resumes/{id}/draft", JsonContent.Create(request));
         if (response is null || !response.IsSuccessStatusCode)
         {
             return null;
@@ -426,7 +440,7 @@ public class ApiService : IApiService
 
     public async Task<ApproveDraftResponse?> ApproveResumeDraftAsync(int id, ApproveDraftRequest request)
     {
-        var response = await SendAsync(HttpMethod.Post, $"api/resumes/{id}/approve", JsonContent.Create(request));
+        using var response = await SendAsync(HttpMethod.Post, $"api/resumes/{id}/approve", JsonContent.Create(request));
         if (response is null || !response.IsSuccessStatusCode)
         {
             return null;
@@ -437,7 +451,7 @@ public class ApiService : IApiService
 
     public async Task<ResumeDetailDto?> GenerateResumePdfAsync(int id)
     {
-        var response = await SendAsync(HttpMethod.Post, $"api/resumes/{id}/generate-pdf");
+        using var response = await SendAsync(HttpMethod.Post, $"api/resumes/{id}/generate-pdf");
         if (response is null || !response.IsSuccessStatusCode)
         {
             return null;
@@ -448,7 +462,7 @@ public class ApiService : IApiService
 
     public async Task<byte[]?> DownloadResumePdfAsync(int id)
     {
-        var response = await SendAsync(HttpMethod.Get, $"api/resumes/{id}/pdf");
+        using var response = await SendAsync(HttpMethod.Get, $"api/resumes/{id}/pdf");
         if (response is null || !response.IsSuccessStatusCode)
         {
             return null;
@@ -459,13 +473,13 @@ public class ApiService : IApiService
 
     private async Task<bool> SendJsonAsync(HttpMethod method, string url, object payload)
     {
-        var response = await SendAsync(method, url, JsonContent.Create(payload));
+        using var response = await SendAsync(method, url, JsonContent.Create(payload));
         return response?.IsSuccessStatusCode == true;
     }
 
-    private async Task<HttpResponseMessage?> SendAsync(HttpMethod method, string url, HttpContent? content = null)
+    private async Task<HttpResponseMessage?> SendAsync(HttpMethod method, string url, HttpContent? content = null, TimeSpan? timeout = null)
     {
-        var request = new HttpRequestMessage(method, url)
+        using var request = new HttpRequestMessage(method, url)
         {
             Content = content
         };
@@ -476,9 +490,11 @@ public class ApiService : IApiService
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         }
 
+        using var timeoutCts = timeout.HasValue ? new CancellationTokenSource(timeout.Value) : null;
+
         try
         {
-            return await _httpClient.SendAsync(request);
+            return await _httpClient.SendAsync(request, timeoutCts?.Token ?? CancellationToken.None);
         }
         catch
         {

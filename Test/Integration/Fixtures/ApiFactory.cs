@@ -57,6 +57,7 @@ public class ApiFactory : WebApplicationFactory<Program>
                 ["AiService:ApiKey"] = "test-key",
                 ["AiService:Model"] = "test-model",
                 ["AiService:TimeoutSeconds"] = "60",
+                ["ResumeDraftProcessing:ProcessInBackground"] = "false",
                 ["AzureBlob:ConnectionString"] = "UseDevelopmentStorage=true",
                 ["AzureBlob:ProfileImagesContainer"] = "profile-images",
                 ["AzureBlob:ProfileImagesBasePath"] = "",
