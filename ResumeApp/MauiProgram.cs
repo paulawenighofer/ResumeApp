@@ -28,8 +28,11 @@ public static class MauiProgram
         {
 
             var apiBaseUrl = "https://resumeapp-web-api.victoriousriver-0bd90a87.westus2.azurecontainerapps.io";
-            var client = new HttpClient();
-            client.BaseAddress = new Uri(apiBaseUrl.TrimEnd('/') + '/');
+            var client = new HttpClient
+            {
+                BaseAddress = new Uri(apiBaseUrl.TrimEnd('/') + '/'),
+                Timeout = TimeSpan.FromMinutes(10)
+            };
             return client;
         });
 

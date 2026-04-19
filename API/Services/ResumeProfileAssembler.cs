@@ -24,8 +24,7 @@ public class ResumeProfileAssembler : IResumeProfileAssembler
                 u.FirstName,
                 u.LastName,
                 u.Email,
-                u.Bio,
-                u.ProfileImageUrl
+                u.Bio
             })
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -156,8 +155,7 @@ public class ResumeProfileAssembler : IResumeProfileAssembler
                 user.FirstName,
                 user.LastName,
                 user.Email,
-                user.Bio,
-                user.ProfileImageUrl
+                user.Bio
             },
             sections
         };
@@ -180,6 +178,9 @@ Mandatory rules:
 - If a selected section has no data, return an empty array.
 - Do not invent new field types. Use only these top-level fields: user, education, experience, skills, projects, certifications.
 - If personalSummary is provided, treat it as extra summary context only, not a canonical profile field.
+- Do not include profileImageUrl in any part of the output.
+- For experience items, you may generate concise bullet points only by reformulating and combining keywords/tasks explicitly present in the provided job description, responsibilities, projects, skills, certifications, and personal summary.
+- Do not create brand-new claims; every bullet must be traceable to supplied profile facts.
 
 Input JSON:
 {generationRequestJson}
