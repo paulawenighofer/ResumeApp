@@ -380,13 +380,14 @@ public class ApiService : IApiService
 
     public async Task<ResumeDraftResponse?> CreateResumeDraftAsync(CreateResumeDraftRequest request)
     {
+        var startedAtUtc = DateTime.UtcNow;
         var response = await SendAsync(HttpMethod.Post, "api/resumes/drafts", JsonContent.Create(request));
-        if (response is null || !response.IsSuccessStatusCode)
+        if (response is not null && response.IsSuccessStatusCode)
         {
-            return null;
+            return await response.Content.ReadFromJsonAsync<ResumeDraftResponse>();
         }
 
-        return await response.Content.ReadFromJsonAsync<ResumeDraftResponse>();
+        return await TryRecoverDraftAfterCreateFailureAsync(request.TargetCompany, startedAtUtc);
     }
 
     public async Task<List<ResumeListItemDto>> GetResumeDraftsAsync()
@@ -574,5 +575,36 @@ public class ApiService : IApiService
     private sealed class ImageUploadResponse
     {
         public string? ImageUrl { get; set; }
+    }
+
+    private async Task<ResumeDraftResponse?> TryRecoverDraftAfterCreateFailureAsync(string targetCompany, DateTime startedAtUtc)
+    {
+        const int maxAttempts = 6;
+        var normalizedTargetCompany = targetCompany?.Trim() ?? string.Empty;
+
+        for (var attempt = 0; attempt < maxAttempts; attempt++)
+        {
+            var drafts = await GetResumeDraftsAsync();
+            var candidate = drafts
+                .Where(x => x.CreatedAt >= startedAtUtc.AddMinutes(-2))
+                .OrderByDescending(x => x.CreatedAt)
+                .FirstOrDefault(x => string.Equals(x.TargetCompany, normalizedTargetCompany, StringComparison.OrdinalIgnoreCase));
+
+            if (candidate is not null)
+            {
+                return new ResumeDraftResponse
+                {
+                    Id = candidate.Id,
+                    Status = candidate.Status,
+                    TargetCompany = candidate.TargetCompany,
+                    CreatedAt = candidate.CreatedAt,
+                    UpdatedAt = candidate.UpdatedAt
+                };
+            }
+
+            await Task.Delay(2000);
+        }
+
+        return null;
     }
 }
