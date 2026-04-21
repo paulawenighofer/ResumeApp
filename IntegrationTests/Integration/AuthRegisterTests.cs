@@ -7,17 +7,27 @@ using Test.Integration.Fixtures;
 
 namespace Test.Integration;
 
-public class AuthRegisterTests : IClassFixture<ApiFactory>
+public class AuthRegisterTests : IClassFixture<ApiFactory>, IAsyncLifetime
 {
     private readonly ApiFactory _factory;
-    private readonly HttpClient _client;
+    private HttpClient _client = null!;
 
     public AuthRegisterTests(ApiFactory factory)
     {
         _factory = factory;
-        _factory.ResetDatabaseAsync().GetAwaiter().GetResult();
-        _client = factory.CreateClient();
-        factory.EmailService.Reset();
+    }
+
+    public async Task InitializeAsync()
+    {
+        await _factory.ResetDatabaseAsync();
+        _client = _factory.CreateClient();
+        _factory.EmailService.Reset();
+    }
+
+    public Task DisposeAsync()
+    {
+        _client.Dispose();
+        return Task.CompletedTask;
     }
 
     [Fact]

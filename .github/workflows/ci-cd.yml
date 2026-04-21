@@ -5,8 +5,98 @@ on:
       - main
   workflow_dispatch:
 jobs:
+  linting:
+    runs-on: self-hosted
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v5
+
+      - name: Lint API and integration tests
+        run: |
+          nix-shell -p dotnetCorePackages.sdk_9_0 --run '
+            dotnet restore API/API.csproj &&
+            dotnet restore IntegrationTests/IntegrationTests.csproj &&
+            dotnet format API/API.csproj --verify-no-changes --no-restore &&
+            dotnet format IntegrationTests/IntegrationTests.csproj --verify-no-changes --no-restore
+          '
+
+  unit-tests:
+    runs-on: windows-latest
+    needs: linting
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v5
+
+      - name: Setup .NET 9 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Restore workloads for the app project
+        run: dotnet workload restore ResumeApp/ResumeApp.csproj
+
+      - name: Lint MAUI tests
+        run: |
+          dotnet restore "Maui Tests/Maui Tests.csproj"
+          dotnet format "Maui Tests/Maui Tests.csproj" --verify-no-changes --no-restore
+
+      - name: Run MAUI tests
+        run: dotnet test "Maui Tests/Maui Tests.csproj" --no-restore
+
+  integration-tests:
+    runs-on: self-hosted
+    needs: unit-tests
+    env:
+      INTEGRATION_TEST_NAMESPACE: resumeapp-it-${{ github.run_id }}-${{ github.run_attempt }}
+      GITHUB_REPOSITORY: ${{ github.repository }}
+      GITHUB_SHA: ${{ github.sha }}
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpassword_change_in_ci
+      POSTGRES_DB: integrationtestdb
+      KUBECONFIG: /home/bishwas/.kube/config
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v5
+
+      - name: Create integration test environment
+        run: |
+          for file in ./kubernetes/integration-template/*.yml; do
+            echo "$file"
+            cat "$file" | envsubst | kubectl apply -f -
+          done
+
+      - name: Wait for integration PostgreSQL
+        run: |
+          kubectl rollout status deployment/resumeapp-it-postgres -n ${INTEGRATION_TEST_NAMESPACE} --timeout=300s
+
+      - name: Run integration tests
+        run: |
+          kubectl wait --for=condition=complete job/integration-test-runner -n ${INTEGRATION_TEST_NAMESPACE} --timeout=1800s
+
+      - name: Show integration test logs on failure
+        if: failure()
+        run: |
+          kubectl describe job/integration-test-runner -n ${INTEGRATION_TEST_NAMESPACE}
+          kubectl logs job/integration-test-runner -n ${INTEGRATION_TEST_NAMESPACE} --all-containers=true
+          kubectl logs deployment/resumeapp-it-postgres -n ${INTEGRATION_TEST_NAMESPACE} --all-containers=true
+
+      - name: Cleanup integration environment
+        if: always()
+        run: |
+          kubectl delete namespace ${INTEGRATION_TEST_NAMESPACE} --ignore-not-found=true
+          kubectl wait --for=delete namespace/${INTEGRATION_TEST_NAMESPACE} --timeout=120s || true
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          curl -d "Integration tests failed for Resume APP - Please fix it" ntfy.sh/resume-app-pb
+
   deploy-on-kubernetes:
     runs-on: self-hosted
+    needs: integration-tests
     env:
       FEATURES_EMAIL_OTP_DELIVERY: ${{ vars.STAGING_FEATURES_EMAIL_OTP_DELIVERY }}
       AI_SERVICE_BASE_URL: ${{ vars.STAGING_AI_SERVICE_BASEURL }}
@@ -22,25 +112,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
  
-      - name: linting
-        run: |
-          nix-shell -p dotnetCorePackages.sdk_9_0 --run '
-            dotnet restore API/API.csproj &&
-            dotnet restore IntegrationTests/IntegrationTests.csproj &&
-            dotnet format API/API.csproj --verify-no-changes --no-restore &&
-            dotnet format IntegrationTests/IntegrationTests.csproj --verify-no-changes --no-restore
-          '
-
-      - name: testing
-        run: |
-          nix-shell -p dotnetCorePackages.sdk_9_0 --run '
-            dotnet restore IntegrationTests/IntegrationTests.csproj &&
-            dotnet restore "Maui Tests/Maui Tests.csproj" &&
-            dotnet test IntegrationTests/IntegrationTests.csproj --no-restore &&
-            dotnet test "Maui Tests/Maui Tests.csproj" --no-restore
-          '
-
-      - name: Building and Pushing to Docker Hub
+      - name: Build and Push to Docker Hub
         run: |
             docker build -t paulawenighofer/resumeapp:$GITHUB_RUN_NUMBER .
             docker push paulawenighofer/resumeapp:$GITHUB_RUN_NUMBER

@@ -11,13 +11,13 @@ namespace Test.Integration;
 public class AuthEmailDeliveryFlagTests
 {
     [Fact]
-    public void EmailService_FlagEnabled_RegistersSmtpEmailService()
+    public async Task EmailService_FlagEnabled_RegistersSmtpEmailService()
     {
         using var factory = new ApiFactory(
             useProductionRateLimits: false,
             overrideEmailService: false,
             emailOtpDeliveryEnabled: true);
-        factory.ResetDatabaseAsync().GetAwaiter().GetResult();
+        await factory.ResetDatabaseAsync();
         using var scope = factory.Services.CreateScope();
 
         var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
@@ -26,13 +26,13 @@ public class AuthEmailDeliveryFlagTests
     }
 
     [Fact]
-    public void EmailService_FlagDisabled_RegistersLoggingEmailService()
+    public async Task EmailService_FlagDisabled_RegistersLoggingEmailService()
     {
         using var factory = new ApiFactory(
             useProductionRateLimits: false,
             overrideEmailService: false,
             emailOtpDeliveryEnabled: false);
-        factory.ResetDatabaseAsync().GetAwaiter().GetResult();
+        await factory.ResetDatabaseAsync();
         using var scope = factory.Services.CreateScope();
 
         var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();

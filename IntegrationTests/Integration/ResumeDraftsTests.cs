@@ -5,25 +5,30 @@ using Test.Integration.Fixtures;
 
 namespace Test.Integration;
 
-public class ResumeDraftsTests : IDisposable
+public class ResumeDraftsTests : IAsyncLifetime
 {
     private readonly ApiFactory _factory;
-    private readonly HttpClient _client;
+    private HttpClient _client = null!;
 
     public ResumeDraftsTests()
     {
         _factory = new ApiFactory();
-        _factory.ResetDatabaseAsync().GetAwaiter().GetResult();
+    }
+
+    public async Task InitializeAsync()
+    {
+        await _factory.ResetDatabaseAsync();
         _client = _factory.CreateClient();
         _factory.EmailService.Reset();
         _factory.AiResumeGenerationClient.Reset();
         _factory.PdfRenderer.ShouldFail = false;
     }
 
-    public void Dispose()
+    public Task DisposeAsync()
     {
         _client.Dispose();
         _factory.Dispose();
+        return Task.CompletedTask;
     }
 
     [Fact]
