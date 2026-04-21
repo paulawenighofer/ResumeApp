@@ -22,17 +22,20 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
  
-        
       - name: linting
         run: |
           nix-shell -p dotnetCorePackages.sdk_9_0 \
-           --run "dotnet restore API/API.csproj && dotnet restore Test/Test.csproj && dotnet format API/API.csproj --verify-no-changes --no-restore && dotnet format Test/Test.csproj --verify-no-changes --no-restore"
+           --run "dotnet restore API/API.csproj && dotnet restore IntegrationTests/IntegrationTests.csproj && dotnet restore \"Maui Tests/Maui Tests.csproj\" && dotnet format API/API.csproj --verify-no-changes --no-restore && dotnet format IntegrationTests/IntegrationTests.csproj --verify-no-changes --no-restore && dotnet format \"Maui Tests/Maui Tests.csproj\" --verify-no-changes --no-restore"
  
       - name: testing
         run: |
-          nix-shell -p dotnetCorePackages.sdk_9_0 \
-           --run "dotnet restore Test/Test.csproj && dotnet test Test/Test.csproj --no-restore"
- 
+          nix-shell -p dotnetCorePackages.sdk_9_0 --run '
+            dotnet restore IntegrationTests/IntegrationTests.csproj &&
+            dotnet restore "Maui Tests/Maui Tests.csproj" &&
+            dotnet test IntegrationTests/IntegrationTests.csproj --no-restore &&
+            dotnet test "Maui Tests/Maui Tests.csproj" --no-restore
+          '
+
       - name: Building and Pushing to Docker Hub
         run: |
             docker build -t paulawenighofer/resumeapp:$GITHUB_RUN_NUMBER .
