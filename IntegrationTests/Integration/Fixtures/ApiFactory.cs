@@ -55,6 +55,7 @@ public class PostgresApiFactory : WebApplicationFactory<Program>
                 ["Jwt:Issuer"] = "TestIssuer",
                 ["Jwt:Audience"] = "TestAudience",
                 ["Jwt:ExpirationInMinutes"] = "60",
+                ["RateLimiting:Enabled"] = _useProductionRateLimits.ToString(),
                 ["FeatureFlags:EmailOtpDelivery"] = _emailOtpDeliveryEnabled.ToString(),
                 ["AiService:BaseUrl"] = "https://ai.test.local/generate",
                 ["AiService:ApiKey"] = "test-key",
@@ -66,22 +67,7 @@ public class PostgresApiFactory : WebApplicationFactory<Program>
                 ["AzureBlob:ProfileImagesBasePath"] = "",
                 ["AzureBlob:ResumesContainer"] = "resumes",
                 ["AzureBlob:ResumesBasePath"] = "",
-                ["RateLimiting:ResumePdfGeneration:PermitLimit"] = "1000000",
-                ["RateLimiting:ResumePdfGeneration:WindowHours"] = "1",
             };
-
-            if (!_useProductionRateLimits)
-            {
-                testConfig["RateLimiting:OtpVerify:PermitLimit"] = "1000000";
-                testConfig["RateLimiting:OtpVerify:WindowMinutes"] = "1";
-                testConfig["RateLimiting:OtpVerify:SegmentsPerWindow"] = "1";
-                testConfig["RateLimiting:OtpSend:PermitLimit"] = "1000000";
-                testConfig["RateLimiting:OtpSend:WindowMinutes"] = "1";
-                testConfig["RateLimiting:OtpSend:SegmentsPerWindow"] = "1";
-                testConfig["RateLimiting:ResumeGeneration:PermitLimit"] = "1000000";
-                testConfig["RateLimiting:ResumeGeneration:WindowHours"] = "1";
-                testConfig["RateLimiting:ResumePdfGeneration:PermitLimit"] = "1000000";
-            }
 
             config.AddInMemoryCollection(testConfig);
         });

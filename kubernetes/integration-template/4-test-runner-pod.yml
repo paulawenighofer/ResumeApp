@@ -15,39 +15,6 @@ spec:
         role: test-runner
     spec:
       restartPolicy: Never
-      initContainers:
-        - name: wait-for-postgres
-          image: postgres:16-alpine
-          command:
-            - sh
-            - -c
-            - |
-              echo "Waiting for Postgres to be ready..."
-              until pg_isready -h resumeapp-it-postgres -p 5432 -U "$POSTGRES_USER" -d "$POSTGRES_DB"; do
-                echo "Postgres not ready yet, sleeping 2s..."
-                sleep 2
-              done
-              echo "Postgres is ready!"
-          envFrom:
-            - secretRef:
-                name: resumeapp-it-postgres-secrets
-        - name: download-source
-          image: alpine:3.20
-          command:
-            - sh
-            - -c
-            - |
-              echo "Downloading repository source..."
-              wget -qO- "https://codeload.github.com/${GITHUB_REPOSITORY}/tar.gz/${GITHUB_SHA}" | tar -xz --strip-components=1 -C /workspace
-              echo "Source downloaded"
-          env:
-            - name: GITHUB_REPOSITORY
-              value: ${GITHUB_REPOSITORY}
-            - name: GITHUB_SHA
-              value: ${GITHUB_SHA}
-          volumeMounts:
-            - name: workspace
-              mountPath: /workspace
       containers:
         - name: xunit-tests
           image: mcr.microsoft.com/dotnet/sdk:9.0
@@ -57,6 +24,9 @@ spec:
             - /bin/sh
             - -c
             - |
+              echo "Downloading repository source..."
+              wget -qO- "https://codeload.github.com/${GITHUB_REPOSITORY}/tar.gz/${GITHUB_SHA}" | tar -xz --strip-components=1 -C /workspace
+              echo "Source downloaded"
               export INTEGRATION_TEST_DB_CONNECTION="Host=resumeapp-it-postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};Pooling=false;Include Error Detail=true"
               dotnet restore IntegrationTests/IntegrationTests.csproj && dotnet test IntegrationTests/IntegrationTests.csproj --no-restore
           env:

@@ -135,11 +135,6 @@ public class ResumeDraftsTests : IAsyncLifetime
             includeCertifications = false
         });
 
-        if (createRes.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
-        {
-            return; // Skip if rate limited from previous tests
-        }
-
         var created = await createRes.Content.ReadFromJsonAsync<JsonElement>(AuthTestHelpers.JsonOpts);
         var id = created.GetProperty("id").GetInt32();
 
@@ -179,11 +174,6 @@ public class ResumeDraftsTests : IAsyncLifetime
             includeProjects = false,
             includeCertifications = false
         });
-
-        if (createRes.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
-        {
-            return; // Skip if rate limited from previous tests
-        }
 
         var created = await createRes.Content.ReadFromJsonAsync<JsonElement>(AuthTestHelpers.JsonOpts);
         var id = created.GetProperty("id").GetInt32();
@@ -229,11 +219,6 @@ public class ResumeDraftsTests : IAsyncLifetime
             includeProjects = false,
             includeCertifications = false
         });
-
-        if (createRes.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
-        {
-            return; // Skip if rate limited from previous tests
-        }
 
         var created = await createRes.Content.ReadFromJsonAsync<JsonElement>(AuthTestHelpers.JsonOpts);
         var id = created.GetProperty("id").GetInt32();
@@ -287,11 +272,6 @@ public class ResumeDraftsTests : IAsyncLifetime
             includeCertifications = false
         });
 
-        if (createRes.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
-        {
-            return; // Skip if rate limited from previous tests
-        }
-
         var created = await createRes.Content.ReadFromJsonAsync<JsonElement>(AuthTestHelpers.JsonOpts);
         var id = created.GetProperty("id").GetInt32();
 
@@ -327,12 +307,6 @@ public class ResumeDraftsTests : IAsyncLifetime
             includeCertifications = false
         });
 
-        // Check if rate limited and skip if so
-        if (createRes.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
-        {
-            return;
-        }
-
         Assert.Equal(System.Net.HttpStatusCode.Created, createRes.StatusCode);
 
         var created = await createRes.Content.ReadFromJsonAsync<JsonElement>(AuthTestHelpers.JsonOpts);
@@ -357,14 +331,20 @@ public class ResumeDraftsTests : IAsyncLifetime
     [Fact]
     public async Task CreateDraft_RateLimiting_ExceedingLimit_Returns429()
     {
+        using var factory = new ApiFactory(useProductionRateLimits: true);
+        await factory.ResetDatabaseAsync();
+        using var client = factory.CreateClient();
+        factory.EmailService.Reset();
+        factory.AiResumeGenerationClient.Reset();
+
         var jwt = await AuthTestHelpers.RegisterAndVerifyAsync(
-            _client,
-            _factory,
+            client,
+            factory,
             email: "rate_limit@example.com",
             firstName: "Rate",
             lastName: "Limited");
 
-        using var authed = AuthTestHelpers.CreateAuthenticatedClient(_factory, jwt);
+        using var authed = AuthTestHelpers.CreateAuthenticatedClient(factory, jwt);
 
         // Create 10 drafts successfully (limit)
         for (int i = 0; i < 10; i++)
@@ -379,14 +359,6 @@ public class ResumeDraftsTests : IAsyncLifetime
                 includeProjects = false,
                 includeCertifications = false
             });
-
-            // If we hit rate limit before reaching 10, the test still passes
-            // (proves rate limiting is working)
-            if (createRes.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
-            {
-                Assert.Equal(System.Net.HttpStatusCode.TooManyRequests, createRes.StatusCode);
-                return;
-            }
 
             Assert.Equal(System.Net.HttpStatusCode.Created, createRes.StatusCode);
         }

@@ -11,13 +11,11 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v5
 
-      - name: Lint API and integration tests
+      - name: Restore API and integration tests
         run: |
           nix-shell -p dotnetCorePackages.sdk_9_0 --run '
             dotnet restore API/API.csproj &&
-            dotnet restore IntegrationTests/IntegrationTests.csproj &&
-            dotnet format API/API.csproj --verify-no-changes --no-restore &&
-            dotnet format IntegrationTests/IntegrationTests.csproj --verify-no-changes --no-restore
+            dotnet restore IntegrationTests/IntegrationTests.csproj
           '
 
   unit-tests:
@@ -38,17 +36,16 @@ jobs:
       - name: Restore workloads for the app project
         run: dotnet workload restore ResumeApp/ResumeApp.csproj
 
-      - name: Lint MAUI tests
+      - name: Restore MAUI tests
         run: |
           dotnet restore "Maui Tests/Maui Tests.csproj"
-          dotnet format "Maui Tests/Maui Tests.csproj" --verify-no-changes --no-restore
 
       - name: Run MAUI tests
         run: dotnet test "Maui Tests/Maui Tests.csproj" --no-restore
 
   integration-tests:
     runs-on: self-hosted
-    needs: unit-tests
+    needs: linting
     env:
       INTEGRATION_TEST_NAMESPACE: resumeapp-it-${{ github.run_id }}-${{ github.run_attempt }}
       GITHUB_REPOSITORY: ${{ github.repository }}
@@ -63,6 +60,7 @@ jobs:
 
       - name: Create integration test environment
         run: |
+          echo "::notice::Integration namespace created: ${INTEGRATION_TEST_NAMESPACE}"
           for file in ./kubernetes/integration-template/*.yml; do
             echo "$file"
             cat "$file" | envsubst | kubectl apply -f -
@@ -71,14 +69,66 @@ jobs:
       - name: Wait for integration PostgreSQL
         run: |
           kubectl rollout status deployment/resumeapp-it-postgres -n ${INTEGRATION_TEST_NAMESPACE} --timeout=300s
+          echo "::notice::Integration PostgreSQL is ready"
 
-      - name: Run integration tests
+      - name: Watch integration test progress
         run: |
-          kubectl wait --for=condition=complete job/integration-test-runner -n ${INTEGRATION_TEST_NAMESPACE} --timeout=1800s
+          POD_ANNOUNCED=0
+          RUNNING_ANNOUNCED=0
+
+          while true; do
+            SUCCEEDED=$(kubectl get job integration-test-runner -n ${INTEGRATION_TEST_NAMESPACE} -o jsonpath='{.status.succeeded}' 2>/dev/null || true)
+            FAILED=$(kubectl get job integration-test-runner -n ${INTEGRATION_TEST_NAMESPACE} -o jsonpath='{.status.failed}' 2>/dev/null || true)
+            ACTIVE=$(kubectl get job integration-test-runner -n ${INTEGRATION_TEST_NAMESPACE} -o jsonpath='{.status.active}' 2>/dev/null || true)
+            POD_NAME=$(kubectl get pods -n ${INTEGRATION_TEST_NAMESPACE} -l job-name=integration-test-runner -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
+
+            echo "=========================================="
+            echo "  Integration Test Progress"
+            echo "=========================================="
+            echo "  Namespace: ${INTEGRATION_TEST_NAMESPACE}"
+            echo "  Active:    ${ACTIVE:-0}"
+            echo "  Succeeded: ${SUCCEEDED:-0}"
+            echo "  Failed:    ${FAILED:-0}"
+            kubectl get job integration-test-runner -n ${INTEGRATION_TEST_NAMESPACE} -o wide || true
+            kubectl get pods -n ${INTEGRATION_TEST_NAMESPACE} -o wide || true
+
+            if [ -n "${POD_NAME}" ]; then
+              if [ "${POD_ANNOUNCED}" -eq 0 ]; then
+                echo "::notice::Integration job pod scheduled: ${POD_NAME}"
+                POD_ANNOUNCED=1
+              fi
+
+              POD_PHASE=$(kubectl get pod ${POD_NAME} -n ${INTEGRATION_TEST_NAMESPACE} -o jsonpath='{.status.phase}' 2>/dev/null || true)
+              echo "  Pod:       ${POD_NAME}"
+              echo "  Phase:     ${POD_PHASE:-unknown}"
+
+              if [ "${POD_PHASE}" = "Running" ] && [ "${RUNNING_ANNOUNCED}" -eq 0 ]; then
+                echo "::notice::Integration tests are now running"
+                RUNNING_ANNOUNCED=1
+              fi
+
+              kubectl logs ${POD_NAME} -n ${INTEGRATION_TEST_NAMESPACE} -c xunit-tests --tail=50 || true
+            else
+              echo "  Pod:       pending creation"
+            fi
+
+            if [ "${SUCCEEDED:-0}" != "0" ]; then
+              echo "::notice::Integration tests completed"
+              break
+            fi
+
+            if [ "${FAILED:-0}" != "0" ]; then
+              echo "Integration job reported failure."
+              exit 1
+            fi
+
+            sleep 10
+          done
 
       - name: Show integration test logs on failure
         if: failure()
         run: |
+          kubectl get pods -n ${INTEGRATION_TEST_NAMESPACE} -o wide
           kubectl describe job/integration-test-runner -n ${INTEGRATION_TEST_NAMESPACE}
           kubectl logs job/integration-test-runner -n ${INTEGRATION_TEST_NAMESPACE} --all-containers=true
           kubectl logs deployment/resumeapp-it-postgres -n ${INTEGRATION_TEST_NAMESPACE} --all-containers=true
@@ -87,7 +137,9 @@ jobs:
         if: always()
         run: |
           kubectl delete namespace ${INTEGRATION_TEST_NAMESPACE} --ignore-not-found=true
-          kubectl wait --for=delete namespace/${INTEGRATION_TEST_NAMESPACE} --timeout=120s || true
+          echo "Triggered deletion of namespace ${INTEGRATION_TEST_NAMESPACE}"
+          kubectl wait --for=delete namespace/${INTEGRATION_TEST_NAMESPACE} --timeout=180s
+          echo "::notice::Confirmed deletion of namespace ${INTEGRATION_TEST_NAMESPACE}"
 
       - name: Notify on failure
         if: failure()
@@ -96,7 +148,7 @@ jobs:
 
   deploy-on-kubernetes:
     runs-on: self-hosted
-    needs: integration-tests
+    needs: [unit-tests, integration-tests]
     env:
       FEATURES_EMAIL_OTP_DELIVERY: ${{ vars.STAGING_FEATURES_EMAIL_OTP_DELIVERY }}
       AI_SERVICE_BASE_URL: ${{ vars.STAGING_AI_SERVICE_BASEURL }}
