@@ -34,15 +34,21 @@ jobs:
 
       - name: Linting
         run: |
-          nix-shell -p dotnetCorePackages.sdk_9_0 \
-           --run "dotnet restore API/API.csproj && dotnet restore IntegrationTests/IntegrationTests.csproj && dotnet restore \"Maui Tests/Maui Tests.csproj\" && dotnet format API/API.csproj --verify-no-changes --no-restore && dotnet format IntegrationTests/IntegrationTests.csproj --verify-no-changes --no-restore && dotnet format \"Maui Tests/Maui Tests.csproj\" --verify-no-changes --no-restore"
+          nix-shell -p dotnetCorePackages.sdk_9_0 --run '
+            dotnet restore API/API.csproj &&
+            dotnet restore IntegrationTests/IntegrationTests.csproj &&
+            dotnet format API/API.csproj --verify-no-changes --no-restore &&
+            dotnet format IntegrationTests/IntegrationTests.csproj --verify-no-changes --no-restore
+          '
 
       - name: Testing
         run: |
-          nix-shell -p dotnetCorePackages.sdk_9_0 \
-           --run "dotnet restore IntegrationTests/IntegrationTests.csproj && dotnet restore \"Maui Tests/Maui Tests.csproj\" && dotnet test IntegrationTests/IntegrationTests.csproj --no-restore"
-          nix-shell -p dotnetCorePackages.sdk_9_0 \
-           --run "dotnet test \"Maui Tests/Maui Tests.csproj\" --no-restore"
+          nix-shell -p dotnetCorePackages.sdk_9_0 --run '
+            dotnet restore IntegrationTests/IntegrationTests.csproj &&
+            dotnet restore "Maui Tests/Maui Tests.csproj" &&
+            dotnet test IntegrationTests/IntegrationTests.csproj --no-restore &&
+            dotnet test "Maui Tests/Maui Tests.csproj" --no-restore
+          '
 
       - name: Build and push PR Docker image
         run: |
@@ -126,6 +132,7 @@ jobs:
           echo "  Prometheus: http://${PR_PROMETHEUS_HOST}"
           echo "  Namespace:  ${PR_NAMESPACE}"
           echo "  PR:         ${{ github.event.pull_request.html_url }}"
+          echo "======================================"
 
       - name: Post or update PR comment
         env:

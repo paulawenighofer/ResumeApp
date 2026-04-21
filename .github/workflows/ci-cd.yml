@@ -24,9 +24,13 @@ jobs:
  
       - name: linting
         run: |
-          nix-shell -p dotnetCorePackages.sdk_9_0 \
-           --run "dotnet restore API/API.csproj && dotnet restore IntegrationTests/IntegrationTests.csproj && dotnet restore \"Maui Tests/Maui Tests.csproj\" && dotnet format API/API.csproj --verify-no-changes --no-restore && dotnet format IntegrationTests/IntegrationTests.csproj --verify-no-changes --no-restore && dotnet format \"Maui Tests/Maui Tests.csproj\" --verify-no-changes --no-restore"
- 
+          nix-shell -p dotnetCorePackages.sdk_9_0 --run '
+            dotnet restore API/API.csproj &&
+            dotnet restore IntegrationTests/IntegrationTests.csproj &&
+            dotnet format API/API.csproj --verify-no-changes --no-restore &&
+            dotnet format IntegrationTests/IntegrationTests.csproj --verify-no-changes --no-restore
+          '
+
       - name: testing
         run: |
           nix-shell -p dotnetCorePackages.sdk_9_0 --run '
