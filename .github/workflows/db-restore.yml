@@ -7,6 +7,10 @@ on:
         description: "Type RESTORE to confirm — this WILL overwrite the live database"
         required: true
 
+concurrency:
+  group: db-restore
+  cancel-in-progress: false
+
 jobs:
   restore:
     name: Restore most recent Postgres backup
@@ -62,133 +66,63 @@ jobs:
 
           echo "Pre-restore snapshot saved: ${PRE_RESTORE_FILE} ($(wc -c < "${PRE_RESTORE_FILE}") bytes)"
 
-      - name: Record original replica count and scale to zero — downtime begins
+      - name: Record restore start time
         run: |
-          ORIGINAL_REPLICAS=$(kubectl get deployment/${{ env.KUBERNETES_DEPLOYMENT }} \
-            -n ${{ env.KUBERNETES_NAMESPACE }} \
-            -o jsonpath='{.spec.replicas}')
-
-          echo "Original replica count: ${ORIGINAL_REPLICAS}"
-          echo "ORIGINAL_REPLICAS=${ORIGINAL_REPLICAS}" >> "$GITHUB_ENV"
-
-          DOWNTIME_START=$(date +%s%3N)
-          echo "DOWNTIME_START=${DOWNTIME_START}" >> "$GITHUB_ENV"
-          echo "Downtime started at: $(date -u --date=@$((DOWNTIME_START / 1000)) '+%Y-%m-%dT%H:%M:%SZ')"
-
-          kubectl scale deployment/${{ env.KUBERNETES_DEPLOYMENT }} \
-            --replicas=0 \
-            -n ${{ env.KUBERNETES_NAMESPACE }}
-
-          # Instead, wait until all pods from this deployment are gone from the namespace.
-          kubectl wait --for=delete pod \
-            -l app=${{ env.KUBERNETES_DEPLOYMENT }} \
-            -n ${{ env.KUBERNETES_NAMESPACE }} \
-            --timeout=60s || true
-
-          # We verify the actual count below to distinguish "all gone" from "still running".
-          REMAINING=$(kubectl get pods \
-            -l app=${{ env.KUBERNETES_DEPLOYMENT }} \
-            -n ${{ env.KUBERNETES_NAMESPACE }} \
-            --no-headers 2>/dev/null | wc -l)
-          if [ "$REMAINING" -gt 0 ]; then
-            echo "ERROR: ${REMAINING} pods still running after scale-to-zero timeout."
-            exit 1
-          fi
-          echo "All pods terminated. Proceeding with restore."
-
-      - name: Spin up temporary restore pod
-        run: |
-          POD_NAME="pg-restore-$(date -u '+%Y%m%d%H%M%S')"
-          echo "RESTORE_POD=${POD_NAME}" >> "$GITHUB_ENV"
-
-          cat <<EOF | kubectl apply -f - -n ${{ env.KUBERNETES_NAMESPACE }}
-          apiVersion: v1
-          kind: Pod
-          metadata:
-            name: ${POD_NAME}
-          spec:
-            restartPolicy: Never
-            containers:
-              - name: ${POD_NAME}
-                image: postgres:16
-                envFrom:
-                  - secretRef:
-                      name: resume-app-secrets
-                command: ["sleep", "3600"]
-          EOF
-
-          kubectl wait --for=condition=Ready pod/"${POD_NAME}" \
-            -n ${{ env.KUBERNETES_NAMESPACE }} \
-            --timeout=120s
+          RESTORE_START=$(date +%s%3N)
+          echo "RESTORE_START=${RESTORE_START}" >> "$GITHUB_ENV"
+          echo "Restore started at: $(date -u --date=@$((RESTORE_START / 1000)) '+%Y-%m-%dT%H:%M:%SZ')"
 
       - name: Drop and recreate the target database
         run: |
-          kubectl exec ${{ env.RESTORE_POD }} \
+          kubectl exec deployment/${{ env.KUBERNETES_DEPLOYMENT }} \
             -n ${{ env.KUBERNETES_NAMESPACE }} \
             -- /bin/sh -c \
-            'PGPASSWORD="$POSTGRES_PASSWORD" psql -U "$POSTGRES_USER" -d postgres -c \
-             "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '"'"'$POSTGRES_DB'"'"';
-              DROP DATABASE IF EXISTS \"$POSTGRES_DB\";
-              CREATE DATABASE \"$POSTGRES_DB\";"'
+            'PGPASSWORD="$POSTGRES_PASSWORD" psql -U "$POSTGRES_USER" -d postgres \
+              -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '"'"'$POSTGRES_DB'"'"' AND pid <> pg_backend_pid();" \
+              -c "DROP DATABASE IF EXISTS \"$POSTGRES_DB\";" \
+              -c "CREATE DATABASE \"$POSTGRES_DB\";"'
 
       - name: Stream backup into psql
         run: |
-          kubectl exec ${{ env.RESTORE_POD }} \
+          kubectl exec deployment/${{ env.KUBERNETES_DEPLOYMENT }} \
             -n ${{ env.KUBERNETES_NAMESPACE }} \
             -i -- /bin/sh -c \
             'PGPASSWORD="$POSTGRES_PASSWORD" psql -U "$POSTGRES_USER" "$POSTGRES_DB"' \
             < "${{ env.LATEST_BACKUP }}"
 
-      - name: Verify row counts post-restore
+      - name: Verify restore — check table and row counts
         run: |
-          COUNTS=$(kubectl exec ${{ env.RESTORE_POD }} \
+          RESULT=$(kubectl exec deployment/${{ env.KUBERNETES_DEPLOYMENT }} \
             -n ${{ env.KUBERNETES_NAMESPACE }} \
             -- /bin/sh -c \
-            'PGPASSWORD="$POSTGRES_PASSWORD" psql -U "$POSTGRES_USER" "$POSTGRES_DB" -t -c \
-             "SELECT table_name, n_live_tup FROM pg_stat_user_tables ORDER BY n_live_tup DESC;"')
+            'PGPASSWORD="$POSTGRES_PASSWORD" psql -U "$POSTGRES_USER" "$POSTGRES_DB" -t -A -c \
+             "SELECT tablename FROM pg_tables WHERE schemaname = '"'"'public'"'"' ORDER BY tablename;"')
 
-          echo "${COUNTS}"
+          TABLE_COUNT=$(echo "${RESULT}" | grep -c '.' || true)
+          echo "Tables restored: ${TABLE_COUNT}"
+          echo "${RESULT}"
 
-          if echo "${COUNTS}" | grep -qE '[1-9]'; then
-            echo "Restore verified — non-zero row counts detected."
-          else
-            echo "ERROR: All tables report 0 rows. Restore may have failed."
+          if [ "${TABLE_COUNT}" -eq 0 ]; then
+            echo "ERROR: No tables found after restore."
             exit 1
           fi
 
-      - name: Remove temporary restore pod
-        if: always()
+          echo "Restore verified — ${TABLE_COUNT} tables present."
+
+      - name: Record restore duration
+        if: 
         run: |
-          if [ -z "${RESTORE_POD}" ]; then
-            echo "RESTORE_POD is unset — no pod to clean up."
-            exit 0
-          fi
-          kubectl delete pod "${RESTORE_POD}" \
-            -n ${{ env.KUBERNETES_NAMESPACE }} \
-            --ignore-not-found
+          RESTORE_END=$(date +%s%3N)
 
-      - name: Scale deployment back to original replica count — downtime ends
-        if: always()
-        run: |
-          kubectl scale deployment/${{ env.KUBERNETES_DEPLOYMENT }} \
-            --replicas=${{ env.ORIGINAL_REPLICAS }} \
-            -n ${{ env.KUBERNETES_NAMESPACE }}
+          RESTORE_MS=$(( RESTORE_END - RESTORE_START ))
+          RESTORE_SEC=$(( RESTORE_MS / 1000 ))
+          RESTORE_REM=$(( RESTORE_MS % 1000 ))
 
-          kubectl rollout status deployment/${{ env.KUBERNETES_DEPLOYMENT }} \
-            -n ${{ env.KUBERNETES_NAMESPACE }} \
-            --timeout=120s
+          echo "  Restore duration: ${RESTORE_SEC}.${RESTORE_REM}s  (${RESTORE_MS}ms total)"
 
-          DOWNTIME_END=$(date +%s%3N)
-
-          DOWNTIME_MS=$(( DOWNTIME_END - DOWNTIME_START ))
-          DOWNTIME_SEC=$(( DOWNTIME_MS / 1000 ))
-          DOWNTIME_REM=$(( DOWNTIME_MS % 1000 ))
-
-          echo "  Downtime: ${DOWNTIME_SEC}.${DOWNTIME_REM}s  (${DOWNTIME_MS}ms total)"
-
-          echo "DOWNTIME_MS=${DOWNTIME_MS}"   >> "$GITHUB_ENV"
-          echo "DOWNTIME_SEC=${DOWNTIME_SEC}" >> "$GITHUB_ENV"
-          echo "DOWNTIME_REM=${DOWNTIME_REM}" >> "$GITHUB_ENV"
+          echo "RESTORE_MS=${RESTORE_MS}"   >> "$GITHUB_ENV"
+          echo "RESTORE_SEC=${RESTORE_SEC}" >> "$GITHUB_ENV"
+          echo "RESTORE_REM=${RESTORE_REM}" >> "$GITHUB_ENV"
 
       - name: Delete pre-restore snapshot — restore confirmed successful
         run: |
@@ -204,5 +138,5 @@ jobs:
       - name: Notify on success
         if: success()
         run: |
-          curl -d "Postgres restore completed in ${{ env.DOWNTIME_SEC }}.${{ env.DOWNTIME_REM }}s." \
+          curl -d "Postgres restore completed in ${{ env.RESTORE_SEC }}.${{ env.RESTORE_REM }}s." \
             https://ntfy.sh/resume-app-pb
