@@ -117,6 +117,8 @@ jobs:
                 command: ["sleep", "3600"]
           EOF
 
+          kubectl wait --for=condition=Ready pod/"${POD_NAME}" \
+            -n ${{ env.KUBERNETES_NAMESPACE }} \
             --timeout=120s
 
       - name: Drop and recreate the target database
@@ -166,6 +168,7 @@ jobs:
             --ignore-not-found
 
       - name: Scale deployment back to original replica count — downtime ends
+        if: always()
         run: |
           kubectl scale deployment/${{ env.KUBERNETES_DEPLOYMENT }} \
             --replicas=${{ env.ORIGINAL_REPLICAS }} \
@@ -195,12 +198,11 @@ jobs:
       - name: Notify on failure — pre-restore snapshot retained for manual rollback
         if: failure()
         run: |
-          # FIX Bug 3: added https:// scheme
-          curl -d "Postgres RESTORE FAILED for ResumeApp. Pre-restore snapshot available at: ${{ env.PRE_RESTORE_BACKUP }} — use this to manually roll back to the state just before the restore attempt." \
+          curl -d "Postgres RESTORE FAILED for ResumeApp." \
             https://ntfy.sh/resume-app-pb
 
       - name: Notify on success
         if: success()
         run: |
-          curl -d "Postgres restore completed in ${{ env.DOWNTIME_SEC }}.${{ env.DOWNTIME_REM }}s. Restored from: ${{ env.LATEST_BACKUP }}" \
+          curl -d "Postgres restore completed in ${{ env.DOWNTIME_SEC }}.${{ env.DOWNTIME_REM }}s." \
             https://ntfy.sh/resume-app-pb
