@@ -101,15 +101,22 @@ jobs:
           POD_NAME="pg-restore-$(date -u '+%Y%m%d%H%M%S')"
           echo "RESTORE_POD=${POD_NAME}" >> "$GITHUB_ENV"
 
-          kubectl run "${POD_NAME}" \
-            --image=postgres:16 \
-            --restart=Never \
-            --env-from=secret/resume-app-secrets \
-            -n ${{ env.KUBERNETES_NAMESPACE }} \
-            -- sleep 3600
+          cat <<EOF | kubectl apply -f - -n ${{ env.KUBERNETES_NAMESPACE }}
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: ${POD_NAME}
+          spec:
+            restartPolicy: Never
+            containers:
+              - name: ${POD_NAME}
+                image: postgres:16
+                envFrom:
+                  - secretRef:
+                      name: resume-app-secrets
+                command: ["sleep", "3600"]
+          EOF
 
-          kubectl wait --for=condition=Ready pod/"${POD_NAME}" \
-            -n ${{ env.KUBERNETES_NAMESPACE }} \
             --timeout=120s
 
       - name: Drop and recreate the target database
