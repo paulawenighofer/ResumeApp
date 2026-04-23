@@ -7,10 +7,6 @@ on:
         description: "Type RESTORE to confirm — this WILL overwrite the live database"
         required: true
 
-concurrency:
-  group: db-restore
-  cancel-in-progress: false
-
 jobs:
   restore:
     name: Restore most recent Postgres backup
@@ -22,6 +18,7 @@ jobs:
       RESTORE_STAGING_DIR: /home/bishwas/pg-restore-staging
       KUBERNETES_NAMESPACE: resumeapp
       KUBERNETES_DEPLOYMENT: resumeapp-postgres
+      KUBERNETES_APP_DEPLOYMENT: resumeapp-api
 
     steps:
       - name: Verify postgres deployment is available
@@ -71,6 +68,23 @@ jobs:
           RESTORE_START=$(date +%s%3N)
           echo "RESTORE_START=${RESTORE_START}" >> "$GITHUB_ENV"
           echo "Restore started at: $(date -u --date=@$((RESTORE_START / 1000)) '+%Y-%m-%dT%H:%M:%SZ')"
+
+      - name: Scale down app — begin maintenance window
+        run: |
+          REPLICAS=$(kubectl get deployment/${{ env.KUBERNETES_APP_DEPLOYMENT }} \
+            -n ${{ env.KUBERNETES_NAMESPACE }} \
+            -o jsonpath='{.spec.replicas}')
+          echo "APP_REPLICAS=${REPLICAS}" >> "$GITHUB_ENV"
+
+          kubectl scale deployment/${{ env.KUBERNETES_APP_DEPLOYMENT }} \
+            -n ${{ env.KUBERNETES_NAMESPACE }} \
+            --replicas=0
+
+          kubectl rollout status deployment/${{ env.KUBERNETES_APP_DEPLOYMENT }} \
+            -n ${{ env.KUBERNETES_NAMESPACE }} \
+            --timeout=60s
+
+          echo "App scaled down from ${REPLICAS} replica(s). Maintenance window open."
 
       - name: Drop and recreate the target database
         run: |
@@ -123,6 +137,24 @@ jobs:
           echo "RESTORE_MS=${RESTORE_MS}"   >> "$GITHUB_ENV"
           echo "RESTORE_SEC=${RESTORE_SEC}" >> "$GITHUB_ENV"
           echo "RESTORE_REM=${RESTORE_REM}" >> "$GITHUB_ENV"
+
+      - name: Scale app back up — end maintenance window
+        if: always()
+        run: |
+          REPLICAS="${{ env.APP_REPLICAS }}"
+          if [ -z "${REPLICAS}" ] || [ "${REPLICAS}" -le 0 ]; then
+            REPLICAS=1
+          fi
+
+          kubectl scale deployment/${{ env.KUBERNETES_APP_DEPLOYMENT }} \
+            -n ${{ env.KUBERNETES_NAMESPACE }} \
+            --replicas=${REPLICAS}
+
+          kubectl rollout status deployment/${{ env.KUBERNETES_APP_DEPLOYMENT }} \
+            -n ${{ env.KUBERNETES_NAMESPACE }} \
+            --timeout=120s
+
+          echo "App scaled back to ${REPLICAS} replica(s). Maintenance window closed."
 
       - name: Delete pre-restore snapshot — restore confirmed successful
         run: |
