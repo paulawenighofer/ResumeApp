@@ -150,12 +150,19 @@ jobs:
             -n ${{ env.KUBERNETES_NAMESPACE }} \
             --replicas=${REPLICAS}
 
-          kubectl wait deployment/${{ env.KUBERNETES_APP_DEPLOYMENT }} \
-            -n ${{ env.KUBERNETES_NAMESPACE }} \
-            --for=condition=Available \
-            --timeout=120s
-
-          echo "App scaled back to ${REPLICAS} replica(s). Maintenance window closed."
+          echo "Waiting for app replicas to become available..."
+          for i in $(seq 1 12); do
+            AVAILABLE=$(kubectl get deployment/${{ env.KUBERNETES_APP_DEPLOYMENT }} \
+              -n ${{ env.KUBERNETES_NAMESPACE }} \
+              -o jsonpath='{.status.availableReplicas}' 2>/dev/null || echo "0")
+            echo "  ${AVAILABLE:-0}/${REPLICAS} replicas available"
+            if [ "${AVAILABLE:-0}" -ge "${REPLICAS}" ]; then
+              echo "All ${REPLICAS} replica(s) available. Maintenance window closed."
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Warning: replicas not fully available after 2 minutes — check cluster state."
 
       - name: Delete pre-restore snapshot — restore confirmed successful
         run: |
