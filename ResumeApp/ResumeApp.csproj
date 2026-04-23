@@ -59,6 +59,8 @@
 	</PropertyGroup>
 
 	<ItemGroup Condition="'$(MauiTestBuild)' == 'true'">
+		<MauiXaml Remove="**\*.xaml" />
+		<Compile Remove="**\*.xaml.cs" />
 		<Compile Remove="MauiProgram.cs" />
 		<Compile Remove="Services\ToastService.cs" />
 	</ItemGroup>
