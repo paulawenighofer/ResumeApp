@@ -1,161 +1,14 @@
 name: PR Environment Building/Destroying Pipeline
+
 on:
   pull_request:
     types: [opened, synchronize, reopened, closed]
 
 jobs:
-  linting:
-    name: Linting
-    runs-on: self-hosted
-    if: github.event.action != 'closed'
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v5
-
-      - name: Restore API and integration tests
-        run: |
-          nix-shell -p dotnetCorePackages.sdk_9_0 --run '
-            dotnet restore API/API.csproj &&
-            dotnet restore IntegrationTests/IntegrationTests.csproj
-          '
-
-  unit-tests:
-    name: Unit Tests
-    runs-on: windows-latest
-    if: github.event.action != 'closed'
-    needs: linting
-    defaults:
-      run:
-        shell: bash
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v5
-
-      - name: Setup .NET 9 SDK
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 9.0.x
-
-      - name: Restore workloads for the app project
-        run: dotnet workload restore ResumeApp/ResumeApp.csproj
-
-      - name: Restore MAUI tests
-        run: |
-          dotnet restore "Maui Tests/Maui Tests.csproj"
-
-      - name: Run MAUI tests
-        run: dotnet test "Maui Tests/Maui Tests.csproj" --no-restore
-
-  integration-tests:
-    name: Integration Tests
-    runs-on: self-hosted
-    if: github.event.action != 'closed'
-    needs: linting
-    env:
-      INTEGRATION_TEST_NAMESPACE: resumeapp-it-${{ github.run_id }}-${{ github.run_attempt }}
-      GITHUB_REPOSITORY: ${{ github.repository }}
-      GITHUB_SHA: ${{ github.sha }}
-      POSTGRES_USER: testuser
-      POSTGRES_PASSWORD: testpassword_change_in_ci
-      POSTGRES_DB: integrationtestdb
-      KUBECONFIG: /home/bishwas/.kube/config
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v5
-
-      - name: Create integration test environment
-        run: |
-          echo "::notice::Integration namespace created: ${INTEGRATION_TEST_NAMESPACE}"
-          for file in ./kubernetes/integration-template/*.yml; do
-            echo "$file"
-            cat "$file" | envsubst | kubectl apply -f -
-          done
-
-      - name: Wait for integration PostgreSQL
-        run: |
-          kubectl rollout status deployment/resumeapp-it-postgres -n ${INTEGRATION_TEST_NAMESPACE} --timeout=300s
-          echo "::notice::Integration PostgreSQL is ready"
-
-      - name: Watch integration test progress
-        run: |
-          POD_ANNOUNCED=0
-          RUNNING_ANNOUNCED=0
-
-          while true; do
-            SUCCEEDED=$(kubectl get job integration-test-runner -n ${INTEGRATION_TEST_NAMESPACE} -o jsonpath='{.status.succeeded}' 2>/dev/null || true)
-            FAILED=$(kubectl get job integration-test-runner -n ${INTEGRATION_TEST_NAMESPACE} -o jsonpath='{.status.failed}' 2>/dev/null || true)
-            ACTIVE=$(kubectl get job integration-test-runner -n ${INTEGRATION_TEST_NAMESPACE} -o jsonpath='{.status.active}' 2>/dev/null || true)
-            POD_NAME=$(kubectl get pods -n ${INTEGRATION_TEST_NAMESPACE} -l job-name=integration-test-runner -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
-
-            echo "=========================================="
-            echo "  Integration Test Progress"
-            echo "=========================================="
-            echo "  Namespace: ${INTEGRATION_TEST_NAMESPACE}"
-            echo "  Active:    ${ACTIVE:-0}"
-            echo "  Succeeded: ${SUCCEEDED:-0}"
-            echo "  Failed:    ${FAILED:-0}"
-            kubectl get job integration-test-runner -n ${INTEGRATION_TEST_NAMESPACE} -o wide || true
-            kubectl get pods -n ${INTEGRATION_TEST_NAMESPACE} -o wide || true
-
-            if [ -n "${POD_NAME}" ]; then
-              if [ "${POD_ANNOUNCED}" -eq 0 ]; then
-                echo "::notice::Integration job pod scheduled: ${POD_NAME}"
-                POD_ANNOUNCED=1
-              fi
-
-              POD_PHASE=$(kubectl get pod ${POD_NAME} -n ${INTEGRATION_TEST_NAMESPACE} -o jsonpath='{.status.phase}' 2>/dev/null || true)
-              echo "  Pod:       ${POD_NAME}"
-              echo "  Phase:     ${POD_PHASE:-unknown}"
-
-              if [ "${POD_PHASE}" = "Running" ] && [ "${RUNNING_ANNOUNCED}" -eq 0 ]; then
-                echo "::notice::Integration tests are now running"
-                RUNNING_ANNOUNCED=1
-              fi
-
-              kubectl logs ${POD_NAME} -n ${INTEGRATION_TEST_NAMESPACE} -c xunit-tests --tail=50 || true
-            else
-              echo "  Pod:       pending creation"
-            fi
-
-            if [ "${SUCCEEDED:-0}" != "0" ]; then
-              echo "::notice::Integration tests completed"
-              break
-            fi
-
-            if [ "${FAILED:-0}" != "0" ]; then
-              echo "Integration job reported failure."
-              exit 1
-            fi
-
-            sleep 10
-          done
-
-      - name: Show integration test logs on failure
-        if: failure()
-        run: |
-          kubectl get pods -n ${INTEGRATION_TEST_NAMESPACE} -o wide
-          kubectl describe job/integration-test-runner -n ${INTEGRATION_TEST_NAMESPACE}
-          kubectl logs job/integration-test-runner -n ${INTEGRATION_TEST_NAMESPACE} --all-containers=true
-          kubectl logs deployment/resumeapp-it-postgres -n ${INTEGRATION_TEST_NAMESPACE} --all-containers=true
-
-      - name: Cleanup integration environment
-        if: always()
-        run: |
-          kubectl delete namespace ${INTEGRATION_TEST_NAMESPACE} --ignore-not-found=true
-          echo "Triggered deletion of namespace ${INTEGRATION_TEST_NAMESPACE}"
-          kubectl wait --for=delete namespace/${INTEGRATION_TEST_NAMESPACE} --timeout=180s
-          echo "::notice::Confirmed deletion of namespace ${INTEGRATION_TEST_NAMESPACE}"
-
-      - name: Notify on failure
-        if: failure()
-        run: |
-          curl -d "Integration tests failed for Resume APP - Please fix it" ntfy.sh/resume-app-pb
-
   deploy-pr-environment:
     name: Deploy PR Environment
     runs-on: self-hosted
     if: github.event.action != 'closed'
-    needs: [unit-tests, integration-tests]
     env:
       FEATURES_EMAIL_OTP_DELIVERY: ${{ vars.STAGING_FEATURES_EMAIL_OTP_DELIVERY }}
       AI_SERVICE_BASE_URL: ${{ vars.STAGING_AI_SERVICE_BASEURL }}
@@ -168,6 +21,12 @@ jobs:
       PR_PROMETHEUS_HOST: pr-${{ github.event.pull_request.number }}-prometheus.resume-app-pb.duckdns.org
       IMAGE_TAG: pr-${{ github.event.pull_request.number }}
       KUBECONFIG: /home/bishwas/.kube/config
+      INTEGRATION_TEST_NAMESPACE: resumeapp-it-pr-${{ github.event.pull_request.number }}-${{ github.run_id }}
+      GITHUB_REPOSITORY: ${{ github.repository }}
+      GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpassword_change_in_ci
+      POSTGRES_DB: integrationtestdb
 
     steps:
       - name: Check out repository code
@@ -178,6 +37,34 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Linting
+        run: |
+          nix-shell -p dotnetCorePackages.sdk_9_0 \
+           --run "dotnet restore API/API.csproj && dotnet restore IntegrationTests/IntegrationTests.csproj && dotnet format API/API.csproj --verify-no-changes --no-restore && dotnet format IntegrationTests/IntegrationTests.csproj --verify-no-changes --no-restore"
+
+      - name: MAUI Tests
+        run: |
+          nix-shell -p dotnetCorePackages.sdk_9_0 \
+           --run "dotnet test 'Maui Tests/Maui Tests.csproj'"
+
+      - name: Create integration test database
+        run: |
+          for file in ./kubernetes/integration-template/{0,1,2,3}-*.yml; do
+            cat "$file" | envsubst | kubectl apply -f -
+          done
+          kubectl rollout status deployment/resumeapp-it-postgres -n ${INTEGRATION_TEST_NAMESPACE} --timeout=300s
+
+      - name: Integration Tests
+        run: |
+          kubectl port-forward svc/resumeapp-it-postgres 15432:5432 -n ${INTEGRATION_TEST_NAMESPACE} &
+          sleep 3
+          export INTEGRATION_TEST_DB_CONNECTION="Host=localhost;Port=15432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+          nix-shell -p dotnetCorePackages.sdk_9_0 --run "dotnet test IntegrationTests/IntegrationTests.csproj"
+
+      - name: Cleanup integration environment
+        if: always()
+        run: kubectl delete namespace ${INTEGRATION_TEST_NAMESPACE} --ignore-not-found=true
 
       - name: Build and push PR Docker image
         run: |
@@ -233,8 +120,9 @@ jobs:
         run: |
           kubectl rollout status deployment/resumeapp-postgres -n ${PR_NAMESPACE} --timeout=300s
 
-      - name: Wait for API rollout
+      - name: Restart API to pull new image
         run: |
+          kubectl rollout restart deployment/resumeapp-api -n ${PR_NAMESPACE}
           kubectl rollout status deployment/resumeapp-api -n ${PR_NAMESPACE} --timeout=300s
 
       - name: Debug rollout on failure
