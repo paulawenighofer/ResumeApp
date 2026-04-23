@@ -9,14 +9,14 @@ using Test.Integration.Fixtures;
 
 namespace Test.Integration;
 
-public class AuthForgotResetTests : IClassFixture<ApiFactory>, IAsyncLifetime
+public class AuthForgotResetTests : IAsyncLifetime
 {
     private readonly ApiFactory _factory;
     private HttpClient _client = null!;
 
-    public AuthForgotResetTests(ApiFactory factory)
+    public AuthForgotResetTests()
     {
-        _factory = factory;
+        _factory = new ApiFactory(useProductionRateLimits: false);
     }
 
     public async Task InitializeAsync()
@@ -29,6 +29,7 @@ public class AuthForgotResetTests : IClassFixture<ApiFactory>, IAsyncLifetime
     public Task DisposeAsync()
     {
         _client.Dispose();
+        _factory.Dispose();
         return Task.CompletedTask;
     }
 
