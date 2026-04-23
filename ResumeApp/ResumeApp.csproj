@@ -16,6 +16,7 @@
 		<!-- For example: <RuntimeIdentifiers>maccatalyst-x64;maccatalyst-arm64</RuntimeIdentifiers> -->
 
 		<OutputType>Exe</OutputType>
+		<OutputType Condition="'$(MauiTestBuild)' == 'true'">Library</OutputType>
 		<RootNamespace>ResumeApp</RootNamespace>
 		<UseMaui Condition="'$(MauiTestBuild)' != 'true'">true</UseMaui>
 		<SingleProject>true</SingleProject>
@@ -84,7 +85,7 @@
 	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.Maui" Version="11.2.0" Condition="'$(MauiTestBuild)' != 'true'" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.1" />
-		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="8.0.3" Condition="'$(MauiTestBuild)' == 'true'" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.9" />
 		<PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
 		<PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.11" />
