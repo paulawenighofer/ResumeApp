@@ -150,8 +150,9 @@ jobs:
             -n ${{ env.KUBERNETES_NAMESPACE }} \
             --replicas=${REPLICAS}
 
-          kubectl rollout status deployment/${{ env.KUBERNETES_APP_DEPLOYMENT }} \
+          kubectl wait deployment/${{ env.KUBERNETES_APP_DEPLOYMENT }} \
             -n ${{ env.KUBERNETES_NAMESPACE }} \
+            --for=condition=Available \
             --timeout=120s
 
           echo "App scaled back to ${REPLICAS} replica(s). Maintenance window closed."
