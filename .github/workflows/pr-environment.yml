@@ -46,7 +46,7 @@ jobs:
       - name: MAUI Tests
         run: |
           nix-shell -p dotnetCorePackages.sdk_9_0 \
-           --run "dotnet workload restore ResumeApp/ResumeApp.csproj && dotnet test 'Maui Tests/Maui Tests.csproj'"
+           --run "dotnet test 'Maui Tests/Maui Tests.csproj' -p:EnableWorkloadResolver=false"
 
       - name: Create integration test database
         run: |
