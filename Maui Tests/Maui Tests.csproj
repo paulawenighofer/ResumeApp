@@ -22,7 +22,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\API\API.csproj" />
-    <ProjectReference Include="..\ResumeApp\ResumeApp.csproj" SetTargetFramework="TargetFramework=net9.0-windows10.0.19041.0" />
+    <ProjectReference Include="..\ResumeApp\ResumeApp.csproj" SetTargetFramework="TargetFramework=net9.0-windows10.0.19041.0" Condition="'$(MauiTestBuild)' != 'true'" />
+    <ProjectReference Include="..\ResumeApp\ResumeApp.csproj" SetTargetFramework="TargetFramework=net9.0" Condition="'$(MauiTestBuild)' == 'true'" />
     <ProjectReference Include="..\Shared\Shared.csproj" />
   </ItemGroup>
 
