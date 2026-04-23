@@ -57,6 +57,11 @@
 		<_AndroidBuildRuntimeIdentifiersInParallel>false</_AndroidBuildRuntimeIdentifiersInParallel>
 	</PropertyGroup>
 
+	<ItemGroup Condition="'$(MauiTestBuild)' == 'true'">
+		<Compile Remove="MauiProgram.cs" />
+		<Compile Remove="Services\ToastService.cs" />
+	</ItemGroup>
+
 	<ItemGroup Condition="'$(MauiTestBuild)' != 'true'">
 		<!-- App Icon -->
 		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
