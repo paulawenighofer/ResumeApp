@@ -3,15 +3,15 @@ services:
     image: postgres:16
     container_name: resumebuilder-db
     environment:
-      POSTGRES_USER: devuser
-      POSTGRES_PASSWORD: devpassword123
-      POSTGRES_DB: resumebuilder
+      POSTGRES_USER: ${POSTGRES_USER:-devuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devpassword123}
+      POSTGRES_DB: ${POSTGRES_DB:-resumebuilder}
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U devuser -d resumebuilder"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-devuser} -d ${POSTGRES_DB:-resumebuilder}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -31,21 +31,38 @@ services:
       dockerfile: Dockerfile
     container_name: resumebuilder-api
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - "ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=resumebuilder;Username=devuser;Password=devpassword123"
-      - Jwt__Key=ResumeBuilderDevKey_ChangeThisBeforeProduction_123456789
-      - Jwt__Issuer=ResumeApp.API
-      - Jwt__Audience=ResumeApp.Mobile
-      - Jwt__ExpirationInMinutes=120
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
-      - OTEL_SERVICE_NAME=ResumeApp
-      - AzureBlob__ConnectionString=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;
-      - AzureBlob__ProfileImagesContainer=profile-images
-      - AzureBlob__ProfileImagesBasePath=
-      - AiService__BaseUrl=http://host.docker.internal:11434/api/generate
-      - AiService__ApiKey=
-      - AiService__Model=
-      - AiService__TimeoutSeconds=60
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
+      - ASPNETCORE_URLS=${ASPNETCORE_URLS:-http://+:8080}
+      - DOTNET_USE_POLLING_FILE_WATCHER=${DOTNET_USE_POLLING_FILE_WATCHER:-1}
+      - HttpHosting__UseHsts=${HttpHosting__UseHsts:-false}
+      - HttpHosting__UseHttpsRedirection=${HttpHosting__UseHttpsRedirection:-false}
+      - ConnectionStrings__DefaultConnection=${ConnectionStrings__DefaultConnection:-Host=postgres;Port=5432;Database=resumebuilder;Username=devuser;Password=devpassword123}
+      - Jwt__Key=${Jwt__Key:-ResumeBuilderDevKey_ChangeThisBeforeProduction_123456789}
+      - Jwt__Issuer=${Jwt__Issuer:-ResumeApp.API}
+      - Jwt__Audience=${Jwt__Audience:-ResumeApp.Mobile}
+      - Jwt__ExpirationInMinutes=${Jwt__ExpirationInMinutes:-120}
+      - ApiBaseUrl=${ApiBaseUrl:-https://localhost:7082}
+      - AppScheme=${AppScheme:-myresumebuilder}
+      - OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT:-http://otel-collector:4317}
+      - OTEL_SERVICE_NAME=${OTEL_SERVICE_NAME:-ResumeApp.API}
+      - FeatureFlags__EmailOtpDelivery=${FeatureFlags__EmailOtpDelivery:-false}
+      - Smtp__Host=${Smtp__Host:-smtp.mailgun.org}
+      - Smtp__Port=${Smtp__Port:-587}
+      - Smtp__Username=${Smtp__Username:-}
+      - Smtp__Password=${Smtp__Password:-}
+      - Smtp__From=${Smtp__From:-hey@bishwas.me}
+      - Smtp__SenderName=${Smtp__SenderName:-ResumeApp}
+      - Smtp__EnableSsl=${Smtp__EnableSsl:-true}
+      - AzureBlob__ConnectionString=${AzureBlob__ConnectionString:-DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;}
+      - AzureBlob__ProfileImagesContainer=${AzureBlob__ProfileImagesContainer:-profile-images}
+      - AzureBlob__ProfileImagesBasePath=${AzureBlob__ProfileImagesBasePath:-}
+      - AzureBlob__ResumesContainer=${AzureBlob__ResumesContainer:-resumes}
+      - AzureBlob__ResumesBasePath=${AzureBlob__ResumesBasePath:-}
+      - AiService__BaseUrl=${AiService__BaseUrl:-http://host.docker.internal:11434/api/generate}
+      - AiService__ApiKey=${AiService__ApiKey:-}
+      - AiService__Model=${AiService__Model:-}
+      - AiService__TimeoutSeconds=${AiService__TimeoutSeconds:-60}
+      - ResumeDraftProcessing__ProcessInBackground=${ResumeDraftProcessing__ProcessInBackground:-true}
     depends_on:
       postgres:
         condition: service_healthy
@@ -61,7 +78,7 @@ services:
     environment:
       - PUID=1000
       - PGID=1000
-      - TZ=Etc/UTC
+      - TZ=${TZ:-Etc/UTC}
     volumes:
       - ./nginx.conf:/config/nginx/site-confs/default.conf
     ports:

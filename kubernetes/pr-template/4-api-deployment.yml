@@ -32,18 +32,30 @@ spec:
               value: "1"
             - name: ASPNETCORE_ENVIRONMENT
               value: Development
+            - name: HttpHosting__UseHsts
+              value: "false"
+            - name: HttpHosting__UseHttpsRedirection
+              value: "false"
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
               value: http://otel-collector-service:4317
             - name: OTEL_SERVICE_NAME
-              value: ResumeApp
+              value: ResumeApp.API
             - name: FeatureFlags__EmailOtpDelivery
               value: "${FEATURES_EMAIL_OTP_DELIVERY}"
+            - name: ResumeDraftProcessing__ProcessInBackground
+              value: "${RESUME_DRAFT_PROCESS_IN_BACKGROUND}"
             - name: AzureBlob__ConnectionString
               value: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite-service:10000/devstoreaccount1;"
             - name: AzureBlob__ProfileImagesContainer
               value: profile-images
             - name: AzureBlob__ProfileImagesBasePath
               value: ""
+            - name: AzureBlob__ResumesContainer
+              value: resumes
+            - name: AzureBlob__ResumesBasePath
+              value: ""
+            - name: AiService__TimeoutSeconds
+              value: "60"
           envFrom:
             - secretRef:
                 name: $PR_NAMESPACE-secrets

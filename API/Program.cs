@@ -22,6 +22,8 @@ using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 var startupCompleted = false;
+var useHsts = builder.Configuration.GetValue<bool?>("HttpHosting:UseHsts") ?? !builder.Environment.IsDevelopment();
+var useHttpsRedirection = builder.Configuration.GetValue<bool?>("HttpHosting:UseHttpsRedirection") ?? !builder.Environment.IsDevelopment();
 
 QuestPDF.Settings.License = LicenseType.Community;
 
@@ -365,10 +367,16 @@ if (app.Environment.IsDevelopment())
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
-    app.UseHsts();
+    if (useHsts)
+    {
+        app.UseHsts();
+    }
 }
 
-app.UseHttpsRedirection();
+if (useHttpsRedirection)
+{
+    app.UseHttpsRedirection();
+}
 app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthentication();
