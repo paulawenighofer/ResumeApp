@@ -3,7 +3,16 @@ kind: Ingress
 metadata:
   name: grafana-ingress
   namespace: resumeapp
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
 spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - grafana.resume-app-pb.duckdns.org
+      secretName: grafana-tls
   rules:
     - host: grafana.resume-app-pb.duckdns.org
       http:

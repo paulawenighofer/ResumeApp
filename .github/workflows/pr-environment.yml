@@ -68,7 +68,7 @@ jobs:
             --from-literal=GitHub__ClientId="${{ secrets.GH_CLIENT_ID }}" \
             --from-literal=GitHub__ClientSecret="${{ secrets.GH_CLIENT_SECRET }}" \
             --from-literal=AppScheme="myresumebuilder" \
-            --from-literal=ApiBaseUrl="http://${PR_HOSTNAME}" \
+            --from-literal=ApiBaseUrl="https://${PR_HOSTNAME}" \
             --from-literal=POSTGRES_USER="${{ secrets.POSTGRES_USER }}" \
             --from-literal=POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}" \
             --from-literal=POSTGRES_DB="${{ secrets.POSTGRES_DB }}" \
@@ -118,9 +118,9 @@ jobs:
           echo "=========================================="
           echo "  PR Environment URLs"
           echo "=========================================="
-          echo "  API:        http://${PR_HOSTNAME}"
-          echo "  Grafana:    http://${PR_GRAFANA_HOST}"
-          echo "  Prometheus: http://${PR_PROMETHEUS_HOST}"
+          echo "  API:        https://${PR_HOSTNAME}"
+          echo "  Grafana:    https://${PR_GRAFANA_HOST}"
+          echo "  Prometheus: https://${PR_PROMETHEUS_HOST}"
           echo "  Namespace:  ${PR_NAMESPACE}"
           echo "  PR:         ${{ github.event.pull_request.html_url }}"
           echo "======================================"
@@ -135,9 +135,9 @@ jobs:
 
           | Service | URL |
           |---|---|
-          | API | http://${PR_HOSTNAME} |
-          | Grafana | http://${PR_GRAFANA_HOST} |
-          | Prometheus | http://${PR_PROMETHEUS_HOST} |
+          | API | https://${PR_HOSTNAME} |
+          | Grafana | https://${PR_GRAFANA_HOST} |
+          | Prometheus | https://${PR_PROMETHEUS_HOST} |
 
           **Namespace:** \`${PR_NAMESPACE}\`
           **Commit:** \`${{ github.event.pull_request.head.sha }}\`

@@ -11,6 +11,9 @@
 .dotnet/
 
 
+
+.env.example
+
 # User-specific files
 *.rsuser
 *.suo

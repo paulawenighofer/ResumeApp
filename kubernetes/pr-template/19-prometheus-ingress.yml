@@ -3,7 +3,16 @@ kind: Ingress
 metadata:
   name: prometheus-ingress
   namespace: $PR_NAMESPACE
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
 spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - $PR_PROMETHEUS_HOST
+      secretName: prometheus-tls
   rules:
     - host: $PR_PROMETHEUS_HOST
       http:
