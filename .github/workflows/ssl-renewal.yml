@@ -1,0 +1,43 @@
+name: SSL Certificate Renewal
+
+on:
+  schedule:
+    - cron: '0 2 1,29 * *'
+  workflow_dispatch:
+
+jobs:
+  renew-ssl:
+    runs-on: self-hosted
+    env:
+      KUBECONFIG: /home/bishwas/.kube/config
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install / upgrade cert-manager
+        run: |
+          kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.17.2/cert-manager.yaml
+          kubectl -n cert-manager wait --for=condition=available --timeout=120s deployment/cert-manager
+          kubectl -n cert-manager wait --for=condition=available --timeout=120s deployment/cert-manager-webhook
+          kubectl -n cert-manager wait --for=condition=available --timeout=120s deployment/cert-manager-cainjector
+
+      - name: Apply ClusterIssuer
+        run: kubectl apply -f kubernetes/cert-manager-clusterissuer.yml
+
+      - name: Re-apply production ingresses
+        run: |
+          kubectl apply -f kubernetes/6-api-ingress.yml
+          kubectl apply -f kubernetes/19-prometheus-ingress.yml
+          kubectl apply -f kubernetes/20-grafana-ingress.yml
+
+      - name: Check certificate status
+        run: |
+          echo "=== Certificate Status ==="
+          kubectl get certificates -n resumeapp -o wide || true
+          kubectl get certificaterequests -n resumeapp || true
+          kubectl describe certificates -n resumeapp || true
+
+      - name: Notify
+        run: |
+          curl -s -o /dev/null -d "SSL renewal pipeline ran successfully - $(date)" \
+            ntfy.sh/resume-app-pb || true

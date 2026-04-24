@@ -12,7 +12,6 @@ jobs:
       AI_SERVICE_BASE_URL: ${{ vars.STAGING_AI_SERVICE_BASEURL }}
       AI_SERVICE_MODEL: ${{ vars.STAGING_AI_SERVICE_MODEL }}
       AI_SERVICE_TIMEOUT_SECONDS: ${{ vars.STAGING_AI_SERVICE_TIMEOUTSECONDS }}
-      LETSENCRYPT_EMAIL: ${{ vars.LETSENCRYPT_EMAIL }}
     steps:
       - name: Check out repository code
         uses: actions/checkout@v5
@@ -44,11 +43,14 @@ jobs:
             KUBECONFIG: /home/bishwas/.kube/config
         run: kubectl apply -f kubernetes/0-namespace.yml
 
-      - name: Apply cert-manager ClusterIssuer
+      - name: Install cert-manager
         env:
             KUBECONFIG: /home/bishwas/.kube/config
         run: |
-          cat kubernetes/21-letsencrypt-clusterissuer.yml | envsubst | kubectl apply -f -
+          kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.17.2/cert-manager.yaml
+          kubectl -n cert-manager wait --for=condition=available --timeout=120s deployment/cert-manager
+          kubectl -n cert-manager wait --for=condition=available --timeout=120s deployment/cert-manager-webhook
+          kubectl -n cert-manager wait --for=condition=available --timeout=120s deployment/cert-manager-cainjector
 
       - name: Create Kubernetes Secret
         env:
@@ -109,7 +111,7 @@ jobs:
         env:
             KUBECONFIG: /home/bishwas/.kube/config
         run: |
-          kubectl wait --for=condition=Ready certificate/resumeapp-web-tls -n resumeapp --timeout=900s
+          kubectl wait --for=condition=Ready certificate/resumeapp-api-tls -n resumeapp --timeout=900s
 
       - name: Debug certificate on failure
         if: steps.wait_api_certificate.outcome == 'failure'
@@ -121,11 +123,11 @@ jobs:
           kubectl get ingress -n resumeapp -o wide || true
           kubectl describe ingress resumeapp-web-ingress -n resumeapp || true
           kubectl get certificate,certificaterequest,order,challenge -n resumeapp || true
-          kubectl describe certificate resumeapp-web-tls -n resumeapp || true
+          kubectl describe certificate resumeapp-api-tls -n resumeapp || true
           kubectl describe certificaterequest -n resumeapp || true
           kubectl describe order -n resumeapp || true
           kubectl describe challenge -n resumeapp || true
-          kubectl get secret resumeapp-web-tls -n resumeapp -o yaml || true
+          kubectl get secret resumeapp-api-tls -n resumeapp -o yaml || true
 
       - name: Inspect certificate status
         env:

@@ -14,7 +14,6 @@ jobs:
       AI_SERVICE_BASE_URL: ${{ vars.STAGING_AI_SERVICE_BASEURL }}
       AI_SERVICE_MODEL: ${{ vars.STAGING_AI_SERVICE_MODEL }}
       AI_SERVICE_TIMEOUT_SECONDS: ${{ vars.STAGING_AI_SERVICE_TIMEOUTSECONDS }}
-      LETSENCRYPT_EMAIL: ${{ vars.LETSENCRYPT_EMAIL }}
       PR_NUMBER: ${{ github.event.pull_request.number }}
       PR_NAMESPACE: resumeapp-pr-${{ github.event.pull_request.number }}
       PR_HOSTNAME: pr-${{ github.event.pull_request.number }}.resume-app-pb.duckdns.org
@@ -52,9 +51,15 @@ jobs:
         run: |
           cat kubernetes/pr-template/0-namespace.yml | envsubst | kubectl apply -f -
 
-      - name: Apply cert-manager ClusterIssuer
+      - name: Install cert-manager
         run: |
-          cat kubernetes/21-letsencrypt-clusterissuer.yml | envsubst | kubectl apply -f -
+          kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.17.2/cert-manager.yaml
+          kubectl -n cert-manager wait --for=condition=available --timeout=120s deployment/cert-manager
+          kubectl -n cert-manager wait --for=condition=available --timeout=120s deployment/cert-manager-webhook
+          kubectl -n cert-manager wait --for=condition=available --timeout=120s deployment/cert-manager-cainjector
+
+      - name: Apply ClusterIssuer
+        run: kubectl apply -f kubernetes/cert-manager-clusterissuer.yml
 
       - name: Create Kubernetes secret
         run: |
@@ -122,7 +127,7 @@ jobs:
         id: wait_api_certificate
         continue-on-error: true
         run: |
-          kubectl wait --for=condition=Ready certificate/resumeapp-web-tls -n ${PR_NAMESPACE} --timeout=900s
+          kubectl wait --for=condition=Ready certificate/resumeapp-pr-api-tls -n ${PR_NAMESPACE} --timeout=900s
 
       - name: Debug certificate on failure
         if: steps.wait_api_certificate.outcome == 'failure'
@@ -132,11 +137,11 @@ jobs:
           kubectl get ingress -n ${PR_NAMESPACE} -o wide || true
           kubectl describe ingress resumeapp-web-ingress -n ${PR_NAMESPACE} || true
           kubectl get certificate,certificaterequest,order,challenge -n ${PR_NAMESPACE} || true
-          kubectl describe certificate resumeapp-web-tls -n ${PR_NAMESPACE} || true
+          kubectl describe certificate resumeapp-pr-api-tls -n ${PR_NAMESPACE} || true
           kubectl describe certificaterequest -n ${PR_NAMESPACE} || true
           kubectl describe order -n ${PR_NAMESPACE} || true
           kubectl describe challenge -n ${PR_NAMESPACE} || true
-          kubectl get secret resumeapp-web-tls -n ${PR_NAMESPACE} -o yaml || true
+          kubectl get secret resumeapp-pr-api-tls -n ${PR_NAMESPACE} -o yaml || true
 
       - name: Inspect certificate status
         run: |
