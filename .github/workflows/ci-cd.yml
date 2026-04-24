@@ -12,6 +12,7 @@ jobs:
       AI_SERVICE_BASE_URL: ${{ vars.STAGING_AI_SERVICE_BASEURL }}
       AI_SERVICE_MODEL: ${{ vars.STAGING_AI_SERVICE_MODEL }}
       AI_SERVICE_TIMEOUT_SECONDS: ${{ vars.STAGING_AI_SERVICE_TIMEOUTSECONDS }}
+      LETSENCRYPT_EMAIL: ${{ vars.LETSENCRYPT_EMAIL }}
     steps:
       - name: Check out repository code
         uses: actions/checkout@v5
@@ -42,6 +43,12 @@ jobs:
         env:
             KUBECONFIG: /home/bishwas/.kube/config
         run: kubectl apply -f kubernetes/0-namespace.yml
+
+      - name: Apply cert-manager ClusterIssuer
+        env:
+            KUBECONFIG: /home/bishwas/.kube/config
+        run: |
+          cat kubernetes/21-letsencrypt-clusterissuer.yml | envsubst | kubectl apply -f -
 
       - name: Create Kubernetes Secret
         env:
@@ -95,6 +102,12 @@ jobs:
         run: |
           kubectl rollout restart deployment/grafana -n resumeapp
           kubectl rollout restart deployment/otel-collector -n resumeapp
+
+      - name: Wait for API certificate
+        env:
+            KUBECONFIG: /home/bishwas/.kube/config
+        run: |
+          kubectl wait --for=condition=Ready certificate/resumeapp-web-tls -n resumeapp --timeout=300s
 
       - name: Run on failure
         if: failure()

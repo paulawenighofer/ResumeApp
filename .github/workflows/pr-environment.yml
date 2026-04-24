@@ -14,6 +14,7 @@ jobs:
       AI_SERVICE_BASE_URL: ${{ vars.STAGING_AI_SERVICE_BASEURL }}
       AI_SERVICE_MODEL: ${{ vars.STAGING_AI_SERVICE_MODEL }}
       AI_SERVICE_TIMEOUT_SECONDS: ${{ vars.STAGING_AI_SERVICE_TIMEOUTSECONDS }}
+      LETSENCRYPT_EMAIL: ${{ vars.LETSENCRYPT_EMAIL }}
       PR_NUMBER: ${{ github.event.pull_request.number }}
       PR_NAMESPACE: resumeapp-pr-${{ github.event.pull_request.number }}
       PR_HOSTNAME: pr-${{ github.event.pull_request.number }}.resume-app-pb.duckdns.org
@@ -50,6 +51,10 @@ jobs:
       - name: Apply namespace
         run: |
           cat kubernetes/pr-template/0-namespace.yml | envsubst | kubectl apply -f -
+
+      - name: Apply cert-manager ClusterIssuer
+        run: |
+          cat kubernetes/21-letsencrypt-clusterissuer.yml | envsubst | kubectl apply -f -
 
       - name: Create Kubernetes secret
         run: |
@@ -112,6 +117,10 @@ jobs:
         run: |
           kubectl rollout restart deployment/grafana -n ${PR_NAMESPACE}
           kubectl rollout restart deployment/otel-collector -n ${PR_NAMESPACE}
+
+      - name: Wait for API certificate
+        run: |
+          kubectl wait --for=condition=Ready certificate/resumeapp-web-tls -n ${PR_NAMESPACE} --timeout=300s
 
       - name: Echo PR environment URLs
         run: |
