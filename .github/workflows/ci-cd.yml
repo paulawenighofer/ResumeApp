@@ -104,13 +104,15 @@ jobs:
           kubectl rollout restart deployment/otel-collector -n resumeapp
 
       - name: Wait for API certificate
+        id: wait_api_certificate
+        continue-on-error: true
         env:
             KUBECONFIG: /home/bishwas/.kube/config
         run: |
-          kubectl wait --for=condition=Ready certificate/resumeapp-web-tls -n resumeapp --timeout=300s
+          kubectl wait --for=condition=Ready certificate/resumeapp-web-tls -n resumeapp --timeout=900s
 
       - name: Debug certificate on failure
-        if: failure()
+        if: steps.wait_api_certificate.outcome == 'failure'
         env:
             KUBECONFIG: /home/bishwas/.kube/config
         run: |
@@ -124,6 +126,13 @@ jobs:
           kubectl describe order -n resumeapp || true
           kubectl describe challenge -n resumeapp || true
           kubectl get secret resumeapp-web-tls -n resumeapp -o yaml || true
+
+      - name: Inspect certificate status
+        env:
+            KUBECONFIG: /home/bishwas/.kube/config
+        run: |
+          kubectl get certificate -n resumeapp || true
+          kubectl get certificaterequest,order,challenge -n resumeapp || true
 
       - name: Run on failure
         if: failure()

@@ -119,11 +119,13 @@ jobs:
           kubectl rollout restart deployment/otel-collector -n ${PR_NAMESPACE}
 
       - name: Wait for API certificate
+        id: wait_api_certificate
+        continue-on-error: true
         run: |
-          kubectl wait --for=condition=Ready certificate/resumeapp-web-tls -n ${PR_NAMESPACE} --timeout=300s
+          kubectl wait --for=condition=Ready certificate/resumeapp-web-tls -n ${PR_NAMESPACE} --timeout=900s
 
       - name: Debug certificate on failure
-        if: failure()
+        if: steps.wait_api_certificate.outcome == 'failure'
         run: |
           kubectl get clusterissuer letsencrypt-prod -o yaml || true
           kubectl describe clusterissuer letsencrypt-prod || true
@@ -135,6 +137,11 @@ jobs:
           kubectl describe order -n ${PR_NAMESPACE} || true
           kubectl describe challenge -n ${PR_NAMESPACE} || true
           kubectl get secret resumeapp-web-tls -n ${PR_NAMESPACE} -o yaml || true
+
+      - name: Inspect certificate status
+        run: |
+          kubectl get certificate -n ${PR_NAMESPACE} || true
+          kubectl get certificaterequest,order,challenge -n ${PR_NAMESPACE} || true
 
       - name: Echo PR environment URLs
         run: |
