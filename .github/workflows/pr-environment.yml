@@ -122,6 +122,20 @@ jobs:
         run: |
           kubectl wait --for=condition=Ready certificate/resumeapp-web-tls -n ${PR_NAMESPACE} --timeout=300s
 
+      - name: Debug certificate on failure
+        if: failure()
+        run: |
+          kubectl get clusterissuer letsencrypt-prod -o yaml || true
+          kubectl describe clusterissuer letsencrypt-prod || true
+          kubectl get ingress -n ${PR_NAMESPACE} -o wide || true
+          kubectl describe ingress resumeapp-web-ingress -n ${PR_NAMESPACE} || true
+          kubectl get certificate,certificaterequest,order,challenge -n ${PR_NAMESPACE} || true
+          kubectl describe certificate resumeapp-web-tls -n ${PR_NAMESPACE} || true
+          kubectl describe certificaterequest -n ${PR_NAMESPACE} || true
+          kubectl describe order -n ${PR_NAMESPACE} || true
+          kubectl describe challenge -n ${PR_NAMESPACE} || true
+          kubectl get secret resumeapp-web-tls -n ${PR_NAMESPACE} -o yaml || true
+
       - name: Echo PR environment URLs
         run: |
           echo "=========================================="
