@@ -52,6 +52,13 @@ jobs:
           kubectl -n cert-manager wait --for=condition=available --timeout=120s deployment/cert-manager-webhook
           kubectl -n cert-manager wait --for=condition=available --timeout=120s deployment/cert-manager-cainjector
 
+      - name: Apply ClusterIssuer
+        env:
+            KUBECONFIG: /home/bishwas/.kube/config
+        run: |
+          kubectl apply -f kubernetes/cert-manager-clusterissuer.yml
+          kubectl wait --for=condition=Ready clusterissuer/letsencrypt-prod --timeout=120s
+
       - name: Create Kubernetes Secret
         env:
             KUBECONFIG: /home/bishwas/.kube/config
@@ -87,6 +94,9 @@ jobs:
             KUBECONFIG: /home/bishwas/.kube/config
         run: |
           for file in ./kubernetes/*.yml; do
+            if [ "$file" = "./kubernetes/cert-manager-clusterissuer.yml" ]; then
+              continue
+            fi
             echo "$file"
             cat "$file" | envsubst | kubectl apply -f -
           done
@@ -105,16 +115,18 @@ jobs:
           kubectl rollout restart deployment/grafana -n resumeapp
           kubectl rollout restart deployment/otel-collector -n resumeapp
 
-      - name: Wait for API certificate
-        id: wait_api_certificate
+      - name: Wait for TLS certificates
+        id: wait_tls_certificates
         continue-on-error: true
         env:
             KUBECONFIG: /home/bishwas/.kube/config
         run: |
           kubectl wait --for=condition=Ready certificate/resumeapp-api-tls -n resumeapp --timeout=900s
+          kubectl wait --for=condition=Ready certificate/resumeapp-prometheus-tls -n resumeapp --timeout=900s
+          kubectl wait --for=condition=Ready certificate/resumeapp-grafana-tls -n resumeapp --timeout=900s
 
       - name: Debug certificate on failure
-        if: steps.wait_api_certificate.outcome == 'failure'
+        if: steps.wait_tls_certificates.outcome == 'failure'
         env:
             KUBECONFIG: /home/bishwas/.kube/config
         run: |
@@ -122,12 +134,18 @@ jobs:
           kubectl describe clusterissuer letsencrypt-prod || true
           kubectl get ingress -n resumeapp -o wide || true
           kubectl describe ingress resumeapp-web-ingress -n resumeapp || true
+          kubectl describe ingress prometheus-ingress -n resumeapp || true
+          kubectl describe ingress grafana-ingress -n resumeapp || true
           kubectl get certificate,certificaterequest,order,challenge -n resumeapp || true
           kubectl describe certificate resumeapp-api-tls -n resumeapp || true
+          kubectl describe certificate resumeapp-prometheus-tls -n resumeapp || true
+          kubectl describe certificate resumeapp-grafana-tls -n resumeapp || true
           kubectl describe certificaterequest -n resumeapp || true
           kubectl describe order -n resumeapp || true
           kubectl describe challenge -n resumeapp || true
           kubectl get secret resumeapp-api-tls -n resumeapp -o yaml || true
+          kubectl get secret resumeapp-prometheus-tls -n resumeapp -o yaml || true
+          kubectl get secret resumeapp-grafana-tls -n resumeapp -o yaml || true
 
       - name: Inspect certificate status
         env:

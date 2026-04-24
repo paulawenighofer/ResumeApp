@@ -22,7 +22,9 @@ jobs:
           kubectl -n cert-manager wait --for=condition=available --timeout=120s deployment/cert-manager-cainjector
 
       - name: Apply ClusterIssuer
-        run: kubectl apply -f kubernetes/cert-manager-clusterissuer.yml
+        run: |
+          kubectl apply -f kubernetes/cert-manager-clusterissuer.yml
+          kubectl wait --for=condition=Ready clusterissuer/letsencrypt-prod --timeout=120s
 
       - name: Re-apply production ingresses
         run: |
@@ -35,6 +37,7 @@ jobs:
           echo "=== Certificate Status ==="
           kubectl get certificates -n resumeapp -o wide || true
           kubectl get certificaterequests -n resumeapp || true
+          kubectl get orders,challenges -n resumeapp || true
           kubectl describe certificates -n resumeapp || true
 
       - name: Notify

@@ -59,7 +59,9 @@ jobs:
           kubectl -n cert-manager wait --for=condition=available --timeout=120s deployment/cert-manager-cainjector
 
       - name: Apply ClusterIssuer
-        run: kubectl apply -f kubernetes/cert-manager-clusterissuer.yml
+        run: |
+          kubectl apply -f kubernetes/cert-manager-clusterissuer.yml
+          kubectl wait --for=condition=Ready clusterissuer/letsencrypt-prod --timeout=120s
 
       - name: Create Kubernetes secret
         run: |
@@ -123,25 +125,33 @@ jobs:
           kubectl rollout restart deployment/grafana -n ${PR_NAMESPACE}
           kubectl rollout restart deployment/otel-collector -n ${PR_NAMESPACE}
 
-      - name: Wait for API certificate
-        id: wait_api_certificate
+      - name: Wait for TLS certificates
+        id: wait_tls_certificates
         continue-on-error: true
         run: |
           kubectl wait --for=condition=Ready certificate/resumeapp-pr-api-tls -n ${PR_NAMESPACE} --timeout=900s
+          kubectl wait --for=condition=Ready certificate/resumeapp-pr-prometheus-tls -n ${PR_NAMESPACE} --timeout=900s
+          kubectl wait --for=condition=Ready certificate/resumeapp-pr-grafana-tls -n ${PR_NAMESPACE} --timeout=900s
 
       - name: Debug certificate on failure
-        if: steps.wait_api_certificate.outcome == 'failure'
+        if: steps.wait_tls_certificates.outcome == 'failure'
         run: |
           kubectl get clusterissuer letsencrypt-prod -o yaml || true
           kubectl describe clusterissuer letsencrypt-prod || true
           kubectl get ingress -n ${PR_NAMESPACE} -o wide || true
           kubectl describe ingress resumeapp-web-ingress -n ${PR_NAMESPACE} || true
+          kubectl describe ingress prometheus-ingress -n ${PR_NAMESPACE} || true
+          kubectl describe ingress grafana-ingress -n ${PR_NAMESPACE} || true
           kubectl get certificate,certificaterequest,order,challenge -n ${PR_NAMESPACE} || true
           kubectl describe certificate resumeapp-pr-api-tls -n ${PR_NAMESPACE} || true
+          kubectl describe certificate resumeapp-pr-prometheus-tls -n ${PR_NAMESPACE} || true
+          kubectl describe certificate resumeapp-pr-grafana-tls -n ${PR_NAMESPACE} || true
           kubectl describe certificaterequest -n ${PR_NAMESPACE} || true
           kubectl describe order -n ${PR_NAMESPACE} || true
           kubectl describe challenge -n ${PR_NAMESPACE} || true
           kubectl get secret resumeapp-pr-api-tls -n ${PR_NAMESPACE} -o yaml || true
+          kubectl get secret resumeapp-pr-prometheus-tls -n ${PR_NAMESPACE} -o yaml || true
+          kubectl get secret resumeapp-pr-grafana-tls -n ${PR_NAMESPACE} -o yaml || true
 
       - name: Inspect certificate status
         run: |
