@@ -81,8 +81,10 @@ services:
       - TZ=${TZ:-Etc/UTC}
     volumes:
       - ./nginx.conf:/config/nginx/site-confs/default.conf
+      - ./ssl:/etc/nginx/ssl:ro
     ports:
-      - "8080:80"
+      - "8090:80"
+      - "8443:443"
     depends_on:
       - api
       - grafana
