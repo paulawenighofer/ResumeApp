@@ -26,7 +26,7 @@ jobs:
               certonly \
               --non-interactive \
               --agree-tos \
-              --email bishwascodes@github \
+              --email bishwasbisu@gmail.com \
               --preferred-challenges dns \
               --authenticator dns-duckdns \
               --dns-duckdns-token "${{ secrets.DUCKDNS_TOKEN }}" \
