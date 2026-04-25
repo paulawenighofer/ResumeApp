@@ -3,7 +3,15 @@ kind: Ingress
 metadata:
   name: grafana-ingress
   namespace: $PR_NAMESPACE
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
 spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - $PR_GRAFANA_HOST
+      secretName: resumeapp-tls
   rules:
     - host: $PR_GRAFANA_HOST
       http:

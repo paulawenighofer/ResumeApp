@@ -1,0 +1,63 @@
+name: SSL Certificate Renewal
+
+on:
+  schedule:
+    - cron: '0 2 1 */2 *'  # every 2 months on the 1st at 2am UTC
+  workflow_dispatch:
+
+env:
+  KUBECONFIG: /home/bishwas/.kube/config
+  CERT_DIR: /home/bishwas/ssl-certs
+  CERT_LIVE: /home/bishwas/ssl-certs/letsencrypt/live/resume-app-pb.duckdns.org
+
+jobs:
+  renew-and-deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Create cert directories
+        run: mkdir -p $CERT_DIR/letsencrypt $CERT_DIR/logs
+
+      - name: Run certbot via Docker (infinityofspace/certbot_dns_duckdns)
+        run: |
+          docker run --rm \
+            -v "$CERT_DIR/letsencrypt:/etc/letsencrypt" \
+            -v "$CERT_DIR/logs:/var/log/letsencrypt" \
+            infinityofspace/certbot_dns_duckdns:latest \
+              certonly \
+              --non-interactive \
+              --agree-tos \
+              --email bishwascodes@github \
+              --preferred-challenges dns \
+              --authenticator dns-duckdns \
+              --dns-duckdns-token "${{ secrets.DUCKDNS_TOKEN }}" \
+              --dns-duckdns-propagation-seconds 60 \
+              --keep-until-expiring \
+              -d "resume-app-pb.duckdns.org" \
+              -d "*.resume-app-pb.duckdns.org"
+
+      - name: Update TLS secret in main namespace
+        run: |
+          kubectl create secret tls resumeapp-tls \
+            --cert="$CERT_LIVE/fullchain.pem" \
+            --key="$CERT_LIVE/privkey.pem" \
+            --namespace=resumeapp \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Update TLS secret in active PR namespaces
+        run: |
+          for ns in $(kubectl get namespaces -o jsonpath='{.items[*].metadata.name}' \
+                     | tr ' ' '\n' | grep '^resumeapp-pr-'); do
+            echo "Updating TLS secret in $ns"
+            kubectl create secret tls resumeapp-tls \
+              --cert="$CERT_LIVE/fullchain.pem" \
+              --key="$CERT_LIVE/privkey.pem" \
+              --namespace="$ns" \
+              --dry-run=client -o yaml | kubectl apply -f -
+          done
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          curl -s -o /dev/null \
+            -d "SSL certificate renewal failed. Check workflow run for details." \
+            ntfy.sh/resume-app-pb
