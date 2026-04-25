@@ -56,30 +56,74 @@ else
                     <CardHeaderContent>
                         <MudText Typo="Typo.h6" Style="font-weight:600;">Account Information</MudText>
                     </CardHeaderContent>
+                    <CardHeaderActions>
+                        @if (!_editing)
+                        {
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                           OnClick="StartEdit" />
+                        }
+                    </CardHeaderActions>
                 </MudCardHeader>
                 <MudCardContent>
-                    <MudGrid Spacing="3">
-                        <MudItem xs="12" sm="6">
-                            <MudTextField Value="@_firstName" ReadOnly="true" Label="First Name"
-                                          Variant="Variant.Outlined"
-                                          Adornment="Adornment.Start"
-                                          AdornmentIcon="@Icons.Material.Filled.Person" />
-                        </MudItem>
-                        <MudItem xs="12" sm="6">
-                            <MudTextField Value="@_lastName" ReadOnly="true" Label="Last Name"
-                                          Variant="Variant.Outlined" />
-                        </MudItem>
-                        <MudItem xs="12">
-                            <MudTextField Value="@_email" ReadOnly="true" Label="Email"
-                                          Variant="Variant.Outlined"
-                                          Adornment="Adornment.Start"
-                                          AdornmentIcon="@Icons.Material.Filled.Email" />
-                        </MudItem>
-                    </MudGrid>
-
-                    <MudAlert Severity="Severity.Info" Dense="true" Class="mt-4">
-                        To update your name or email, please contact support.
-                    </MudAlert>
+                    @if (_editing)
+                    {
+                        <EditForm Model="_editForm" OnValidSubmit="SaveProfile">
+                            <DataAnnotationsValidator />
+                            <MudGrid Spacing="3">
+                                <MudItem xs="12" sm="6">
+                                    <MudTextField @bind-Value="_editForm.FirstName"
+                                                  Label="First Name *"
+                                                  Variant="Variant.Outlined"
+                                                  Adornment="Adornment.Start"
+                                                  AdornmentIcon="@Icons.Material.Filled.Person"
+                                                  For="@(() => _editForm.FirstName)" />
+                                </MudItem>
+                                <MudItem xs="12" sm="6">
+                                    <MudTextField @bind-Value="_editForm.LastName"
+                                                  Label="Last Name *"
+                                                  Variant="Variant.Outlined"
+                                                  For="@(() => _editForm.LastName)" />
+                                </MudItem>
+                                <MudItem xs="12">
+                                    <MudTextField Value="@_email" ReadOnly="true" Label="Email"
+                                                  Variant="Variant.Outlined"
+                                                  Adornment="Adornment.Start"
+                                                  AdornmentIcon="@Icons.Material.Filled.Email"
+                                                  HelperText="Email cannot be changed" />
+                                </MudItem>
+                            </MudGrid>
+                            <div class="d-flex justify-end gap-2 mt-4">
+                                <MudButton OnClick="CancelEdit" Disabled="_saving">Cancel</MudButton>
+                                <MudButton ButtonType="ButtonType.Submit"
+                                           Variant="Variant.Filled"
+                                           Color="Color.Primary"
+                                           Disabled="_saving">
+                                    @(_saving ? "Saving…" : "Save Changes")
+                                </MudButton>
+                            </div>
+                        </EditForm>
+                    }
+                    else
+                    {
+                        <MudGrid Spacing="3">
+                            <MudItem xs="12" sm="6">
+                                <MudTextField Value="@_firstName" ReadOnly="true" Label="First Name"
+                                              Variant="Variant.Outlined"
+                                              Adornment="Adornment.Start"
+                                              AdornmentIcon="@Icons.Material.Filled.Person" />
+                            </MudItem>
+                            <MudItem xs="12" sm="6">
+                                <MudTextField Value="@_lastName" ReadOnly="true" Label="Last Name"
+                                              Variant="Variant.Outlined" />
+                            </MudItem>
+                            <MudItem xs="12">
+                                <MudTextField Value="@_email" ReadOnly="true" Label="Email"
+                                              Variant="Variant.Outlined"
+                                              Adornment="Adornment.Start"
+                                              AdornmentIcon="@Icons.Material.Filled.Email" />
+                            </MudItem>
+                        </MudGrid>
+                    }
                 </MudCardContent>
             </MudCard>
 
@@ -136,10 +180,13 @@ else
 @code {
     private bool _loading = true;
     private bool _uploadingImage;
+    private bool _editing;
+    private bool _saving;
     private string _firstName = "";
     private string _lastName = "";
     private string _email = "";
     private string? _profileImageUrl;
+    private UpdateProfileDto _editForm = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -160,6 +207,38 @@ else
         }
     }
 
+    private void StartEdit()
+    {
+        _editForm = new UpdateProfileDto { FirstName = _firstName, LastName = _lastName };
+        _editing = true;
+    }
+
+    private void CancelEdit() => _editing = false;
+
+    private async Task SaveProfile()
+    {
+        _saving = true;
+        try
+        {
+            var ok = await Api.UpdateProfileAsync(_editForm);
+            if (ok)
+            {
+                _firstName = _editForm.FirstName.Trim();
+                _lastName = _editForm.LastName.Trim();
+                _editing = false;
+                Snackbar.Add("Profile updated!", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add("Update failed. Please try again.", Severity.Error);
+            }
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
     private async Task UploadImage(InputFileChangeEventArgs e)
     {
         _uploadingImage = true;
@@ -168,7 +247,7 @@ else
             var file = e.File;
             if (file is null) return;
 
-            const long maxSize = 5 * 1024 * 1024; // 5 MB
+            const long maxSize = 5 * 1024 * 1024;
             await using var stream = file.OpenReadStream(maxSize);
             var url = await Api.UploadProfileImageAsync(stream, file.Name);
             if (url is not null)

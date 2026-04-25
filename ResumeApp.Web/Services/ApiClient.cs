@@ -81,6 +81,13 @@ public class ApiClient
         catch { return null; }
     }
 
+    public async Task<bool> UpdateProfileAsync(UpdateProfileDto dto)
+    {
+        await AuthorizeAsync();
+        var res = await _http.PutAsJsonAsync("/api/profile/info", dto);
+        return res.IsSuccessStatusCode;
+    }
+
     // ── Profile image ─────────────────────────────────────────────────────
 
     public async Task<string?> UploadProfileImageAsync(Stream stream, string fileName)
@@ -186,21 +193,21 @@ public class ApiClient
 
     // ── Projects ──────────────────────────────────────────────────────────
 
-    public async Task<List<Project>> GetProjectsAsync()
+    public async Task<List<ResumeProject>> GetProjectsAsync()
     {
         await AuthorizeAsync();
-        return await _http.GetFromJsonAsync<List<Project>>("/api/projects") ?? [];
+        return await _http.GetFromJsonAsync<List<ResumeProject>>("/api/projects") ?? [];
     }
 
-    public async Task<Project?> CreateProjectAsync(Project item)
+    public async Task<ResumeProject?> CreateProjectAsync(ResumeProject item)
     {
         await AuthorizeAsync();
         var res = await _http.PostAsJsonAsync("/api/projects", item);
         if (!res.IsSuccessStatusCode) return null;
-        return await res.Content.ReadFromJsonAsync<Project>();
+        return await res.Content.ReadFromJsonAsync<ResumeProject>();
     }
 
-    public async Task<bool> UpdateProjectAsync(int id, Project item)
+    public async Task<bool> UpdateProjectAsync(int id, ResumeProject item)
     {
         await AuthorizeAsync();
         var res = await _http.PutAsJsonAsync($"/api/projects/{id}", item);
@@ -286,6 +293,13 @@ public class ApiClient
     {
         await AuthorizeAsync();
         var res = await _http.PostAsync($"/api/resumes/{id}/generate-pdf", null);
+        return res.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> DeleteResumeAsync(int id)
+    {
+        await AuthorizeAsync();
+        var res = await _http.DeleteAsync($"/api/resumes/{id}");
         return res.IsSuccessStatusCode;
     }
 

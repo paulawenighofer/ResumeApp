@@ -92,14 +92,14 @@ else
                                StartIcon="@Icons.Material.Filled.AutoAwesome"
                                FullWidth="true"
                                Class="mb-2"
-                               Href="/resumes/generate">
+                               OnClick="@(() => Nav.NavigateTo("/resumes/generate"))">
                         Generate New Resume
                     </MudButton>
                     <MudButton Variant="Variant.Outlined"
                                Color="Color.Primary"
                                StartIcon="@Icons.Material.Filled.List"
                                FullWidth="true"
-                               Href="/resumes">
+                               OnClick="@(() => Nav.NavigateTo("/resumes"))">
                         View All Resumes
                     </MudButton>
                 </MudCardContent>

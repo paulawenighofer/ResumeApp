@@ -52,13 +52,7 @@ else
                          OnClose="@((_) => ConfirmDelete(skill))"
                          OnClick="@(() => OpenEditDialog(skill))"
                          Style="cursor:pointer;">
-                    @skill.Name
-                    @if (skill.ProficiencyLevel.HasValue)
-                    {
-                        <MudText Typo="Typo.caption" Class="ml-1 opacity-70">
-                            · @ProficiencyLabel(skill.ProficiencyLevel.Value)
-                        </MudText>
-                    }
+                    @SkillChipText(skill)
                 </MudChip>
             }
         </div>
@@ -81,17 +75,26 @@ else
                                   For="@(() => _form.Name)" />
                 </MudItem>
                 <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="_form.Category" Label="Category"
-                                  Variant="Variant.Outlined"
-                                  HelperText="e.g., Programming Language, Framework, Soft Skill" />
+                    <MudAutocomplete T="string"
+                                     Value="@_categoryText"
+                                     ValueChanged="@((v) => _categoryText = v ?? string.Empty)"
+                                     Label="Category"
+                                     Variant="Variant.Outlined"
+                                     SearchFunc="SearchCategories"
+                                     Strict="false"
+                                     CoerceValue="true"
+                                     ResetValueOnEmptyText="false"
+                                     HelperText="Select existing or type a new one" />
                 </MudItem>
                 <MudItem xs="12">
-                    <MudSelect @bind-Value="_form.ProficiencyLevel" Label="Proficiency Level"
-                               Variant="Variant.Outlined" Clearable="true">
-                        <MudSelectItem Value="@((int?)1)">Beginner</MudSelectItem>
-                        <MudSelectItem Value="@((int?)2)">Intermediate</MudSelectItem>
-                        <MudSelectItem Value="@((int?)3)">Advanced</MudSelectItem>
-                        <MudSelectItem Value="@((int?)4)">Expert</MudSelectItem>
+                    <MudSelect T="int?" @bind-Value="_form.ProficiencyLevel"
+                               Label="Proficiency Level"
+                               Variant="Variant.Outlined"
+                               Clearable="true">
+                        <MudSelectItem T="int?" Value="@((int?)1)">Beginner</MudSelectItem>
+                        <MudSelectItem T="int?" Value="@((int?)2)">Intermediate</MudSelectItem>
+                        <MudSelectItem T="int?" Value="@((int?)3)">Advanced</MudSelectItem>
+                        <MudSelectItem T="int?" Value="@((int?)4)">Expert</MudSelectItem>
                     </MudSelect>
                 </MudItem>
             </MudGrid>
@@ -113,6 +116,7 @@ else
     private bool _editing;
     private bool _dialogVisible;
     private bool _saving;
+    private string _categoryText = string.Empty;
 
     private readonly DialogOptions _dialogOptions = new()
     {
@@ -130,6 +134,7 @@ else
     private void OpenAddDialog()
     {
         _form = new Skill();
+        _categoryText = string.Empty;
         _editing = false;
         _dialogVisible = true;
     }
@@ -144,6 +149,7 @@ else
             ProficiencyLevel = item.ProficiencyLevel,
             UserId = item.UserId
         };
+        _categoryText = item.Category ?? string.Empty;
         _editing = true;
         _dialogVisible = true;
     }
@@ -153,6 +159,8 @@ else
     private async Task SaveItem()
     {
         _saving = true;
+        _form.Category = string.IsNullOrWhiteSpace(_categoryText) ? null : _categoryText.Trim();
+
         try
         {
             if (_editing)
@@ -196,12 +204,34 @@ else
         }
     }
 
-    private static string ProficiencyLabel(int level) => level switch
+    private Task<IEnumerable<string>> SearchCategories(string? value, CancellationToken ct)
+    {
+        var existing = _items
+            .Select(s => s.Category)
+            .Where(c => !string.IsNullOrWhiteSpace(c))
+            .Distinct()
+            .OrderBy(c => c)
+            .Select(c => c!);
+
+        if (string.IsNullOrWhiteSpace(value))
+            return Task.FromResult(existing);
+
+        return Task.FromResult(
+            existing.Where(c => c.Contains(value, StringComparison.OrdinalIgnoreCase)));
+    }
+
+    private static string SkillChipText(Skill skill)
+    {
+        var label = ProficiencyLabel(skill.ProficiencyLevel);
+        return label is null ? skill.Name : $"{skill.Name} · {label}";
+    }
+
+    private static string? ProficiencyLabel(int? level) => level switch
     {
         1 => "Beginner",
         2 => "Intermediate",
         3 => "Advanced",
         4 => "Expert",
-        _ => level.ToString()
+        _ => null
     };
 }

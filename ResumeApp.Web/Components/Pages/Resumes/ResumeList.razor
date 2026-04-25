@@ -3,6 +3,8 @@
 @attribute [Authorize]
 @inject ApiClient Api
 @inject NavigationManager Nav
+@inject ISnackbar Snackbar
+@inject IDialogService Dialogs
 
 <PageTitle>My Resumes — Resume Builder</PageTitle>
 
@@ -14,7 +16,7 @@
     <MudButton Variant="Variant.Filled"
                Color="Color.Primary"
                StartIcon="@Icons.Material.Filled.AutoAwesome"
-               Href="/resumes/generate">
+               OnClick="@(() => Nav.NavigateTo("/resumes/generate"))">
         Generate New
     </MudButton>
 </div>
@@ -47,10 +49,7 @@ else
         @foreach (var resume in _resumes)
         {
             <MudItem xs="12" sm="6" lg="4">
-                <MudCard Elevation="2"
-                         Class="rounded-xl h-100"
-                         Style="cursor:pointer;"
-                         @onclick="@(() => Nav.NavigateTo("/resumes/" + resume.Id))">
+                <MudCard Elevation="2" Class="rounded-xl h-100">
                     <MudCardContent>
                         <div class="d-flex align-start justify-space-between mb-2">
                             <MudIcon Icon="@Icons.Material.Filled.Business" Color="Color.Primary" Class="mr-2 mt-1" />
@@ -71,11 +70,16 @@ else
                             </MudText>
                         }
                     </MudCardContent>
-                    <MudCardActions>
+                    <MudCardActions Class="d-flex justify-space-between">
                         <MudButton Variant="Variant.Text" Color="Color.Primary" Size="Size.Small"
-                                   EndIcon="@Icons.Material.Filled.ChevronRight">
+                                   EndIcon="@Icons.Material.Filled.ChevronRight"
+                                   OnClick="@(() => Nav.NavigateTo("/resumes/" + resume.Id))">
                             View Details
                         </MudButton>
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                       Color="Color.Error"
+                                       Size="Size.Small"
+                                       OnClick="@(() => ConfirmDelete(resume))" />
                     </MudCardActions>
                 </MudCard>
             </MudItem>
@@ -91,6 +95,28 @@ else
     {
         try { _resumes = await Api.GetResumesAsync(); }
         finally { _loading = false; }
+    }
+
+    private async Task ConfirmDelete(ResumeListItemDto resume)
+    {
+        var result = await Dialogs.ShowMessageBox(
+            "Delete Resume",
+            $"Delete resume for \"{resume.TargetCompany}\"? This cannot be undone.",
+            yesText: "Delete", cancelText: "Cancel");
+
+        if (result == true)
+        {
+            var ok = await Api.DeleteResumeAsync(resume.Id);
+            if (ok)
+            {
+                _resumes.Remove(resume);
+                Snackbar.Add("Resume deleted.", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add("Failed to delete resume.", Severity.Error);
+            }
+        }
     }
 
     private static Color GetStatusColor(Shared.Models.ResumeDraftStatus status) => status switch

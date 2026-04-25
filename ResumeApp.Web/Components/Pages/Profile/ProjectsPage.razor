@@ -46,27 +46,27 @@ else
         {
             <MudItem xs="12" md="6">
                 <MudCard Elevation="2" Class="rounded-xl h-100">
-                    <MudCardHeader>
-                        <CardHeaderContent>
-                            <MudText Typo="Typo.h6" Style="font-weight:600;">@item.Title</MudText>
-                            @if (!string.IsNullOrWhiteSpace(item.TechnologiesUsed))
-                            {
-                                <div class="d-flex flex-wrap gap-1 mt-1">
-                                    @foreach (var tech in item.TechnologiesUsed.Split(',', StringSplitOptions.RemoveEmptyEntries))
-                                    {
-                                        <MudChip T="string" Size="Size.Small" Color="Color.Dark">@tech.Trim()</MudChip>
-                                    }
-                                </div>
-                            }
-                        </CardHeaderContent>
-                        <CardHeaderActions>
-                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
-                                           OnClick="() => OpenEditDialog(item)" />
-                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
-                                           Color="Color.Error" OnClick="() => ConfirmDelete(item)" />
-                        </CardHeaderActions>
-                    </MudCardHeader>
                     <MudCardContent>
+                        <div class="d-flex align-start justify-space-between mb-1">
+                            <MudText Typo="Typo.h6" Style="font-weight:600; flex:1;" Class="mr-2">
+                                @item.Name
+                            </MudText>
+                            <div class="d-flex" style="flex-shrink:0;">
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                                               OnClick="() => OpenEditDialog(item)" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
+                                               Color="Color.Error" OnClick="() => ConfirmDelete(item)" />
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(item.Technologies))
+                        {
+                            <div class="d-flex flex-wrap gap-1 mb-2">
+                                @foreach (var tech in item.Technologies.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Dark">@tech.Trim()</MudChip>
+                                }
+                            </div>
+                        }
                         @if (!string.IsNullOrWhiteSpace(item.Description))
                         {
                             <MudText Typo="Typo.body2" Class="mb-2">@item.Description</MudText>
@@ -77,12 +77,12 @@ else
                             @(item.EndDate.HasValue ? item.EndDate.Value.ToString("MMM yyyy") : "")
                         </MudText>
                     </MudCardContent>
-                    @if (!string.IsNullOrWhiteSpace(item.ProjectUrl))
+                    @if (!string.IsNullOrWhiteSpace(item.Url))
                     {
                         <MudCardActions>
                             <MudButton Variant="Variant.Text" Color="Color.Primary" Size="Size.Small"
                                        StartIcon="@Icons.Material.Filled.OpenInNew"
-                                       Href="@item.ProjectUrl" Target="_blank">
+                                       Href="@item.Url" Target="_blank">
                                 View Project
                             </MudButton>
                         </MudCardActions>
@@ -103,8 +103,8 @@ else
             <DataAnnotationsValidator />
             <MudGrid Spacing="3">
                 <MudItem xs="12">
-                    <MudTextField @bind-Value="_form.Title" Label="Project Title *"
-                                  Variant="Variant.Outlined" For="@(() => _form.Title)" />
+                    <MudTextField @bind-Value="_form.Name" Label="Project Name *"
+                                  Variant="Variant.Outlined" For="@(() => _form.Name)" />
                 </MudItem>
                 <MudItem xs="12">
                     <MudTextField @bind-Value="_form.Description" Label="Description"
@@ -112,12 +112,12 @@ else
                                   HelperText="What did you build and why?" />
                 </MudItem>
                 <MudItem xs="12">
-                    <MudTextField @bind-Value="_form.TechnologiesUsed" Label="Technologies Used"
+                    <MudTextField @bind-Value="_form.Technologies" Label="Technologies Used"
                                   Variant="Variant.Outlined"
                                   HelperText="Comma-separated: C#, React, PostgreSQL" />
                 </MudItem>
                 <MudItem xs="12">
-                    <MudTextField @bind-Value="_form.ProjectUrl" Label="Project URL"
+                    <MudTextField @bind-Value="_form.Url" Label="Project URL"
                                   Variant="Variant.Outlined"
                                   InputType="InputType.Url"
                                   HelperText="GitHub link, live demo, etc." />
@@ -145,8 +145,8 @@ else
 
 @code {
     private bool _loading = true;
-    private List<Project> _items = [];
-    private Project _form = new();
+    private List<ResumeProject> _items = [];
+    private ResumeProject _form = new();
     private bool _editing;
     private bool _dialogVisible;
     private bool _saving;
@@ -168,28 +168,28 @@ else
 
     private void OpenAddDialog()
     {
-        _form = new Project();
+        _form = new ResumeProject();
         _startDate = null;
         _endDate = null;
         _editing = false;
         _dialogVisible = true;
     }
 
-    private void OpenEditDialog(Project item)
+    private void OpenEditDialog(ResumeProject item)
     {
-        _form = new Project
+        _form = new ResumeProject
         {
             Id = item.Id,
-            Title = item.Title,
+            UserId = item.UserId,
+            Name = item.Name,
             Description = item.Description,
-            TechnologiesUsed = item.TechnologiesUsed,
-            ProjectUrl = item.ProjectUrl,
+            Technologies = item.Technologies,
+            Url = item.Url,
             StartDate = item.StartDate,
-            EndDate = item.EndDate,
-            UserId = item.UserId
+            EndDate = item.EndDate
         };
-        _startDate = item.StartDate;
-        _endDate = item.EndDate;
+        _startDate = item.StartDate.HasValue ? item.StartDate.Value.ToDateTime(TimeOnly.MinValue) : null;
+        _endDate = item.EndDate.HasValue ? item.EndDate.Value.ToDateTime(TimeOnly.MinValue) : null;
         _editing = true;
         _dialogVisible = true;
     }
@@ -199,8 +199,8 @@ else
     private async Task SaveItem()
     {
         _saving = true;
-        _form.StartDate = _startDate;
-        _form.EndDate = _endDate;
+        _form.StartDate = _startDate.HasValue ? DateOnly.FromDateTime(_startDate.Value) : null;
+        _form.EndDate = _endDate.HasValue ? DateOnly.FromDateTime(_endDate.Value) : null;
 
         try
         {
@@ -231,10 +231,10 @@ else
         finally { _saving = false; }
     }
 
-    private async Task ConfirmDelete(Project item)
+    private async Task ConfirmDelete(ResumeProject item)
     {
         var result = await Dialogs.ShowMessageBox(
-            "Delete Project", $"Remove \"{item.Title}\"?",
+            "Delete Project", $"Remove \"{item.Name}\"?",
             yesText: "Delete", cancelText: "Cancel");
 
         if (result == true)

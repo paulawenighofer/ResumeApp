@@ -351,6 +351,22 @@ public class ResumeDraftService : IResumeDraftService
         return pdf;
     }
 
+    public async Task<bool> DeleteDraftAsync(string userId, int id, CancellationToken cancellationToken = default)
+    {
+        var resume = await _db.Resumes.FirstOrDefaultAsync(x => x.UserId == userId && x.Id == id, cancellationToken);
+        if (resume is null) return false;
+
+        if (!string.IsNullOrWhiteSpace(resume.PdfBlobPath))
+        {
+            await _blobStorageService.DeleteResumePdfAsync(resume.PdfBlobPath, cancellationToken);
+        }
+
+        _db.Resumes.Remove(resume);
+        await _db.SaveChangesAsync(cancellationToken);
+        _logger.LogInformation("Resume {ResumeId} deleted for user {UserId}", id, userId);
+        return true;
+    }
+
     private async Task<bool> NormalizeResumeStateAsync(Resume resume, CancellationToken cancellationToken)
     {
         var changed = false;

@@ -31,6 +31,9 @@ else
         <MudChip T="string" Color="@GetStatusColor(_draft.Status)" Size="Size.Medium" Label="true">
             @FormatStatus(_draft.Status)
         </MudChip>
+        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                       Color="Color.Error"
+                       OnClick="ConfirmDelete" />
     </div>
 
     <!-- Status-based action bar -->
@@ -213,6 +216,27 @@ else
     private void DownloadPdf()
     {
         Nav.NavigateTo($"/proxy/resumes/{Id}/pdf", forceLoad: true);
+    }
+
+    private async Task ConfirmDelete()
+    {
+        var result = await Dialogs.ShowMessageBox(
+            "Delete Resume",
+            $"Delete this resume for \"{_draft!.TargetCompany}\"? This cannot be undone.",
+            yesText: "Delete", cancelText: "Cancel");
+
+        if (result == true)
+        {
+            var ok = await Api.DeleteResumeAsync(Id);
+            if (ok)
+            {
+                Nav.NavigateTo("/resumes");
+            }
+            else
+            {
+                Snackbar.Add("Failed to delete resume.", Severity.Error);
+            }
+        }
     }
 
     private static Color GetStatusColor(Shared.Models.ResumeDraftStatus status) => status switch
