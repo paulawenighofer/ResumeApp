@@ -1,0 +1,168 @@
+@page "/resumes/generate"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@inject ApiClient Api
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+
+<PageTitle>Generate Resume — Resume Builder</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-1" Style="font-weight:700;">Generate Resume</MudText>
+<MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-6">
+    Paste the job description and let AI tailor your resume.
+</MudText>
+
+<MudGrid Spacing="3">
+    <MudItem xs="12" md="8">
+        <MudCard Elevation="2" Class="rounded-xl">
+            <MudCardContent>
+                <EditForm Model="_form" OnValidSubmit="HandleGenerate">
+                    <DataAnnotationsValidator />
+
+                    <MudGrid Spacing="3">
+                        <MudItem xs="12" sm="6">
+                            <MudTextField @bind-Value="_form.JobTitle"
+                                          Label="Job Title *"
+                                          Variant="Variant.Outlined"
+                                          HelperText="e.g., Senior Software Engineer"
+                                          For="@(() => _form.JobTitle)" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField @bind-Value="_form.TargetCompany"
+                                          Label="Company *"
+                                          Variant="Variant.Outlined"
+                                          HelperText="e.g., Acme Corp"
+                                          For="@(() => _form.TargetCompany)" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudSelect @bind-Value="_form.ExperienceLevel"
+                                       Label="Experience Level"
+                                       Variant="Variant.Outlined">
+                                <MudSelectItem Value="@("Entry-level")">Entry-level</MudSelectItem>
+                                <MudSelectItem Value="@("Mid-level")">Mid-level</MudSelectItem>
+                                <MudSelectItem Value="@("Senior")">Senior</MudSelectItem>
+                                <MudSelectItem Value="@("Lead / Manager")">Lead / Manager</MudSelectItem>
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudSelect @bind-Value="_form.ResumeFormat"
+                                       Label="Resume Format"
+                                       Variant="Variant.Outlined">
+                                <MudSelectItem Value="@("Chronological")">Chronological</MudSelectItem>
+                                <MudSelectItem Value="@("Functional")">Functional</MudSelectItem>
+                                <MudSelectItem Value="@("Combination")">Combination</MudSelectItem>
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12">
+                            <MudTextField @bind-Value="_form.JobDescription"
+                                          Label="Job Description"
+                                          Variant="Variant.Outlined"
+                                          Lines="8"
+                                          HelperText="Paste the full job description for best results"
+                                          For="@(() => _form.JobDescription)" />
+                        </MudItem>
+                        <MudItem xs="12">
+                            <MudTextField @bind-Value="_form.PersonalSummary"
+                                          Label="Personal Summary (optional)"
+                                          Variant="Variant.Outlined"
+                                          Lines="3"
+                                          HelperText="Override the AI summary with your own wording"
+                                          For="@(() => _form.PersonalSummary)" />
+                        </MudItem>
+                    </MudGrid>
+
+                    <MudDivider Class="my-4" />
+
+                    <MudText Typo="Typo.subtitle2" Class="mb-3">Include sections</MudText>
+                    <div class="d-flex flex-wrap gap-3 mb-4">
+                        <MudCheckBox @bind-Value="_form.IncludeEducation" Label="Education" Color="Color.Primary" />
+                        <MudCheckBox @bind-Value="_form.IncludeExperience" Label="Experience" Color="Color.Primary" />
+                        <MudCheckBox @bind-Value="_form.IncludeSkills" Label="Skills" Color="Color.Primary" />
+                        <MudCheckBox @bind-Value="_form.IncludeProjects" Label="Projects" Color="Color.Primary" />
+                        <MudCheckBox @bind-Value="_form.IncludeCertifications" Label="Certifications" Color="Color.Primary" />
+                    </div>
+
+                    <div class="d-flex gap-3">
+                        <MudButton ButtonType="ButtonType.Submit"
+                                   Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.AutoAwesome"
+                                   Disabled="_loading"
+                                   Size="Size.Large">
+                            @if (_loading)
+                            {
+                                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                                <span>Generating…</span>
+                            }
+                            else
+                            {
+                                <span>Generate Resume</span>
+                            }
+                        </MudButton>
+                        <MudButton Variant="Variant.Outlined" Href="/resumes">Cancel</MudButton>
+                    </div>
+                </EditForm>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+
+    <MudItem xs="12" md="4">
+        <MudCard Elevation="2" Class="rounded-xl">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6" Style="font-weight:600;">
+                        <MudIcon Icon="@Icons.Material.Filled.Lightbulb" Class="mr-1" Color="Color.Warning" Size="Size.Small" />
+                        Tips
+                    </MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudList T="string" Dense="true">
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.CheckCircle" IconColor="Color.Success">
+                        Paste the complete job posting for best matching
+                    </MudListItem>
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.CheckCircle" IconColor="Color.Success">
+                        Fill in your profile sections first for richer output
+                    </MudListItem>
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.CheckCircle" IconColor="Color.Success">
+                        Generation may take 30–60 seconds
+                    </MudListItem>
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.CheckCircle" IconColor="Color.Success">
+                        Review and edit the draft before approving
+                    </MudListItem>
+                </MudList>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private readonly CreateResumeDraftRequest _form = new();
+    private bool _loading;
+
+    private async Task HandleGenerate()
+    {
+        _loading = true;
+        try
+        {
+            var result = await Api.CreateDraftAsync(_form);
+            if (result is not null)
+            {
+                Snackbar.Add("Resume generation started! Check back shortly.", Severity.Success);
+                Nav.NavigateTo($"/resumes/{result.Id}");
+            }
+            else
+            {
+                Snackbar.Add("Failed to start generation. Please try again.", Severity.Error);
+            }
+        }
+        catch
+        {
+            Snackbar.Add("Unable to connect. Please try again.", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}

@@ -74,6 +74,15 @@ namespace Shared.DTO
         public string Email { get; set; } = string.Empty;
     }
 
+    public class UpdateProfileDto
+    {
+        [Required, MaxLength(100)]
+        public string FirstName { get; set; } = string.Empty;
+
+        [Required, MaxLength(100)]
+        public string LastName { get; set; } = string.Empty;
+    }
+
     // Sent when submitting the reset code + new password
     public class ResetPasswordDto
     {

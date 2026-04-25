@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="API/API.csproj" />
+  <Project Path="ResumeApp.Web/ResumeApp.Web.csproj" />
   <Project Path="Maui Tests/Maui Tests.csproj">
     <Build Solution="Debug|*" Project="false" />
   </Project>

@@ -1,0 +1,250 @@
+@page "/profile/certifications"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@inject ApiClient Api
+@inject ISnackbar Snackbar
+@inject IDialogService Dialogs
+
+<PageTitle>Certifications — Resume Builder</PageTitle>
+
+<div class="d-flex align-center justify-space-between mb-6">
+    <div>
+        <MudText Typo="Typo.h4" Style="font-weight:700;">Certifications</MudText>
+        <MudText Typo="Typo.body1" Color="Color.Secondary">Professional certifications and credentials</MudText>
+    </div>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary"
+               StartIcon="@Icons.Material.Filled.Add"
+               OnClick="OpenAddDialog">
+        Add Certification
+    </MudButton>
+</div>
+
+@if (_loading)
+{
+    <div class="d-flex justify-center mt-8">
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    </div>
+}
+else if (_items.Count == 0)
+{
+    <MudCard Elevation="2" Class="rounded-xl">
+        <MudCardContent Class="text-center pa-12">
+            <MudIcon Icon="@Icons.Material.Filled.WorkspacePremium" Size="Size.Large" Color="Color.Primary" Class="mb-4" Style="font-size:4rem;" />
+            <MudText Typo="Typo.h6" GutterBottom="true">No certifications added</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">Add your professional certifications.</MudText>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Add" OnClick="OpenAddDialog">
+                Add Certification
+            </MudButton>
+        </MudCardContent>
+    </MudCard>
+}
+else
+{
+    <MudGrid Spacing="3">
+        @foreach (var item in _items)
+        {
+            <MudItem xs="12" md="6">
+                <MudCard Elevation="2" Class="rounded-xl">
+                    <MudCardHeader>
+                        <CardHeaderAvatar>
+                            <MudAvatar Color="Color.Secondary">
+                                <MudIcon Icon="@Icons.Material.Filled.WorkspacePremium" />
+                            </MudAvatar>
+                        </CardHeaderAvatar>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6" Style="font-weight:600;">@item.Name</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">@item.IssuingOrganization</MudText>
+                        </CardHeaderContent>
+                        <CardHeaderActions>
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                                           OnClick="() => OpenEditDialog(item)" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
+                                           Color="Color.Error" OnClick="() => ConfirmDelete(item)" />
+                        </CardHeaderActions>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            Issued @(item.IssueDate.HasValue ? item.IssueDate.Value.ToString("MMM yyyy") : "—")
+                            @if (item.ExpirationDate.HasValue)
+                            {
+                                <span> · Expires @item.ExpirationDate.Value.ToString("MMM yyyy")</span>
+                            }
+                            else
+                            {
+                                <span> · No expiry</span>
+                            }
+                        </MudText>
+                        @if (!string.IsNullOrWhiteSpace(item.CredentialId))
+                        {
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">ID: @item.CredentialId</MudText>
+                        }
+                    </MudCardContent>
+                    @if (!string.IsNullOrWhiteSpace(item.CredentialUrl))
+                    {
+                        <MudCardActions>
+                            <MudButton Variant="Variant.Text" Color="Color.Primary" Size="Size.Small"
+                                       StartIcon="@Icons.Material.Filled.OpenInNew"
+                                       Href="@item.CredentialUrl" Target="_blank">
+                                Verify Credential
+                            </MudButton>
+                        </MudCardActions>
+                    }
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+}
+
+<!-- Add/Edit Dialog -->
+<MudDialog @bind-Visible="_dialogVisible" Options="_dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">@(_editing ? "Edit Certification" : "Add Certification")</MudText>
+    </TitleContent>
+    <DialogContent>
+        <EditForm Model="_form" OnValidSubmit="SaveItem">
+            <DataAnnotationsValidator />
+            <MudGrid Spacing="3">
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_form.Name" Label="Certification Name *"
+                                  Variant="Variant.Outlined"
+                                  HelperText="e.g., AWS Certified Cloud Practitioner"
+                                  For="@(() => _form.Name)" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_form.IssuingOrganization" Label="Issuing Organization *"
+                                  Variant="Variant.Outlined"
+                                  For="@(() => _form.IssuingOrganization)" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudDatePicker @bind-Date="_issueDate" Label="Issue Date"
+                                   Variant="Variant.Outlined" DateFormat="MMM yyyy" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudDatePicker @bind-Date="_expirationDate" Label="Expiration Date"
+                                   Variant="Variant.Outlined" DateFormat="MMM yyyy"
+                                   HelperText="Leave empty if it doesn't expire" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_form.CredentialId" Label="Credential ID"
+                                  Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_form.CredentialUrl" Label="Credential URL"
+                                  Variant="Variant.Outlined" InputType="InputType.Url"
+                                  HelperText="Verification link" />
+                </MudItem>
+            </MudGrid>
+            <div class="d-flex justify-end gap-2 mt-4">
+                <MudButton OnClick="CloseDialog">Cancel</MudButton>
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled"
+                           Color="Color.Primary" Disabled="_saving">
+                    @(_saving ? "Saving…" : "Save")
+                </MudButton>
+            </div>
+        </EditForm>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    private bool _loading = true;
+    private List<Certification> _items = [];
+    private Certification _form = new();
+    private bool _editing;
+    private bool _dialogVisible;
+    private bool _saving;
+    private DateTime? _issueDate;
+    private DateTime? _expirationDate;
+
+    private readonly DialogOptions _dialogOptions = new()
+    {
+        MaxWidth = MaxWidth.Medium,
+        FullWidth = true,
+        CloseOnEscapeKey = true
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        try { _items = await Api.GetCertificationsAsync(); }
+        finally { _loading = false; }
+    }
+
+    private void OpenAddDialog()
+    {
+        _form = new Certification();
+        _issueDate = null;
+        _expirationDate = null;
+        _editing = false;
+        _dialogVisible = true;
+    }
+
+    private void OpenEditDialog(Certification item)
+    {
+        _form = new Certification
+        {
+            Id = item.Id,
+            Name = item.Name,
+            IssuingOrganization = item.IssuingOrganization,
+            IssueDate = item.IssueDate,
+            ExpirationDate = item.ExpirationDate,
+            CredentialId = item.CredentialId,
+            CredentialUrl = item.CredentialUrl,
+            UserId = item.UserId
+        };
+        _issueDate = item.IssueDate;
+        _expirationDate = item.ExpirationDate;
+        _editing = true;
+        _dialogVisible = true;
+    }
+
+    private void CloseDialog() => _dialogVisible = false;
+
+    private async Task SaveItem()
+    {
+        _saving = true;
+        _form.IssueDate = _issueDate;
+        _form.ExpirationDate = _expirationDate;
+
+        try
+        {
+            if (_editing)
+            {
+                var ok = await Api.UpdateCertificationAsync(_form.Id, _form);
+                if (ok)
+                {
+                    var idx = _items.FindIndex(x => x.Id == _form.Id);
+                    if (idx >= 0) _items[idx] = _form;
+                    Snackbar.Add("Certification updated!", Severity.Success);
+                    CloseDialog();
+                }
+                else Snackbar.Add("Update failed.", Severity.Error);
+            }
+            else
+            {
+                var created = await Api.CreateCertificationAsync(_form);
+                if (created is not null)
+                {
+                    _items.Insert(0, created);
+                    Snackbar.Add("Certification added!", Severity.Success);
+                    CloseDialog();
+                }
+                else Snackbar.Add("Create failed.", Severity.Error);
+            }
+        }
+        finally { _saving = false; }
+    }
+
+    private async Task ConfirmDelete(Certification item)
+    {
+        var result = await Dialogs.ShowMessageBox(
+            "Delete Certification", $"Remove \"{item.Name}\"?",
+            yesText: "Delete", cancelText: "Cancel");
+
+        if (result == true)
+        {
+            var ok = await Api.DeleteCertificationAsync(item.Id);
+            if (ok) { _items.Remove(item); Snackbar.Add("Deleted.", Severity.Success); }
+            else Snackbar.Add("Delete failed.", Severity.Error);
+        }
+    }
+}

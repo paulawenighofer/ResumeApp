@@ -1,0 +1,20 @@
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /source
+
+COPY ResumeApp.Web/ResumeApp.Web.csproj ResumeApp.Web/
+COPY Shared/Shared.csproj Shared/
+RUN dotnet restore ResumeApp.Web/ResumeApp.Web.csproj
+
+COPY . .
+WORKDIR /source/ResumeApp.Web
+RUN dotnet publish -c Release -o /app --no-restore
+
+FROM mcr.microsoft.com/dotnet/aspnet:9.0
+WORKDIR /app
+
+ENV ASPNETCORE_URLS=http://+:5100
+ENV DOTNET_USE_POLLING_FILE_WATCHER=1
+EXPOSE 5100
+
+COPY --from=build /app ./
+ENTRYPOINT ["dotnet", "ResumeApp.Web.dll"]

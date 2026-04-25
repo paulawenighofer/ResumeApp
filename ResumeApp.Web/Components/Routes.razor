@@ -1,0 +1,23 @@
+<Router AppAssembly="typeof(App).Assembly">
+    <Found Context="routeData">
+        <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(MainLayout)">
+            <NotAuthorized>
+                <RedirectToLogin />
+            </NotAuthorized>
+            <Authorizing>
+                <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
+            </Authorizing>
+        </AuthorizeRouteView>
+        <FocusOnNavigate RouteData="routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <PageTitle>Not Found</PageTitle>
+        <LayoutView Layout="typeof(MainLayout)">
+            <MudContainer Class="mt-16 text-center">
+                <MudText Typo="Typo.h4" GutterBottom="true">Page Not Found</MudText>
+                <MudText Class="mb-4">The page you requested does not exist.</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/dashboard">Go Home</MudButton>
+            </MudContainer>
+        </LayoutView>
+    </NotFound>
+</Router>

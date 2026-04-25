@@ -11,6 +11,7 @@ public interface IResumeDraftService
     Task<ApproveDraftResponse?> ApproveDraftAsync(string userId, int id, ApproveDraftRequest request, CancellationToken cancellationToken = default);
     Task<ResumeDetailDto?> GeneratePdfAsync(string userId, int id, CancellationToken cancellationToken = default);
     Task<ResumePdfDownloadResult?> GetPdfAsync(string userId, int id, CancellationToken cancellationToken = default);
+    Task<bool> DeleteDraftAsync(string userId, int id, CancellationToken cancellationToken = default);
 }
 
 public sealed record ResumePdfDownloadResult(Stream Content, string FileName, string ContentType);

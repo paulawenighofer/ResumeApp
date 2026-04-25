@@ -120,6 +120,19 @@ public class ResumesController : ControllerBase
         }
     }
 
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            return Unauthorized();
+        }
+
+        var deleted = await _resumeDraftService.DeleteDraftAsync(userId, id, cancellationToken);
+        return deleted ? NoContent() : NotFound();
+    }
+
     [HttpGet("{id:int}/pdf")]
     public async Task<IActionResult> GetPdf(int id, CancellationToken cancellationToken)
     {

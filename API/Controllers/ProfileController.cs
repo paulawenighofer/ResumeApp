@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Shared.DTO;
 using Shared.Models;
 using System.Diagnostics;
 using System.Security.Claims;
@@ -47,6 +48,22 @@ public class ProfileController : ControllerBase
         _metrics = metrics;
         _blobStorageService = blobStorageService;
         _logger = logger;
+    }
+
+    [HttpPut("info")]
+    public async Task<IActionResult> UpdateInfo([FromBody] UpdateProfileDto dto)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrWhiteSpace(userId)) return Unauthorized();
+
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user is null) return Unauthorized();
+
+        user.FirstName = dto.FirstName.Trim();
+        user.LastName = dto.LastName.Trim();
+
+        var result = await _userManager.UpdateAsync(user);
+        return result.Succeeded ? Ok() : BadRequest(new { message = "Update failed." });
     }
 
     [HttpPost("image")]
