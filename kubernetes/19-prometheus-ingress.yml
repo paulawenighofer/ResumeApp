@@ -3,7 +3,15 @@ kind: Ingress
 metadata:
   name: prometheus-ingress
   namespace: resumeapp
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
 spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - prometheus.resume-app-pb.duckdns.org
+      secretName: resumeapp-tls
   rules:
     - host: prometheus.resume-app-pb.duckdns.org
       http:
