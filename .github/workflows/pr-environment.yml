@@ -19,6 +19,7 @@ jobs:
       PR_HOSTNAME: pr-${{ github.event.pull_request.number }}.resume-app-pb.duckdns.org
       PR_GRAFANA_HOST: pr-${{ github.event.pull_request.number }}-grafana.resume-app-pb.duckdns.org
       PR_PROMETHEUS_HOST: pr-${{ github.event.pull_request.number }}-prometheus.resume-app-pb.duckdns.org
+      PR_WEB_HOST: pr-${{ github.event.pull_request.number }}-web.resume-app-pb.duckdns.org
       IMAGE_TAG: pr-${{ github.event.pull_request.number }}
       KUBECONFIG: /home/bishwas/.kube/config
       INTEGRATION_TEST_NAMESPACE: resumeapp-it-pr-${{ github.event.pull_request.number }}-${{ github.run_id }}
@@ -70,6 +71,11 @@ jobs:
         run: |
           docker build -t paulawenighofer/resumeapp:$IMAGE_TAG .
           docker push paulawenighofer/resumeapp:$IMAGE_TAG
+
+      - name: Build and push PR Web Docker image
+        run: |
+          docker build -f Dockerfile.web -t paulawenighofer/resumeapp-web:$IMAGE_TAG .
+          docker push paulawenighofer/resumeapp-web:$IMAGE_TAG
 
       - name: Apply namespace
         run: |
@@ -138,6 +144,11 @@ jobs:
           kubectl rollout restart deployment/resumeapp-api -n ${PR_NAMESPACE}
           kubectl rollout status deployment/resumeapp-api -n ${PR_NAMESPACE} --timeout=300s
 
+      - name: Restart Web to pull new image
+        run: |
+          kubectl rollout restart deployment/resumeapp-web -n ${PR_NAMESPACE}
+          kubectl rollout status deployment/resumeapp-web -n ${PR_NAMESPACE} --timeout=300s
+
       - name: Debug rollout on failure
         if: failure()
         run: |
@@ -156,6 +167,7 @@ jobs:
           echo "  PR Environment URLs"
           echo "=========================================="
           echo "  API:        https://${PR_HOSTNAME}"
+          echo "  Web:        https://${PR_WEB_HOST}"
           echo "  Grafana:    https://${PR_GRAFANA_HOST}"
           echo "  Prometheus: https://${PR_PROMETHEUS_HOST}"
           echo "  Namespace:  ${PR_NAMESPACE}"
@@ -173,6 +185,7 @@ jobs:
           | Service | URL |
           |---|---|
           | API | https://${PR_HOSTNAME} |
+          | Web | https://${PR_WEB_HOST} |
           | Grafana | https://${PR_GRAFANA_HOST} |
           | Prometheus | https://${PR_PROMETHEUS_HOST} |
 
@@ -236,6 +249,17 @@ jobs:
             -H "Authorization: JWT ${TOKEN}" \
             "https://hub.docker.com/v2/repositories/paulawenighofer/resumeapp/tags/${IMAGE_TAG}/"
           echo "Deleted Docker Hub image tag ${IMAGE_TAG}"
+
+      - name: Delete Web Docker Hub image tag
+        run: |
+          TOKEN=$(curl -s -X POST \
+            -H "Content-Type: application/json" \
+            -d "{\"username\":\"${{ secrets.DOCKER_USERNAME }}\",\"password\":\"${{ secrets.DOCKER_TOKEN }}\"}" \
+            https://hub.docker.com/v2/users/login/ | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
+          curl -s -X DELETE \
+            -H "Authorization: JWT ${TOKEN}" \
+            "https://hub.docker.com/v2/repositories/paulawenighofer/resumeapp-web/tags/${IMAGE_TAG}/"
+          echo "Deleted Docker Hub web image tag ${IMAGE_TAG}"
 
       - name: Post cleanup comment
         env:

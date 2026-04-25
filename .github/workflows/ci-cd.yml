@@ -168,7 +168,12 @@ jobs:
         run: |
             docker build -t paulawenighofer/resumeapp:$GITHUB_RUN_NUMBER .
             docker push paulawenighofer/resumeapp:$GITHUB_RUN_NUMBER
- 
+
+      - name: Build and Push Web to Docker Hub
+        run: |
+            docker build -f Dockerfile.web -t paulawenighofer/resumeapp-web:$GITHUB_RUN_NUMBER .
+            docker push paulawenighofer/resumeapp-web:$GITHUB_RUN_NUMBER
+
       - name: Apply Namespace
         env:
             KUBECONFIG: /home/bishwas/.kube/config
