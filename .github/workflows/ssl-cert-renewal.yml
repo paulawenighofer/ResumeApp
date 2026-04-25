@@ -8,7 +8,7 @@ on:
 env:
   KUBECONFIG: ${{ vars.STAGING_RUNNER_KUBECONFIG }}
   CERT_DIR: ${{ vars.STAGING_RUNNER_CERT_DIR }}
-  CERT_LIVE: ${{ vars.STAGING_RUNNER_CERT_DIR }}/letsencrypt/live/resume-app-pb.duckdns.org
+  CERT_LIVE: ${{ vars.STAGING_RUNNER_CERT_DIR }}/letsencrypt/live/${{ vars.STAGING_APP_DOMAIN }}
   CERT_WORK: ${{ vars.STAGING_RUNNER_CERT_DIR }}/work
 
 jobs:
@@ -38,8 +38,8 @@ jobs:
               --dns-duckdns-token "${{ secrets.DUCKDNS_TOKEN }}" \
               --dns-duckdns-propagation-seconds 300 \
               --keep-until-expiring \
-              -d "resume-app-pb.duckdns.org" \
-              -d "*.resume-app-pb.duckdns.org"
+              -d "${{ vars.STAGING_APP_DOMAIN }}" \
+              -d "*.${{ vars.STAGING_APP_DOMAIN }}"
 
       - name: Update TLS secret in main namespace
         run: |
