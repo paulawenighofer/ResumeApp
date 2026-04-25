@@ -1,0 +1,52 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: integration-test-runner
+  namespace: ${INTEGRATION_TEST_NAMESPACE}
+  labels:
+    app: integration-tests
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        app: integration-tests
+        role: test-runner
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: xunit-tests
+          image: mcr.microsoft.com/dotnet/sdk:9.0
+          imagePullPolicy: IfNotPresent
+          workingDir: /workspace
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Downloading repository source..."
+              wget -qO- "https://codeload.github.com/${GITHUB_REPOSITORY}/tar.gz/${GITHUB_SHA}" | tar -xz --strip-components=1 -C /workspace
+              echo "Source downloaded"
+              export INTEGRATION_TEST_DB_CONNECTION="Host=resumeapp-it-postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};Pooling=false;Include Error Detail=true"
+              dotnet restore IntegrationTests/IntegrationTests.csproj && dotnet test IntegrationTests/IntegrationTests.csproj --no-restore
+          env:
+            - name: GITHUB_REPOSITORY
+              value: ${GITHUB_REPOSITORY}
+            - name: GITHUB_SHA
+              value: ${GITHUB_SHA}
+          envFrom:
+            - secretRef:
+                name: resumeapp-it-postgres-secrets
+          volumeMounts:
+            - name: workspace
+              mountPath: /workspace
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+      volumes:
+        - name: workspace
+          emptyDir: {}

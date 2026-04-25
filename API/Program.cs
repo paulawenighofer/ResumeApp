@@ -243,48 +243,52 @@ var resumeGenerationWindowHours = builder.Configuration.GetValue<int?>("RateLimi
 
 var resumePdfGenerationPermitLimit = builder.Configuration.GetValue<int?>("RateLimiting:ResumePdfGeneration:PermitLimit") ?? 10;
 var resumePdfGenerationWindowHours = builder.Configuration.GetValue<int?>("RateLimiting:ResumePdfGeneration:WindowHours") ?? 1;
+var rateLimitingEnabled = builder.Configuration.GetValue<bool?>("RateLimiting:Enabled") ?? true;
 
-builder.Services.AddRateLimiter(options =>
+if (rateLimitingEnabled)
 {
-    options.AddSlidingWindowLimiter("otp-verify", opt =>
+    builder.Services.AddRateLimiter(options =>
     {
-        opt.PermitLimit = otpVerifyPermitLimit;
-        opt.Window = TimeSpan.FromMinutes(otpVerifyWindowMinutes);
-        opt.SegmentsPerWindow = otpVerifySegmentsPerWindow;
-        opt.QueueLimit = 0;
-    });
+        options.AddSlidingWindowLimiter("otp-verify", opt =>
+        {
+            opt.PermitLimit = otpVerifyPermitLimit;
+            opt.Window = TimeSpan.FromMinutes(otpVerifyWindowMinutes);
+            opt.SegmentsPerWindow = otpVerifySegmentsPerWindow;
+            opt.QueueLimit = 0;
+        });
 
-    options.AddSlidingWindowLimiter("otp-send", opt =>
-    {
-        opt.PermitLimit = otpSendPermitLimit;
-        opt.Window = TimeSpan.FromMinutes(otpSendWindowMinutes);
-        opt.SegmentsPerWindow = otpSendSegmentsPerWindow;
-        opt.QueueLimit = 0;
-    });
+        options.AddSlidingWindowLimiter("otp-send", opt =>
+        {
+            opt.PermitLimit = otpSendPermitLimit;
+            opt.Window = TimeSpan.FromMinutes(otpSendWindowMinutes);
+            opt.SegmentsPerWindow = otpSendSegmentsPerWindow;
+            opt.QueueLimit = 0;
+        });
 
-    options.AddFixedWindowLimiter("resume-generation", opt =>
-    {
-        opt.PermitLimit = resumeGenerationPermitLimit;
-        opt.Window = TimeSpan.FromHours(resumeGenerationWindowHours);
-        opt.QueueLimit = 0;
-        opt.AutoReplenishment = true;
-    });
+        options.AddFixedWindowLimiter("resume-generation", opt =>
+        {
+            opt.PermitLimit = resumeGenerationPermitLimit;
+            opt.Window = TimeSpan.FromHours(resumeGenerationWindowHours);
+            opt.QueueLimit = 0;
+            opt.AutoReplenishment = true;
+        });
 
-    options.AddFixedWindowLimiter("resume-pdf-generation", opt =>
-    {
-        opt.PermitLimit = resumePdfGenerationPermitLimit;
-        opt.Window = TimeSpan.FromHours(resumePdfGenerationWindowHours);
-        opt.QueueLimit = 0;
-        opt.AutoReplenishment = true;
-    });
+        options.AddFixedWindowLimiter("resume-pdf-generation", opt =>
+        {
+            opt.PermitLimit = resumePdfGenerationPermitLimit;
+            opt.Window = TimeSpan.FromHours(resumePdfGenerationWindowHours);
+            opt.QueueLimit = 0;
+            opt.AutoReplenishment = true;
+        });
 
-    options.OnRejected = async (ctx, token) =>
-    {
-        ctx.HttpContext.Response.StatusCode = 429;
-        await ctx.HttpContext.Response.WriteAsJsonAsync(
-            new { message = "Too many attempts. Please try again later." }, token);
-    };
-});
+        options.OnRejected = async (ctx, token) =>
+        {
+            ctx.HttpContext.Response.StatusCode = 429;
+            await ctx.HttpContext.Response.WriteAsJsonAsync(
+                new { message = "Too many attempts. Please try again later." }, token);
+        };
+    });
+}
 
 builder.Services.AddControllers();
 builder.Services.AddHealthChecks();
@@ -374,7 +378,10 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseAuthorization();
-app.UseRateLimiter();
+if (rateLimitingEnabled)
+{
+    app.UseRateLimiter();
+}
 
 app.MapControllers();
 

@@ -9,22 +9,28 @@ using Test.Integration.Fixtures;
 
 namespace Test.Integration;
 
-public class AuthForgotResetTests : IDisposable
+public class AuthForgotResetTests : IAsyncLifetime
 {
     private readonly ApiFactory _factory;
-    private readonly HttpClient _client;
+    private HttpClient _client = null!;
 
     public AuthForgotResetTests()
     {
-        _factory = new ApiFactory();
+        _factory = new ApiFactory(useProductionRateLimits: false);
+    }
+
+    public async Task InitializeAsync()
+    {
+        await _factory.ResetDatabaseAsync();
         _client = _factory.CreateClient();
         _factory.EmailService.Reset();
     }
 
-    public void Dispose()
+    public Task DisposeAsync()
     {
         _client.Dispose();
         _factory.Dispose();
+        return Task.CompletedTask;
     }
 
     // ─── forgot-password ────────────────────────────────────────────────────

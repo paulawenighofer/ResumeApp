@@ -21,6 +21,12 @@ jobs:
       PR_PROMETHEUS_HOST: pr-${{ github.event.pull_request.number }}-prometheus.resume-app-pb.duckdns.org
       IMAGE_TAG: pr-${{ github.event.pull_request.number }}
       KUBECONFIG: /home/bishwas/.kube/config
+      INTEGRATION_TEST_NAMESPACE: resumeapp-it-pr-${{ github.event.pull_request.number }}-${{ github.run_id }}
+      GITHUB_REPOSITORY: ${{ github.repository }}
+      GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpassword_change_in_ci
+      POSTGRES_DB: integrationtestdb
 
     steps:
       - name: Check out repository code
@@ -35,12 +41,30 @@ jobs:
       - name: Linting
         run: |
           nix-shell -p dotnetCorePackages.sdk_9_0 \
-           --run "dotnet restore API/API.csproj && dotnet restore Test/Test.csproj && dotnet format API/API.csproj --verify-no-changes --no-restore && dotnet format Test/Test.csproj --verify-no-changes --no-restore"
+           --run "dotnet restore API/API.csproj && dotnet restore IntegrationTests/IntegrationTests.csproj && dotnet format API/API.csproj --verify-no-changes --no-restore && dotnet format IntegrationTests/IntegrationTests.csproj --verify-no-changes --no-restore"
 
-      - name: Testing
+      - name: MAUI Tests
         run: |
           nix-shell -p dotnetCorePackages.sdk_9_0 \
-           --run "dotnet restore Test/Test.csproj && dotnet test Test/Test.csproj --no-restore"
+           --run "dotnet test 'Maui Tests/Maui Tests.csproj' -p:MauiTestBuild=true"
+
+      - name: Create integration test database
+        run: |
+          for file in ./kubernetes/integration-template/{0,1,2,3}-*.yml; do
+            cat "$file" | envsubst | kubectl apply -f -
+          done
+          kubectl rollout status deployment/resumeapp-it-postgres -n ${INTEGRATION_TEST_NAMESPACE} --timeout=300s
+
+      - name: Integration Tests
+        run: |
+          kubectl port-forward svc/resumeapp-it-postgres 15432:5432 -n ${INTEGRATION_TEST_NAMESPACE} &
+          sleep 3
+          export INTEGRATION_TEST_DB_CONNECTION="Host=localhost;Port=15432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+          nix-shell -p dotnetCorePackages.sdk_9_0 --run "dotnet test IntegrationTests/IntegrationTests.csproj"
+
+      - name: Cleanup integration environment
+        if: always()
+        run: kubectl delete namespace ${INTEGRATION_TEST_NAMESPACE} --ignore-not-found=true
 
       - name: Build and push PR Docker image
         run: |

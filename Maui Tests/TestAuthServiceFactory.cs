@@ -1,3 +1,4 @@
+using Moq;
 using ResumeApp.Services;
 
 namespace MauiTests;
@@ -11,7 +12,8 @@ internal static class TestAuthServiceFactory
             BaseAddress = new Uri("https://localhost")
         };
 
-        return new AuthService(httpClient);
+        var localStorage = new Mock<ILocalStorageService>();
+        return new AuthService(httpClient, localStorage.Object);
     }
 
     private sealed class StubHttpMessageHandler : HttpMessageHandler

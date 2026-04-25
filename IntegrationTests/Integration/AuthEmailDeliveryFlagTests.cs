@@ -11,12 +11,13 @@ namespace Test.Integration;
 public class AuthEmailDeliveryFlagTests
 {
     [Fact]
-    public void EmailService_FlagEnabled_RegistersSmtpEmailService()
+    public async Task EmailService_FlagEnabled_RegistersSmtpEmailService()
     {
         using var factory = new ApiFactory(
             useProductionRateLimits: false,
             overrideEmailService: false,
             emailOtpDeliveryEnabled: true);
+        await factory.ResetDatabaseAsync();
         using var scope = factory.Services.CreateScope();
 
         var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
@@ -25,12 +26,13 @@ public class AuthEmailDeliveryFlagTests
     }
 
     [Fact]
-    public void EmailService_FlagDisabled_RegistersLoggingEmailService()
+    public async Task EmailService_FlagDisabled_RegistersLoggingEmailService()
     {
         using var factory = new ApiFactory(
             useProductionRateLimits: false,
             overrideEmailService: false,
             emailOtpDeliveryEnabled: false);
+        await factory.ResetDatabaseAsync();
         using var scope = factory.Services.CreateScope();
 
         var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
@@ -45,6 +47,7 @@ public class AuthEmailDeliveryFlagTests
             useProductionRateLimits: false,
             overrideEmailService: false,
             emailOtpDeliveryEnabled: false);
+        await factory.ResetDatabaseAsync();
         using var client = factory.CreateClient();
 
         const string email = "flag_register@example.com";
@@ -75,6 +78,7 @@ public class AuthEmailDeliveryFlagTests
             useProductionRateLimits: false,
             overrideEmailService: false,
             emailOtpDeliveryEnabled: false);
+        await factory.ResetDatabaseAsync();
         using var client = factory.CreateClient();
 
         const string email = "flag_resend@example.com";
@@ -120,6 +124,7 @@ public class AuthEmailDeliveryFlagTests
             useProductionRateLimits: false,
             overrideEmailService: false,
             emailOtpDeliveryEnabled: false);
+        await factory.ResetDatabaseAsync();
         using var client = factory.CreateClient();
 
         const string email = "flag_forgot@example.com";

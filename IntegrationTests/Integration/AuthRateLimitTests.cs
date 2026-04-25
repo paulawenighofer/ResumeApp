@@ -8,21 +8,27 @@ namespace Test.Integration;
 /// Rate-limit tests use a fresh ApiFactory per test class to ensure the sliding-window
 /// counters start at zero.  Do NOT use IClassFixture here.
 /// </summary>
-public class AuthRateLimitTests : IDisposable
+public class AuthRateLimitTests : IAsyncLifetime
 {
     private readonly ApiFactory _factory;
-    private readonly HttpClient _client;
+    private HttpClient _client = null!;
 
     public AuthRateLimitTests()
     {
         _factory = new ApiFactory(useProductionRateLimits: true);
+    }
+
+    public async Task InitializeAsync()
+    {
+        await _factory.ResetDatabaseAsync();
         _client = _factory.CreateClient();
     }
 
-    public void Dispose()
+    public Task DisposeAsync()
     {
         _client.Dispose();
         _factory.Dispose();
+        return Task.CompletedTask;
     }
 
     // ─── otp-verify (5 permits / 15 min) applies to verify-otp ────────────

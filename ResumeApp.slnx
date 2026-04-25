@@ -10,5 +10,7 @@
     <Deploy Solution="Debug|*" />
   </Project>
   <Project Path="Shared/Shared.csproj" Id="3fe796f1-287d-40fd-a579-80d6ed4540cf" />
-  <Project Path="Test/Test.csproj" />
+  <Project Path="IntegrationTests/IntegrationTests.csproj" />
 </Solution>
+
+

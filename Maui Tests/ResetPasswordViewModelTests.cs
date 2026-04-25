@@ -19,7 +19,9 @@ public class ResetPasswordViewModelTests
         await ((IAsyncRelayCommand)viewModel.ResetPasswordCommand).ExecuteAsync(null);
 
         Assert.True(viewModel.HasError);
-        Assert.Equal("Please enter the 6-digit reset code.", viewModel.ErrorMessage);
+        Assert.Equal("Please correct the highlighted fields.", viewModel.ErrorMessage);
+        Assert.True(viewModel.HasCodeValidation);
+        Assert.Equal("Reset code must be 6 digits.", viewModel.CodeValidationMessage);
         Assert.False(viewModel.IsBusy);
     }
 }
