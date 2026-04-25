@@ -55,6 +55,22 @@ services:
         condition: service_started
 
 
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    container_name: resumebuilder-web
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ApiBaseUrl=https://resumeapp-web-api.victoriousriver-0bd90a87.westus2.azurecontainerapps.io/
+      - AppBaseUrl=http://web.resume-app-local.duckdns.org
+    depends_on:
+      - api
+    ports:
+      - "5100:5100"
+    volumes:
+      - web_keys:/app/dataprotection-keys
+
   nginx:
     image: lscr.io/linuxserver/nginx:latest
     container_name: resumebuilder-nginx
@@ -133,6 +149,7 @@ volumes:
   prometheus_data:
   grafana_data:
   loki_data:
+  web_keys:
 
 configs:
   grafana_datasources:

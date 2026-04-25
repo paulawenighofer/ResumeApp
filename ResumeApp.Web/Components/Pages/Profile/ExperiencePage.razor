@@ -1,0 +1,239 @@
+@page "/profile/experience"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@inject ApiClient Api
+@inject ISnackbar Snackbar
+@inject IDialogService Dialogs
+
+<PageTitle>Experience — Resume Builder</PageTitle>
+
+<div class="d-flex align-center justify-space-between mb-6">
+    <div>
+        <MudText Typo="Typo.h4" Style="font-weight:700;">Experience</MudText>
+        <MudText Typo="Typo.body1" Color="Color.Secondary">Your work history</MudText>
+    </div>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary"
+               StartIcon="@Icons.Material.Filled.Add"
+               OnClick="OpenAddDialog">
+        Add Experience
+    </MudButton>
+</div>
+
+@if (_loading)
+{
+    <div class="d-flex justify-center mt-8">
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    </div>
+}
+else if (_items.Count == 0)
+{
+    <MudCard Elevation="2" Class="rounded-xl">
+        <MudCardContent Class="text-center pa-12">
+            <MudIcon Icon="@Icons.Material.Filled.Work" Size="Size.Large" Color="Color.Primary" Class="mb-4" Style="font-size:4rem;" />
+            <MudText Typo="Typo.h6" GutterBottom="true">No experience added</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">Add your work history.</MudText>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Add" OnClick="OpenAddDialog">
+                Add Experience
+            </MudButton>
+        </MudCardContent>
+    </MudCard>
+}
+else
+{
+    <MudTimeline TimelinePosition="TimelinePosition.Start">
+        @foreach (var item in _items)
+        {
+            <MudTimelineItem Color="Color.Primary" Size="Size.Medium">
+                <ItemContent>
+                    <MudCard Elevation="2" Class="rounded-xl mb-4">
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h6" Style="font-weight:600;">@item.JobTitle</MudText>
+                                <MudText Typo="Typo.subtitle1" Color="Color.Primary">@item.Company</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                    @(item.Location ?? "Remote") ·
+                                    @item.StartDate.ToString("MMM yyyy") —
+                                    @(item.IsCurrentJob ? "Present" : item.EndDate?.ToString("MMM yyyy") ?? "")
+                                </MudText>
+                            </CardHeaderContent>
+                            <CardHeaderActions>
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                                               OnClick="() => OpenEditDialog(item)" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
+                                               Color="Color.Error" OnClick="() => ConfirmDelete(item)" />
+                            </CardHeaderActions>
+                        </MudCardHeader>
+                        @if (!string.IsNullOrWhiteSpace(item.Responsibilities))
+                        {
+                            <MudCardContent>
+                                @foreach (var bullet in item.Responsibilities.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+                                {
+                                    <div class="d-flex mb-1">
+                                        <MudIcon Icon="@Icons.Material.Filled.FiberManualRecord" Size="Size.Small" Class="mr-2 mt-1" Style="font-size:8px;" />
+                                        <MudText Typo="Typo.body2">@bullet.TrimStart('-', '•', ' ')</MudText>
+                                    </div>
+                                }
+                            </MudCardContent>
+                        }
+                    </MudCard>
+                </ItemContent>
+            </MudTimelineItem>
+        }
+    </MudTimeline>
+}
+
+<!-- Add/Edit Dialog -->
+<MudDialog @bind-Visible="_dialogVisible" Options="_dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">@(_editing ? "Edit Experience" : "Add Experience")</MudText>
+    </TitleContent>
+    <DialogContent>
+        <EditForm Model="_form" OnValidSubmit="SaveItem">
+            <DataAnnotationsValidator />
+            <MudGrid Spacing="3">
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_form.JobTitle" Label="Job Title *"
+                                  Variant="Variant.Outlined" For="@(() => _form.JobTitle)" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_form.Company" Label="Company *"
+                                  Variant="Variant.Outlined" For="@(() => _form.Company)" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_form.Location" Label="Location"
+                                  Variant="Variant.Outlined" HelperText="e.g., New York, NY or Remote" />
+                </MudItem>
+                <MudItem xs="12" sm="3">
+                    <MudDatePicker @bind-Date="_startDate" Label="Start Date *"
+                                   Variant="Variant.Outlined" DateFormat="MMM yyyy" />
+                </MudItem>
+                <MudItem xs="12" sm="3">
+                    <MudDatePicker @bind-Date="_endDate" Label="End Date"
+                                   Variant="Variant.Outlined" DateFormat="MMM yyyy"
+                                   Disabled="@_form.IsCurrentJob" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudCheckBox @bind-Value="_form.IsCurrentJob" Label="I currently work here" Color="Color.Primary" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_form.Responsibilities" Label="Responsibilities"
+                                  Variant="Variant.Outlined" Lines="6"
+                                  HelperText="One bullet point per line. The AI uses these to tailor your resume." />
+                </MudItem>
+            </MudGrid>
+            <div class="d-flex justify-end gap-2 mt-4">
+                <MudButton OnClick="CloseDialog">Cancel</MudButton>
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled"
+                           Color="Color.Primary" Disabled="_saving">
+                    @(_saving ? "Saving…" : "Save")
+                </MudButton>
+            </div>
+        </EditForm>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    private bool _loading = true;
+    private List<Experience> _items = [];
+    private Experience _form = new();
+    private bool _editing;
+    private bool _dialogVisible;
+    private bool _saving;
+    private DateTime? _startDate;
+    private DateTime? _endDate;
+
+    private readonly DialogOptions _dialogOptions = new()
+    {
+        MaxWidth = MaxWidth.Medium,
+        FullWidth = true,
+        CloseOnEscapeKey = true
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        try { _items = await Api.GetExperiencesAsync(); }
+        finally { _loading = false; }
+    }
+
+    private void OpenAddDialog()
+    {
+        _form = new Experience();
+        _startDate = DateTime.Today;
+        _endDate = null;
+        _editing = false;
+        _dialogVisible = true;
+    }
+
+    private void OpenEditDialog(Experience item)
+    {
+        _form = new Experience
+        {
+            Id = item.Id,
+            Company = item.Company,
+            JobTitle = item.JobTitle,
+            Location = item.Location,
+            StartDate = item.StartDate,
+            EndDate = item.EndDate,
+            IsCurrentJob = item.IsCurrentJob,
+            Responsibilities = item.Responsibilities,
+            UserId = item.UserId
+        };
+        _startDate = item.StartDate;
+        _endDate = item.EndDate;
+        _editing = true;
+        _dialogVisible = true;
+    }
+
+    private void CloseDialog() => _dialogVisible = false;
+
+    private async Task SaveItem()
+    {
+        _saving = true;
+        _form.StartDate = _startDate ?? DateTime.Today;
+        _form.EndDate = _form.IsCurrentJob ? null : _endDate;
+
+        try
+        {
+            if (_editing)
+            {
+                var ok = await Api.UpdateExperienceAsync(_form.Id, _form);
+                if (ok)
+                {
+                    var idx = _items.FindIndex(x => x.Id == _form.Id);
+                    if (idx >= 0) _items[idx] = _form;
+                    Snackbar.Add("Experience updated!", Severity.Success);
+                    CloseDialog();
+                }
+                else Snackbar.Add("Update failed.", Severity.Error);
+            }
+            else
+            {
+                var created = await Api.CreateExperienceAsync(_form);
+                if (created is not null)
+                {
+                    _items.Insert(0, created);
+                    Snackbar.Add("Experience added!", Severity.Success);
+                    CloseDialog();
+                }
+                else Snackbar.Add("Create failed.", Severity.Error);
+            }
+        }
+        finally { _saving = false; }
+    }
+
+    private async Task ConfirmDelete(Experience item)
+    {
+        var result = await Dialogs.ShowMessageBox(
+            "Delete Experience",
+            $"Remove \"{item.JobTitle}\" at \"{item.Company}\"?",
+            yesText: "Delete", cancelText: "Cancel");
+
+        if (result == true)
+        {
+            var ok = await Api.DeleteExperienceAsync(item.Id);
+            if (ok) { _items.Remove(item); Snackbar.Add("Deleted.", Severity.Success); }
+            else Snackbar.Add("Delete failed.", Severity.Error);
+        }
+    }
+}

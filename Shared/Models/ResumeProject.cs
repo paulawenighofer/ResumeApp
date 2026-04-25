@@ -8,6 +8,7 @@ public class ResumeProject
 
     public string? UserId { get; set; }
 
+    [Required, MaxLength(200)]
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
     public string? Technologies { get; set; }

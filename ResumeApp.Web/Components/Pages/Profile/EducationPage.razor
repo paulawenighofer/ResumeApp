@@ -1,0 +1,246 @@
+@page "/profile/education"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@inject ApiClient Api
+@inject ISnackbar Snackbar
+@inject IDialogService Dialogs
+
+<PageTitle>Education — Resume Builder</PageTitle>
+
+<div class="d-flex align-center justify-space-between mb-6">
+    <div>
+        <MudText Typo="Typo.h4" Style="font-weight:700;">Education</MudText>
+        <MudText Typo="Typo.body1" Color="Color.Secondary">Your academic background</MudText>
+    </div>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary"
+               StartIcon="@Icons.Material.Filled.Add"
+               OnClick="OpenAddDialog">
+        Add Education
+    </MudButton>
+</div>
+
+@if (_loading)
+{
+    <div class="d-flex justify-center mt-8">
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    </div>
+}
+else if (_items.Count == 0)
+{
+    <MudCard Elevation="2" Class="rounded-xl">
+        <MudCardContent Class="text-center pa-12">
+            <MudIcon Icon="@Icons.Material.Filled.School" Size="Size.Large" Color="Color.Primary" Class="mb-4" Style="font-size:4rem;" />
+            <MudText Typo="Typo.h6" GutterBottom="true">No education added</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">
+                Add your degrees and academic achievements.
+            </MudText>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Add" OnClick="OpenAddDialog">
+                Add Education
+            </MudButton>
+        </MudCardContent>
+    </MudCard>
+}
+else
+{
+    <MudGrid Spacing="3">
+        @foreach (var item in _items)
+        {
+            <MudItem xs="12" md="6">
+                <MudCard Elevation="2" Class="rounded-xl">
+                    <MudCardHeader>
+                        <CardHeaderAvatar>
+                            <MudAvatar Color="Color.Primary">
+                                <MudIcon Icon="@Icons.Material.Filled.School" />
+                            </MudAvatar>
+                        </CardHeaderAvatar>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6" Style="font-weight:600;">@item.Institution</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                @item.Degree @(item.FieldOfStudy is not null ? $"· {item.FieldOfStudy}" : "")
+                            </MudText>
+                        </CardHeaderContent>
+                        <CardHeaderActions>
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                                           OnClick="() => OpenEditDialog(item)" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
+                                           Color="Color.Error"
+                                           OnClick="() => ConfirmDelete(item)" />
+                        </CardHeaderActions>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            @item.StartDate.ToString("MMM yyyy") —
+                            @(item.EndDate.HasValue ? item.EndDate.Value.ToString("MMM yyyy") : "Present")
+                            @(item.GPA.HasValue ? $" · GPA: {item.GPA}" : "")
+                        </MudText>
+                        @if (!string.IsNullOrWhiteSpace(item.Description))
+                        {
+                            <MudText Typo="Typo.body2" Class="mt-2">@item.Description</MudText>
+                        }
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+}
+
+<!-- Add/Edit Dialog -->
+<MudDialog @bind-Visible="_dialogVisible" Options="_dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">@(_editing ? "Edit Education" : "Add Education")</MudText>
+    </TitleContent>
+    <DialogContent>
+        <EditForm Model="_form" OnValidSubmit="SaveItem">
+            <DataAnnotationsValidator />
+            <MudGrid Spacing="3">
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_form.Institution" Label="Institution *"
+                                  Variant="Variant.Outlined" For="@(() => _form.Institution)" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_form.Degree" Label="Degree *"
+                                  Variant="Variant.Outlined" For="@(() => _form.Degree)" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_form.FieldOfStudy" Label="Field of Study"
+                                  Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudDatePicker @bind-Date="_startDate" Label="Start Date *"
+                                   Variant="Variant.Outlined" DateFormat="MMM yyyy" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudDatePicker @bind-Date="_endDate" Label="End Date"
+                                   Variant="Variant.Outlined" DateFormat="MMM yyyy"
+                                   HelperText="Leave empty if currently enrolled" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudNumericField @bind-Value="_form.GPA" Label="GPA"
+                                     Variant="Variant.Outlined" Min="0m" Max="4m" Step="0.01m" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_form.Description" Label="Description"
+                                  Variant="Variant.Outlined" Lines="3"
+                                  HelperText="Honors, activities, relevant coursework" />
+                </MudItem>
+            </MudGrid>
+            <div class="d-flex justify-end gap-2 mt-4">
+                <MudButton OnClick="CloseDialog">Cancel</MudButton>
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled"
+                           Color="Color.Primary" Disabled="_saving">
+                    @(_saving ? "Saving…" : "Save")
+                </MudButton>
+            </div>
+        </EditForm>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    private bool _loading = true;
+    private List<Education> _items = [];
+    private Education _form = new();
+    private bool _editing;
+    private bool _dialogVisible;
+    private bool _saving;
+    private DateTime? _startDate;
+    private DateTime? _endDate;
+
+    private readonly DialogOptions _dialogOptions = new()
+    {
+        MaxWidth = MaxWidth.Medium,
+        FullWidth = true,
+        CloseOnEscapeKey = true
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        try { _items = await Api.GetEducationsAsync(); }
+        finally { _loading = false; }
+    }
+
+    private void OpenAddDialog()
+    {
+        _form = new Education();
+        _startDate = DateTime.Today;
+        _endDate = null;
+        _editing = false;
+        _dialogVisible = true;
+    }
+
+    private void OpenEditDialog(Education item)
+    {
+        _form = new Education
+        {
+            Id = item.Id,
+            Institution = item.Institution,
+            Degree = item.Degree,
+            FieldOfStudy = item.FieldOfStudy,
+            StartDate = item.StartDate,
+            EndDate = item.EndDate,
+            GPA = item.GPA,
+            Description = item.Description,
+            UserId = item.UserId
+        };
+        _startDate = item.StartDate;
+        _endDate = item.EndDate;
+        _editing = true;
+        _dialogVisible = true;
+    }
+
+    private void CloseDialog() => _dialogVisible = false;
+
+    private async Task SaveItem()
+    {
+        _saving = true;
+        _form.StartDate = _startDate ?? DateTime.Today;
+        _form.EndDate = _endDate;
+
+        try
+        {
+            if (_editing)
+            {
+                var ok = await Api.UpdateEducationAsync(_form.Id, _form);
+                if (ok)
+                {
+                    var idx = _items.FindIndex(x => x.Id == _form.Id);
+                    if (idx >= 0) _items[idx] = _form;
+                    Snackbar.Add("Education updated!", Severity.Success);
+                    CloseDialog();
+                }
+                else Snackbar.Add("Update failed.", Severity.Error);
+            }
+            else
+            {
+                var created = await Api.CreateEducationAsync(_form);
+                if (created is not null)
+                {
+                    _items.Insert(0, created);
+                    Snackbar.Add("Education added!", Severity.Success);
+                    CloseDialog();
+                }
+                else Snackbar.Add("Create failed.", Severity.Error);
+            }
+        }
+        finally { _saving = false; }
+    }
+
+    private async Task ConfirmDelete(Education item)
+    {
+        var result = await Dialogs.ShowMessageBox(
+            "Delete Education",
+            $"Remove \"{item.Institution}\"? This cannot be undone.",
+            yesText: "Delete", cancelText: "Cancel");
+
+        if (result == true)
+        {
+            var ok = await Api.DeleteEducationAsync(item.Id);
+            if (ok)
+            {
+                _items.Remove(item);
+                Snackbar.Add("Deleted.", Severity.Success);
+            }
+            else Snackbar.Add("Delete failed.", Severity.Error);
+        }
+    }
+}

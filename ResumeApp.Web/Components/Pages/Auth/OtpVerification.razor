@@ -1,0 +1,118 @@
+@page "/verify-otp"
+@rendermode InteractiveServer
+@layout AuthLayout
+@inject ApiClient Api
+@inject IMemoryCache Cache
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+
+<PageTitle>Verify Email — Resume Builder</PageTitle>
+
+<MudText Typo="Typo.h5" GutterBottom="true" Style="font-weight:600;">Check your email</MudText>
+<MudText Typo="Typo.body2" Class="mb-2" Color="Color.Secondary">
+    We sent a 6-digit code to
+</MudText>
+<MudText Typo="Typo.body1" Class="mb-6" Style="font-weight:500;">@Email</MudText>
+
+@if (_errorMessage is not null)
+{
+    <MudAlert Severity="Severity.Error" Class="mb-4" Dense="true">@_errorMessage</MudAlert>
+}
+
+<EditForm Model="_form" OnValidSubmit="HandleVerify">
+    <DataAnnotationsValidator />
+
+    <MudTextField @bind-Value="_form.Code"
+                  Label="6-digit code"
+                  Variant="Variant.Outlined"
+                  Class="mb-4"
+                  InputType="InputType.Number"
+                  MaxLength="6"
+                  Adornment="Adornment.Start"
+                  AdornmentIcon="@Icons.Material.Filled.Lock"
+                  For="@(() => _form.Code)" />
+
+    <MudButton ButtonType="ButtonType.Submit"
+               Variant="Variant.Filled"
+               Color="Color.Primary"
+               FullWidth="true"
+               Size="Size.Large"
+               Disabled="_loading"
+               Class="mb-3">
+        @if (_loading)
+        {
+            <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+        }
+        Verify Email
+    </MudButton>
+</EditForm>
+
+<MudButton Variant="Variant.Text"
+           FullWidth="true"
+           Disabled="_resending"
+           OnClick="ResendCode">
+    @if (_resending)
+    {
+        <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+    }
+    Resend code
+</MudButton>
+
+@code {
+    [SupplyParameterFromQuery]
+    private string? Email { get; set; }
+
+    private readonly VerifyOtpDto _form = new();
+    private bool _loading;
+    private bool _resending;
+    private string? _errorMessage;
+
+    protected override void OnInitialized()
+    {
+        _form.Email = Email ?? string.Empty;
+    }
+
+    private async Task HandleVerify()
+    {
+        _loading = true;
+        _errorMessage = null;
+
+        try
+        {
+            var result = await Api.VerifyOtpAsync(_form);
+            if (result is null)
+            {
+                _errorMessage = "Invalid or expired code. Please try again.";
+                return;
+            }
+
+            var key = Guid.NewGuid().ToString("N");
+            Cache.Set(key,
+                new AuthSignInData(result.Token, result.Email, result.FirstName, result.LastName, result.ProfileImageUrl),
+                TimeSpan.FromSeconds(30));
+            Nav.NavigateTo($"/account/signin?key={key}", forceLoad: true);
+        }
+        catch
+        {
+            _errorMessage = "Unable to connect. Please try again.";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task ResendCode()
+    {
+        _resending = true;
+        try
+        {
+            var ok = await Api.ResendOtpAsync(Email ?? string.Empty);
+            Snackbar.Add(ok ? "Code resent!" : "Failed to resend code.", ok ? Severity.Success : Severity.Error);
+        }
+        finally
+        {
+            _resending = false;
+        }
+    }
+}

@@ -75,6 +75,19 @@ jobs:
         run: |
           cat kubernetes/pr-template/0-namespace.yml | envsubst | kubectl apply -f -
 
+      - name: Copy TLS secret to PR namespace
+        run: |
+          kubectl get secret resumeapp-tls -n resumeapp -o jsonpath='{.data.tls\.crt}' \
+            | base64 -d > /tmp/pr-tls.crt
+          kubectl get secret resumeapp-tls -n resumeapp -o jsonpath='{.data.tls\.key}' \
+            | base64 -d > /tmp/pr-tls.key
+          kubectl create secret tls resumeapp-tls \
+            --cert=/tmp/pr-tls.crt \
+            --key=/tmp/pr-tls.key \
+            --namespace=${PR_NAMESPACE} \
+            --dry-run=client -o yaml | kubectl apply -f -
+          rm -f /tmp/pr-tls.crt /tmp/pr-tls.key
+
       - name: Create Kubernetes secret
         run: |
           PR_DB_CONNECTION="Host=resumeapp-postgres-service;Port=5432;Database=${{ secrets.POSTGRES_DB }};Username=${{ secrets.POSTGRES_USER }};Password=${{ secrets.POSTGRES_PASSWORD }}"
@@ -92,7 +105,7 @@ jobs:
             --from-literal=GitHub__ClientId="${{ secrets.GH_CLIENT_ID }}" \
             --from-literal=GitHub__ClientSecret="${{ secrets.GH_CLIENT_SECRET }}" \
             --from-literal=AppScheme="myresumebuilder" \
-            --from-literal=ApiBaseUrl="http://${PR_HOSTNAME}" \
+            --from-literal=ApiBaseUrl="https://${PR_HOSTNAME}" \
             --from-literal=POSTGRES_USER="${{ secrets.POSTGRES_USER }}" \
             --from-literal=POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}" \
             --from-literal=POSTGRES_DB="${{ secrets.POSTGRES_DB }}" \
@@ -142,9 +155,9 @@ jobs:
           echo "=========================================="
           echo "  PR Environment URLs"
           echo "=========================================="
-          echo "  API:        http://${PR_HOSTNAME}"
-          echo "  Grafana:    http://${PR_GRAFANA_HOST}"
-          echo "  Prometheus: http://${PR_PROMETHEUS_HOST}"
+          echo "  API:        https://${PR_HOSTNAME}"
+          echo "  Grafana:    https://${PR_GRAFANA_HOST}"
+          echo "  Prometheus: https://${PR_PROMETHEUS_HOST}"
           echo "  Namespace:  ${PR_NAMESPACE}"
           echo "  PR:         ${{ github.event.pull_request.html_url }}"
           echo "======================================"
@@ -159,9 +172,9 @@ jobs:
 
           | Service | URL |
           |---|---|
-          | API | http://${PR_HOSTNAME} |
-          | Grafana | http://${PR_GRAFANA_HOST} |
-          | Prometheus | http://${PR_PROMETHEUS_HOST} |
+          | API | https://${PR_HOSTNAME} |
+          | Grafana | https://${PR_GRAFANA_HOST} |
+          | Prometheus | https://${PR_PROMETHEUS_HOST} |
 
           **Namespace:** \`${PR_NAMESPACE}\`
           **Commit:** \`${{ github.event.pull_request.head.sha }}\`

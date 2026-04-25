@@ -1,0 +1,473 @@
+/* ═══════════════════════════════════════════════
+   HORIZON — Resume Builder Design System
+   Aesthetic: Modern · Minimal · Spacious
+   Font: Plus Jakarta Sans
+   ═══════════════════════════════════════════════ */
+
+/* 1 ─ Design Tokens */
+:root {
+    --bg:           #09090B;
+    --surface:      #111118;
+    --surface-2:    #17171F;
+    --surface-3:    #1E1E28;
+    --border:       rgba(255, 255, 255, 0.06);
+    --border-mid:   rgba(255, 255, 255, 0.10);
+    --border-strong:rgba(255, 255, 255, 0.16);
+    --blue:         #4F7EF5;
+    --blue-light:   #7BA3FF;
+    --blue-glow:    rgba(79, 126, 245, 0.16);
+    --blue-subtle:  rgba(79, 126, 245, 0.08);
+    --text:         #F4F4F6;
+    --text-muted:   #70707A;
+    --text-faint:   #42424C;
+    --radius-xs:    6px;
+    --radius-sm:    8px;
+    --radius-md:    12px;
+    --radius-lg:    16px;
+    --radius-xl:    20px;
+    --shadow-xs:    0 1px 2px rgba(0, 0, 0, 0.35);
+    --shadow-sm:    0 1px 3px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.2);
+    --shadow-md:    0 2px 8px rgba(0, 0, 0, 0.4), 0 12px 32px rgba(0, 0, 0, 0.25);
+    --shadow-hover: 0 4px 20px rgba(79, 126, 245, 0.14), 0 8px 32px rgba(0, 0, 0, 0.3);
+    --f-sans:       'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+
+/* 2 ─ Base */
+html, body {
+    font-family: var(--f-sans);
+    background-color: var(--bg);
+    color: var(--text);
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* 3 ─ Layout */
+.mud-layout {
+    background: var(--bg) !important;
+}
+
+/* 4 ─ AppBar */
+.mud-appbar {
+    box-shadow: none !important;
+    border-bottom: 1px solid var(--border) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+}
+
+.app-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--f-sans);
+    font-size: 0.9375rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text);
+}
+
+.app-brand-icon {
+    width: 28px;
+    height: 28px;
+    background: var(--blue);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #fff;
+    flex-shrink: 0;
+    box-shadow: 0 0 16px var(--blue-glow);
+}
+
+.app-user-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface-2);
+    border: 1px solid var(--border-mid);
+    border-radius: var(--radius-xl);
+    padding: 5px 14px 5px 8px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+.app-user-avatar {
+    width: 22px;
+    height: 22px;
+    background: var(--blue-subtle);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.625rem;
+    font-weight: 700;
+    color: var(--blue-light);
+    flex-shrink: 0;
+}
+
+/* 5 ─ Drawer */
+.mud-drawer {
+    box-shadow: none !important;
+    border-right: 1px solid var(--border) !important;
+}
+
+.mud-drawer-content {
+    padding-top: 8px;
+}
+
+/* 6 ─ Navigation */
+.mud-nav-menu {
+    padding: 0 10px;
+}
+
+.mud-nav-link {
+    border-radius: var(--radius-md) !important;
+    margin: 2px 0 !important;
+    transition: background 0.15s ease, color 0.15s ease !important;
+}
+
+.mud-nav-link:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.mud-nav-link.active {
+    background: var(--blue-subtle) !important;
+    color: var(--blue-light) !important;
+}
+
+.mud-nav-link.active .mud-icon-root {
+    color: var(--blue) !important;
+}
+
+.mud-nav-link .mud-nav-link-text {
+    font-family: var(--f-sans) !important;
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+    letter-spacing: -0.01em !important;
+}
+
+.mud-nav-link .mud-icon-root {
+    font-size: 1.15rem !important;
+    opacity: 0.5;
+    transition: opacity 0.15s ease;
+}
+
+.mud-nav-link.active .mud-icon-root,
+.mud-nav-link:hover .mud-icon-root {
+    opacity: 1;
+}
+
+/* Nav group */
+.mud-nav-group .mud-nav-group-header {
+    border-radius: var(--radius-md) !important;
+    margin: 2px 0 !important;
+}
+
+.mud-nav-group .mud-nav-group-header:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.mud-nav-group-text {
+    font-family: var(--f-sans) !important;
+    font-size: 0.8125rem !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.01em !important;
+    color: var(--text) !important;
+}
+
+/* Nav divider */
+.mud-nav-menu .mud-divider {
+    border-color: var(--border) !important;
+    margin: 8px 0;
+}
+
+/* 7 ─ Cards */
+.mud-card {
+    background: var(--surface-2) !important;
+    box-shadow: var(--shadow-sm) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-lg) !important;
+    overflow: hidden;
+    transition: box-shadow 0.22s ease, border-color 0.22s ease, transform 0.22s ease !important;
+}
+
+.mud-card:hover {
+    box-shadow: var(--shadow-hover) !important;
+    border-color: rgba(79, 126, 245, 0.22) !important;
+    transform: translateY(-2px) !important;
+}
+
+/* 8 ─ Paper */
+.mud-paper:not(.mud-card):not(.mud-appbar):not(.mud-drawer-content) {
+    border-radius: var(--radius-md) !important;
+}
+
+/* 9 ─ Buttons */
+.mud-button-root {
+    border-radius: var(--radius-sm) !important;
+    font-family: var(--f-sans) !important;
+    font-size: 0.8125rem !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.01em !important;
+}
+
+.mud-button-filled {
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3) !important;
+    transition: box-shadow 0.2s ease, filter 0.2s ease, transform 0.15s ease !important;
+}
+
+.mud-button-filled:hover {
+    box-shadow: 0 4px 20px var(--blue-glow), 0 1px 4px rgba(0, 0, 0, 0.3) !important;
+    filter: brightness(1.06) !important;
+    transform: translateY(-1px) !important;
+}
+
+.mud-button-outlined {
+    border-radius: var(--radius-sm) !important;
+    border-color: var(--border-strong) !important;
+    transition: border-color 0.2s ease, background 0.2s ease !important;
+}
+
+.mud-button-outlined:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: var(--blue) !important;
+}
+
+.mud-icon-button {
+    border-radius: var(--radius-sm) !important;
+    transition: background 0.15s ease !important;
+}
+
+/* 10 ─ Chips */
+.mud-chip {
+    border-radius: var(--radius-xs) !important;
+    font-family: var(--f-sans) !important;
+    font-size: 0.7rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.01em !important;
+}
+
+.mud-chip-set {
+    gap: 8px;
+}
+
+/* 11 ─ Progress */
+.mud-progress-linear {
+    border-radius: var(--radius-xl) !important;
+    background: var(--surface-3) !important;
+    height: 6px !important;
+}
+
+.mud-progress-linear .mud-progress-linear-bar {
+    border-radius: var(--radius-xl) !important;
+}
+
+/* 12 ─ Typography */
+.mud-typography-h4 {
+    font-family: var(--f-sans) !important;
+    font-size: 1.875rem !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.03em !important;
+    line-height: 1.2 !important;
+}
+
+.mud-typography-h5 {
+    font-family: var(--f-sans) !important;
+    font-size: 1.375rem !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.025em !important;
+    line-height: 1.25 !important;
+}
+
+.mud-typography-h6 {
+    font-family: var(--f-sans) !important;
+    font-size: 1.0625rem !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.02em !important;
+    line-height: 1.3 !important;
+}
+
+.mud-typography-body1 {
+    font-family: var(--f-sans) !important;
+    font-size: 0.9375rem !important;
+    line-height: 1.6 !important;
+}
+
+.mud-typography-body2 {
+    font-family: var(--f-sans) !important;
+    font-size: 0.875rem !important;
+    line-height: 1.55 !important;
+}
+
+.mud-typography-caption {
+    font-family: var(--f-sans) !important;
+    font-size: 0.75rem !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.01em !important;
+}
+
+/* 13 ─ Scrollbar */
+::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(79, 126, 245, 0.4);
+}
+
+/* 14 ─ Dividers */
+.mud-divider {
+    border-color: var(--border) !important;
+}
+
+/* 15 ─ Alerts */
+.mud-alert {
+    border-radius: var(--radius-md) !important;
+}
+
+/* 16 ─ Form inputs */
+.mud-input-root {
+    font-family: var(--f-sans) !important;
+    font-size: 0.9375rem !important;
+}
+
+.mud-input-label {
+    font-family: var(--f-sans) !important;
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+}
+
+/* Rounded outlined input border */
+.mud-input-root fieldset {
+    border-radius: var(--radius-sm) !important;
+}
+
+textarea.mud-input-root {
+    font-family: 'ui-monospace', 'Cascadia Code', 'Fira Code', monospace !important;
+    font-size: 0.8125rem !important;
+    line-height: 1.7 !important;
+}
+
+/* 17 ─ Timeline */
+.mud-timeline-item-dot {
+    border-color: var(--blue) !important;
+    background: var(--surface-2) !important;
+    box-shadow: 0 0 0 3px var(--blue-subtle) !important;
+}
+
+/* 18 ─ List items */
+.mud-list-item {
+    border-radius: var(--radius-sm) !important;
+}
+
+/* 19 ─ Tooltips */
+.mud-tooltip {
+    font-family: var(--f-sans) !important;
+    font-size: 0.75rem !important;
+    font-weight: 500 !important;
+    border-radius: var(--radius-sm) !important;
+}
+
+/* 20 ─ Page fade-in */
+@keyframes page-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.mud-main-content > .mud-container {
+    animation: page-in 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* 21 ─ Auth layout — minimal centered */
+.auth-centered {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: var(--bg);
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 420px;
+    background: var(--surface);
+    border: 1px solid var(--border-mid);
+    border-radius: var(--radius-xl);
+    padding: 2.75rem 2.5rem;
+    box-shadow: var(--shadow-md);
+    animation: page-in 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.auth-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 2rem;
+}
+
+.auth-brand-icon {
+    width: 32px;
+    height: 32px;
+    background: var(--blue);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8125rem;
+    font-weight: 800;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.auth-brand-name {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text);
+}
+
+.auth-card .mud-typography-h5 {
+    font-size: 1.5rem !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.025em !important;
+    line-height: 1.2 !important;
+}
+
+/* 22 ─ Blazor error UI */
+#blazor-error-ui {
+    background: #1A0F0F;
+    border-top: 1px solid rgba(239, 68, 68, 0.4);
+    bottom: 0;
+    color: var(--text);
+    display: none;
+    left: 0;
+    padding: 0.65rem 1.5rem 0.75rem;
+    position: fixed;
+    width: 100%;
+    z-index: 10000;
+    font-family: var(--f-sans);
+    font-size: 0.8125rem;
+    font-weight: 500;
+}
+
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    position: absolute;
+    right: 0.75rem;
+    top: 0.5rem;
+}

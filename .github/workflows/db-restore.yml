@@ -1,0 +1,182 @@
+name: Postgres Database Restore
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Type RESTORE to confirm — this WILL overwrite the live database"
+        required: true
+
+jobs:
+  restore:
+    name: Restore most recent Postgres backup
+    runs-on: self-hosted
+    if: github.event.inputs.confirm == 'RESTORE'
+    env:
+      KUBECONFIG: /home/bishwas/.kube/config
+      BACKUP_DIR: /home/bishwas/pg-backups
+      RESTORE_STAGING_DIR: /home/bishwas/pg-restore-staging
+      KUBERNETES_NAMESPACE: resumeapp
+      KUBERNETES_DEPLOYMENT: resumeapp-postgres
+      KUBERNETES_APP_DEPLOYMENT: resumeapp-api
+
+    steps:
+      - name: Verify postgres deployment is available
+        run: |
+          kubectl rollout status deployment/${{ env.KUBERNETES_DEPLOYMENT }} \
+            -n ${{ env.KUBERNETES_NAMESPACE }} \
+            --timeout=60s
+
+      - name: Locate most recent scheduled backup
+        run: |
+          LATEST=$(find ${{ env.BACKUP_DIR }} -maxdepth 1 -name 'backup-*.sql' \
+            | sort | tail -n 1)
+
+          if [ -z "$LATEST" ]; then
+            echo "ERROR: No backup files found in ${{ env.BACKUP_DIR }}"
+            exit 1
+          fi
+
+          echo "Restore target: ${LATEST} ($(wc -c < "${LATEST}") bytes)"
+          echo "LATEST_BACKUP=${LATEST}" >> "$GITHUB_ENV"
+
+      - name: Snapshot live database state before restore
+        run: |
+          mkdir -p ${{ env.RESTORE_STAGING_DIR }}
+          chmod 700 ${{ env.RESTORE_STAGING_DIR }}
+
+          PRE_RESTORE_FILE="${{ env.RESTORE_STAGING_DIR }}/pre-restore-$(date -u '+%Y-%m-%d_%H-%M-%S').sql"
+          echo "PRE_RESTORE_BACKUP=${PRE_RESTORE_FILE}" >> "$GITHUB_ENV"
+
+          kubectl exec deployment/${{ env.KUBERNETES_DEPLOYMENT }} \
+            -n ${{ env.KUBERNETES_NAMESPACE }} \
+            -i -- \
+            /bin/sh -c \
+            'PGPASSWORD="$POSTGRES_PASSWORD" pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB"' \
+            > "${PRE_RESTORE_FILE}"
+
+          if [ ! -s "${PRE_RESTORE_FILE}" ]; then
+            echo "ERROR: Pre-restore snapshot is empty. Aborting to protect current data."
+            rm -f "${PRE_RESTORE_FILE}"
+            exit 1
+          fi
+
+          echo "Pre-restore snapshot saved: ${PRE_RESTORE_FILE} ($(wc -c < "${PRE_RESTORE_FILE}") bytes)"
+
+      - name: Record restore start time
+        run: |
+          RESTORE_START=$(date +%s%3N)
+          echo "RESTORE_START=${RESTORE_START}" >> "$GITHUB_ENV"
+          echo "Restore started at: $(date -u --date=@$((RESTORE_START / 1000)) '+%Y-%m-%dT%H:%M:%SZ')"
+
+      - name: Scale down app — begin maintenance window
+        run: |
+          REPLICAS=$(kubectl get deployment/${{ env.KUBERNETES_APP_DEPLOYMENT }} \
+            -n ${{ env.KUBERNETES_NAMESPACE }} \
+            -o jsonpath='{.spec.replicas}')
+          echo "APP_REPLICAS=${REPLICAS}" >> "$GITHUB_ENV"
+
+          kubectl scale deployment/${{ env.KUBERNETES_APP_DEPLOYMENT }} \
+            -n ${{ env.KUBERNETES_NAMESPACE }} \
+            --replicas=0
+
+          kubectl rollout status deployment/${{ env.KUBERNETES_APP_DEPLOYMENT }} \
+            -n ${{ env.KUBERNETES_NAMESPACE }} \
+            --timeout=60s
+
+          echo "App scaled down from ${REPLICAS} replica(s). Maintenance window open."
+
+      - name: Drop and recreate the target database
+        run: |
+          kubectl exec deployment/${{ env.KUBERNETES_DEPLOYMENT }} \
+            -n ${{ env.KUBERNETES_NAMESPACE }} \
+            -- /bin/sh -c \
+            'PGPASSWORD="$POSTGRES_PASSWORD" psql -U "$POSTGRES_USER" -d postgres \
+              -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '"'"'$POSTGRES_DB'"'"' AND pid <> pg_backend_pid();" \
+              -c "DROP DATABASE IF EXISTS \"$POSTGRES_DB\";" \
+              -c "CREATE DATABASE \"$POSTGRES_DB\";"'
+
+      - name: Stream backup into psql
+        run: |
+          kubectl exec deployment/${{ env.KUBERNETES_DEPLOYMENT }} \
+            -n ${{ env.KUBERNETES_NAMESPACE }} \
+            -i -- /bin/sh -c \
+            'PGPASSWORD="$POSTGRES_PASSWORD" psql -U "$POSTGRES_USER" "$POSTGRES_DB"' \
+            < "${{ env.LATEST_BACKUP }}"
+
+      - name: Verify restore — check table and row counts
+        run: |
+          RESULT=$(kubectl exec deployment/${{ env.KUBERNETES_DEPLOYMENT }} \
+            -n ${{ env.KUBERNETES_NAMESPACE }} \
+            -- /bin/sh -c \
+            'PGPASSWORD="$POSTGRES_PASSWORD" psql -U "$POSTGRES_USER" "$POSTGRES_DB" -t -A -c \
+             "SELECT tablename FROM pg_tables WHERE schemaname = '"'"'public'"'"' ORDER BY tablename;"')
+
+          TABLE_COUNT=$(echo "${RESULT}" | grep -c '.' || true)
+          echo "Tables restored: ${TABLE_COUNT}"
+          echo "${RESULT}"
+
+          if [ "${TABLE_COUNT}" -eq 0 ]; then
+            echo "ERROR: No tables found after restore."
+            exit 1
+          fi
+
+          echo "Restore verified — ${TABLE_COUNT} tables present."
+
+      - name: Record restore duration
+        if: 
+        run: |
+          RESTORE_END=$(date +%s%3N)
+
+          RESTORE_MS=$(( RESTORE_END - RESTORE_START ))
+          RESTORE_SEC=$(( RESTORE_MS / 1000 ))
+          RESTORE_REM=$(( RESTORE_MS % 1000 ))
+
+          echo "  Restore duration: ${RESTORE_SEC}.${RESTORE_REM}s  (${RESTORE_MS}ms total)"
+
+          echo "RESTORE_MS=${RESTORE_MS}"   >> "$GITHUB_ENV"
+          echo "RESTORE_SEC=${RESTORE_SEC}" >> "$GITHUB_ENV"
+          echo "RESTORE_REM=${RESTORE_REM}" >> "$GITHUB_ENV"
+
+      - name: Scale app back up — end maintenance window
+        if: always()
+        run: |
+          REPLICAS="${{ env.APP_REPLICAS }}"
+          if [ -z "${REPLICAS}" ] || [ "${REPLICAS}" -le 0 ]; then
+            REPLICAS=1
+          fi
+
+          kubectl scale deployment/${{ env.KUBERNETES_APP_DEPLOYMENT }} \
+            -n ${{ env.KUBERNETES_NAMESPACE }} \
+            --replicas=${REPLICAS}
+
+          echo "Waiting for app replicas to become available..."
+          for i in $(seq 1 12); do
+            AVAILABLE=$(kubectl get deployment/${{ env.KUBERNETES_APP_DEPLOYMENT }} \
+              -n ${{ env.KUBERNETES_NAMESPACE }} \
+              -o jsonpath='{.status.availableReplicas}' 2>/dev/null || echo "0")
+            echo "  ${AVAILABLE:-0}/${REPLICAS} replicas available"
+            if [ "${AVAILABLE:-0}" -ge "${REPLICAS}" ]; then
+              echo "All ${REPLICAS} replica(s) available. Maintenance window closed."
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Warning: replicas not fully available after 2 minutes — check cluster state."
+
+      - name: Delete pre-restore snapshot — restore confirmed successful
+        run: |
+          rm -v "${{ env.PRE_RESTORE_BACKUP }}"
+          echo "Pre-restore snapshot deleted. Scheduled backup preserved at: ${{ env.LATEST_BACKUP }}"
+
+      - name: Notify on failure — pre-restore snapshot retained for manual rollback
+        if: failure()
+        run: |
+          curl -d "Postgres RESTORE FAILED for ResumeApp." \
+            https://ntfy.sh/resume-app-pb
+
+      - name: Notify on success
+        if: success()
+        run: |
+          curl -d "Postgres restore completed in ${{ env.RESTORE_SEC }}.${{ env.RESTORE_REM }}s." \
+            https://ntfy.sh/resume-app-pb

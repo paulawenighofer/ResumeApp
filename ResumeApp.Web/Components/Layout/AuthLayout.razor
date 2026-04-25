@@ -1,0 +1,46 @@
+@inherits LayoutComponentBase
+
+<MudThemeProvider Theme="_theme" IsDarkMode="true" />
+<MudDialogProvider />
+<MudSnackbarProvider />
+<MudPopoverProvider />
+
+<div class="auth-centered">
+    <div class="auth-card">
+        <div class="auth-brand">
+            <div class="auth-brand-icon">R</div>
+            <span class="auth-brand-name">Resume Builder</span>
+        </div>
+        @Body
+    </div>
+</div>
+
+@code {
+    private readonly MudTheme _theme = new()
+    {
+        PaletteDark = new PaletteDark
+        {
+            Primary = "#4F7EF5",
+            PrimaryDarken = "#3562D4",
+            PrimaryLighten = "#7BA3FF",
+            Secondary = "#A78BFA",
+            Background = "#09090B",
+            Surface = "#17171F",
+            TextPrimary = "#F4F4F6",
+            TextSecondary = "#70707A",
+            Success = "#22C55E",
+            Error = "#EF4444",
+            Warning = "#F59E0B",
+            ActionDefault = "#70707A",
+        },
+        Typography = new Typography
+        {
+            Default = new Default
+            {
+                FontFamily = ["Plus Jakarta Sans", "system-ui", "-apple-system", "sans-serif"],
+                FontSize = "0.9375rem",
+                LineHeight = 1.6
+            }
+        }
+    };
+}
