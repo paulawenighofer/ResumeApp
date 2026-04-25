@@ -30,7 +30,7 @@ jobs:
               --preferred-challenges dns \
               --authenticator dns-duckdns \
               --dns-duckdns-token "${{ secrets.DUCKDNS_TOKEN }}" \
-              --dns-duckdns-propagation-seconds 60 \
+              --dns-duckdns-propagation-seconds 300 \
               --keep-until-expiring \
               -d "resume-app-pb.duckdns.org" \
               -d "*.resume-app-pb.duckdns.org"
