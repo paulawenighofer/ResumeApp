@@ -44,7 +44,8 @@ public class SocialAuthController : ControllerBase
     public IActionResult GoogleChallenge([FromQuery] string? returnUrl = null)
     {
         var redirectUri = GetCallbackUri("google");
-        var state = BuildState(returnUrl);
+        var prApiBaseUrl = IsPrRelayMode() ? _config["ApiBaseUrl"] : null;
+        var state = BuildState(returnUrl, prApiBaseUrl);
         var authUrl = _socialAuth.BuildGoogleAuthUrl(redirectUri, state);
         return Redirect(authUrl);
     }
@@ -63,6 +64,9 @@ public class SocialAuthController : ControllerBase
     public async Task<IActionResult> GoogleCallback(
         [FromQuery] string code, [FromQuery] string state)
     {
+        if (IsRelayRequest(state))
+            return RelayToPrApi("google", code, state);
+
         return await HandleCallbackAsync(
             TelemetryTags.Providers.Google,
             "google",
@@ -79,7 +83,8 @@ public class SocialAuthController : ControllerBase
     public IActionResult LinkedInChallenge([FromQuery] string? returnUrl = null)
     {
         var redirectUri = GetCallbackUri("linkedin");
-        var state = BuildState(returnUrl);
+        var prApiBaseUrl = IsPrRelayMode() ? _config["ApiBaseUrl"] : null;
+        var state = BuildState(returnUrl, prApiBaseUrl);
         var authUrl = _socialAuth.BuildLinkedInAuthUrl(redirectUri, state);
         return Redirect(authUrl);
     }
@@ -88,6 +93,9 @@ public class SocialAuthController : ControllerBase
     public async Task<IActionResult> LinkedInCallback(
         [FromQuery] string code, [FromQuery] string state)
     {
+        if (IsRelayRequest(state))
+            return RelayToPrApi("linkedin", code, state);
+
         return await HandleCallbackAsync(
             TelemetryTags.Providers.LinkedIn,
             "linkedin",
@@ -104,7 +112,8 @@ public class SocialAuthController : ControllerBase
     public IActionResult GitHubChallenge([FromQuery] string? returnUrl = null)
     {
         var redirectUri = GetCallbackUri("github");
-        var state = BuildState(returnUrl);
+        var prApiBaseUrl = IsPrRelayMode() ? _config["ApiBaseUrl"] : null;
+        var state = BuildState(returnUrl, prApiBaseUrl);
         var authUrl = _socialAuth.BuildGitHubAuthUrl(redirectUri, state);
         return Redirect(authUrl);
     }
@@ -113,6 +122,9 @@ public class SocialAuthController : ControllerBase
     public async Task<IActionResult> GitHubCallback(
         [FromQuery] string code, [FromQuery] string state)
     {
+        if (IsRelayRequest(state))
+            return RelayToPrApi("github", code, state);
+
         return await HandleCallbackAsync(
             TelemetryTags.Providers.GitHub,
             "github",
@@ -138,8 +150,50 @@ public class SocialAuthController : ControllerBase
     /// </summary>
     private string GetCallbackUri(string provider)
     {
-        var baseUrl = _config["ApiBaseUrl"] ?? $"{Request.Scheme}://{Request.Host}";
+        var baseUrl = _config["OAuthCallbackBaseUrl"]
+            ?? _config["ApiBaseUrl"]
+            ?? $"{Request.Scheme}://{Request.Host}";
         return $"{baseUrl}/api/auth/{provider}-callback";
+    }
+
+    private bool IsPrRelayMode()
+    {
+        var oauthCallbackBase = _config["OAuthCallbackBaseUrl"];
+        var apiBase = _config["ApiBaseUrl"];
+        return !string.IsNullOrEmpty(oauthCallbackBase)
+            && oauthCallbackBase != apiBase;
+    }
+
+    private static bool IsRelayRequest(string state) =>
+        state.Split('|').Length >= 3;
+
+    private IActionResult RelayToPrApi(string provider, string code, string state)
+    {
+        var parts = state.Split('|');
+        try
+        {
+            var prApiBaseUrl = Encoding.UTF8.GetString(Convert.FromBase64String(parts[2]));
+
+            var stagingDomain = _config["StagingAppDomain"] ?? "";
+            if (!string.IsNullOrEmpty(stagingDomain)
+                && !prApiBaseUrl.EndsWith(stagingDomain, StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogWarning(
+                    "PR relay rejected: target {Url} is not under staging domain", prApiBaseUrl);
+                return BuildCallbackRedirect(null, state, $"{provider}_auth_failed");
+            }
+
+            var cleanState = $"{parts[0]}|{parts[1]}";
+            var relayUrl = $"{prApiBaseUrl}/api/auth/{provider}-callback"
+                + $"?code={Uri.EscapeDataString(code)}"
+                + $"&state={Uri.EscapeDataString(cleanState)}";
+            return Redirect(relayUrl);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "PR relay failed for provider {Provider}", provider);
+            return BuildCallbackRedirect(null, state, $"{provider}_auth_failed");
+        }
     }
 
     /// <summary>
@@ -152,14 +206,18 @@ public class SocialAuthController : ControllerBase
     /// Why Base64? The returnUrl contains special characters (://) that could
     /// break URL parsing. Base64 makes it safe to embed in a query string.
     /// </summary>
-    private static string BuildState(string? returnUrl)
+    private static string BuildState(string? returnUrl, string? prApiBaseUrl = null)
     {
         var csrfToken = Guid.NewGuid().ToString("N");
         if (string.IsNullOrEmpty(returnUrl))
             return csrfToken;
 
         var encodedUrl = Convert.ToBase64String(Encoding.UTF8.GetBytes(returnUrl));
-        return $"{csrfToken}|{encodedUrl}";
+        if (string.IsNullOrEmpty(prApiBaseUrl))
+            return $"{csrfToken}|{encodedUrl}";
+
+        var encodedPrApi = Convert.ToBase64String(Encoding.UTF8.GetBytes(prApiBaseUrl));
+        return $"{csrfToken}|{encodedUrl}|{encodedPrApi}";
     }
 
     /// <summary>
@@ -178,17 +236,11 @@ public class SocialAuthController : ControllerBase
         string? token, string state, string errorCode)
     {
         string? returnUrl = null;
-        if (state.Contains('|'))
+        var parts = state.Split('|');
+        if (parts.Length >= 2)
         {
-            try
-            {
-                var parts = state.Split('|', 2);
-                returnUrl = Encoding.UTF8.GetString(Convert.FromBase64String(parts[1]));
-            }
-            catch
-            {
-                returnUrl = null;
-            }
+            try { returnUrl = Encoding.UTF8.GetString(Convert.FromBase64String(parts[1])); }
+            catch { returnUrl = null; }
         }
 
         var appScheme = _config["AppScheme"] ?? "myresumebuilder";

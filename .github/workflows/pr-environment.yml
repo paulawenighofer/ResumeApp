@@ -124,6 +124,8 @@ jobs:
             --from-literal=AiService__ApiKey="${{ secrets.AI_SERVICE_APIKEY }}" \
             --from-literal=AiService__Model="${AI_SERVICE_MODEL}" \
             --from-literal=AiService__TimeoutSeconds="${AI_SERVICE_TIMEOUT_SECONDS:-1200}" \
+            --from-literal=OAuthCallbackBaseUrl="https://${{ vars.STAGING_APP_DOMAIN }}" \
+            --from-literal=StagingAppDomain="${{ vars.STAGING_APP_DOMAIN }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Deploy PR manifests
