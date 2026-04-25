@@ -213,11 +213,16 @@ jobs:
             --from-literal=AiService__TimeoutSeconds="${AI_SERVICE_TIMEOUT_SECONDS:-1200}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
-      - name: Deploy Manifests
+      - name: Deploy base manifests
         env:
             KUBECONFIG: ${{ vars.STAGING_RUNNER_KUBECONFIG }}
         run: |
           for file in ./kubernetes/*.yml; do
+            case "$(basename "$file")" in
+              4-api-deployment.yml|21-web-deployment.yml)
+                continue
+                ;;
+            esac
             echo "$file"
             cat "$file" | envsubst | kubectl apply -f -
           done
@@ -228,6 +233,90 @@ jobs:
         run: |
           kubectl delete -n resumeapp configmap grafana-dashboard-config-configmap || true
           kubectl create -n resumeapp configmap grafana-dashboard-config-configmap --from-file=configs/grafana-dashboard.json
+
+      - name: Measure staging API deployment downtime
+        env:
+            KUBECONFIG: ${{ vars.STAGING_RUNNER_KUBECONFIG }}
+        run: |
+          ARTIFACT_DIR="${RUNNER_TEMP}/deployment-observability/staging-api"
+          RAW_K6_LOG="${ARTIFACT_DIR}/resumeapp-api-k6-raw.ndjson"
+          PROCESSED_K6_LOG="${ARTIFACT_DIR}/resumeapp-api-k6-events.ndjson"
+          SUMMARY_JSON="${ARTIFACT_DIR}/resumeapp-api-deployment-summary.json"
+          DEPLOYMENT_ID="staging-${GITHUB_RUN_NUMBER}-${GITHUB_SHA}"
+          TARGET_URL="https://${STAGING_APP_DOMAIN}/health/ready"
+          LOKI_PORT=3111
+
+          mkdir -p "${ARTIFACT_DIR}"
+
+          set +e
+          docker run --rm \
+            -v "$PWD:/work" \
+            -w /work \
+            -e TARGET_URL="${TARGET_URL}" \
+            -e DEPLOYMENT_ID="${DEPLOYMENT_ID}" \
+            -e ENVIRONMENT="staging" \
+            -e SERVICE_NAME="resumeapp-api" \
+            -e WORKFLOW_NAME="${GITHUB_WORKFLOW}" \
+            -e RUN_ID="${GITHUB_RUN_ID}" \
+            -e PROBE_INTERVAL_MS="100" \
+            -e MAX_DURATION="10m" \
+            grafana/k6:0.49.0 run --quiet --no-summary /work/scripts/observability/deployment-uptime.js \
+            > "${RAW_K6_LOG}" 2>&1 &
+          K6_PID=$!
+
+          sleep 2
+
+          cat kubernetes/4-api-deployment.yml | envsubst | kubectl apply -f -
+          kubectl rollout status deployment/resumeapp-api -n resumeapp --timeout=300s
+          ROLLOUT_STATUS=$?
+
+          kill -TERM ${K6_PID} 2>/dev/null || true
+          wait ${K6_PID} 2>/dev/null
+          K6_STATUS=$?
+          set -e
+
+          echo "k6 exit code: ${K6_STATUS}"
+
+          kubectl port-forward svc/loki-service "${LOKI_PORT}:3100" -n resumeapp > "${ARTIFACT_DIR}/loki-port-forward.log" 2>&1 &
+          PORT_FORWARD_PID=$!
+          sleep 5
+
+          set +e
+          nix-shell -p python3 --run "python3 scripts/observability/prepare_and_push_deployment_logs.py --input '${RAW_K6_LOG}' --output '${PROCESSED_K6_LOG}' --summary-output '${SUMMARY_JSON}' --deployment-id '${DEPLOYMENT_ID}' --environment 'staging' --service 'resumeapp-api' --workflow '${GITHUB_WORKFLOW}' --run-id '${GITHUB_RUN_ID}' --target-url '${TARGET_URL}' --probe-interval-ms 100 --loki-url 'http://127.0.0.1:${LOKI_PORT}/loki/api/v1/push'"
+          PREP_STATUS=$?
+          kill -TERM ${PORT_FORWARD_PID} 2>/dev/null || true
+          wait ${PORT_FORWARD_PID} 2>/dev/null || true
+          set -e
+
+          if [ ${PREP_STATUS} -ne 0 ]; then
+            echo "::warning::Failed to process or push staging deployment downtime logs to Loki."
+          fi
+
+          if [ -f "${SUMMARY_JSON}" ]; then
+            cat "${SUMMARY_JSON}"
+          fi
+
+          if [ ${ROLLOUT_STATUS} -ne 0 ]; then
+            exit ${ROLLOUT_STATUS}
+          fi
+
+      - name: Upload staging API deployment observability artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging-api-deployment-observability-${{ github.run_number }}
+          path: |
+            ${{ runner.temp }}/deployment-observability/staging-api/resumeapp-api-k6-raw.ndjson
+            ${{ runner.temp }}/deployment-observability/staging-api/resumeapp-api-k6-events.ndjson
+            ${{ runner.temp }}/deployment-observability/staging-api/resumeapp-api-deployment-summary.json
+            ${{ runner.temp }}/deployment-observability/staging-api/loki-port-forward.log
+
+      - name: Deploy Web rollout
+        env:
+            KUBECONFIG: ${{ vars.STAGING_RUNNER_KUBECONFIG }}
+        run: |
+          cat kubernetes/21-web-deployment.yml | envsubst | kubectl apply -f -
+          kubectl rollout status deployment/resumeapp-web -n resumeapp --timeout=300s
 
       - name: Restart observability pods to pick up new configmaps
         env:

@@ -656,7 +656,7 @@
           "refId": "A"
         }
       ],
-      "title": "API Uptime Status",
+      "title": "Current API Status",
       "type": "stat"
     },
     {
@@ -727,7 +727,7 @@
       },
       "fieldConfig": {
         "defaults": {
-          "decimals": 1,
+          "decimals": 0,
           "min": 0,
           "thresholds": {
             "mode": "absolute",
@@ -745,7 +745,7 @@
               }
             ]
           },
-          "unit": "m"
+          "unit": "s"
         },
         "overrides": []
       },
@@ -773,7 +773,7 @@
       "pluginVersion": "12.4.2",
       "targets": [
         {
-          "expr": "(1 - avg_over_time(probe_success{job=\"blackbox-api-uptime\",target=\"resumeapp-api\"}[24h])) * 1440",
+          "expr": "(1 - avg_over_time(probe_success{job=\"blackbox-api-uptime\",target=\"resumeapp-api\"}[24h])) * 86400",
           "refId": "A"
         }
       ],
@@ -819,7 +819,7 @@
           "refId": "A"
         }
       ],
-      "title": "API Probe Duration",
+      "title": "Current API Probe Duration",
       "type": "stat"
     },
     {
@@ -868,7 +868,7 @@
           "refId": "A"
         }
       ],
-      "title": "API Uptime Trend",
+      "title": "API Uptime Timeline",
       "type": "timeseries"
     },
     {
@@ -906,7 +906,332 @@
           "refId": "A"
         }
       ],
-      "title": "API Probe Duration Trend",
+      "title": "API Probe Latency",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "${DS_LOKI}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 250
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 54
+      },
+      "id": 23,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "expr": "last_over_time({source=\"deployment-k6\",service=\"resumeapp-api\"} | json | event_type=\"summary\" | unwrap estimated_downtime_ms [30d])",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Last Deployment Downtime",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "${DS_LOKI}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 3,
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red"
+              },
+              {
+                "color": "orange",
+                "value": 99
+              },
+              {
+                "color": "green",
+                "value": 99.9
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 54
+      },
+      "id": 24,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "expr": "last_over_time({source=\"deployment-k6\",service=\"resumeapp-api\"} | json | event_type=\"summary\" | unwrap success_percent [30d])",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Last Deployment Availability",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "${DS_LOKI}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 54
+      },
+      "id": 25,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "expr": "last_over_time({source=\"deployment-k6\",service=\"resumeapp-api\"} | json | event_type=\"summary\" | unwrap failed_probes [30d])",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Last Deployment Failed Probes",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "${DS_LOKI}"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 54
+      },
+      "id": 26,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": true,
+        "showLabels": false,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "expr": "{source=\"deployment-k6\",service=\"resumeapp-api\"} | json | event_type=\"summary\"",
+          "refId": "A"
+        }
+      ],
+      "title": "Deployment Window",
+      "type": "logs"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "${DS_LOKI}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "text": "Failed"
+                },
+                "1": {
+                  "text": "Healthy"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red"
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 58
+      },
+      "id": 27,
+      "options": {
+        "colWidth": 0.9,
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "mergeValues": false,
+        "rowHeight": 0.9,
+        "showValue": "never",
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "expr": "last_over_time({source=\"deployment-k6\",service=\"resumeapp-api\"} | json | event_type=\"probe\" | unwrap success_value [200ms])",
+          "legendFormat": "deployment probes",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Deployment Probe Timeline",
+      "type": "state-timeline"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "${DS_LOKI}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 58
+      },
+      "id": 28,
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "expr": "last_over_time({source=\"deployment-k6\",service=\"resumeapp-api\"} | json | event_type=\"probe\" | unwrap duration_ms [200ms])",
+          "legendFormat": "deployment latency",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Deployment Probe Latency",
       "type": "timeseries"
     },
     {
@@ -914,7 +1239,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 54
+        "y": 66
       },
       "id": 15,
       "options": {
