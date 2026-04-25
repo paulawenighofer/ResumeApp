@@ -6,10 +6,10 @@ on:
   workflow_dispatch:
 
 env:
-  KUBECONFIG: /home/bishwas/.kube/config
-  CERT_DIR: /home/bishwas/certs/resumeapp
-  CERT_LIVE: /home/bishwas/certs/resumeapp/letsencrypt/live/resume-app-pb.duckdns.org
-  CERT_WORK: /home/bishwas/certs/resumeapp/work
+  KUBECONFIG: ${{ vars.STAGING_RUNNER_KUBECONFIG }}
+  CERT_DIR: ${{ vars.STAGING_RUNNER_CERT_DIR }}
+  CERT_LIVE: ${{ vars.STAGING_RUNNER_CERT_DIR }}/letsencrypt/live/resume-app-pb.duckdns.org
+  CERT_WORK: ${{ vars.STAGING_RUNNER_CERT_DIR }}/work
 
 jobs:
   renew-and-deploy:
@@ -29,7 +29,7 @@ jobs:
               certonly \
               --non-interactive \
               --agree-tos \
-              --email bishwasbisu@gmail.com \
+              --email "${{ vars.STAGING_CERTBOT_EMAIL }}" \
               --config-dir /etc/letsencrypt \
               --work-dir /var/lib/letsencrypt \
               --logs-dir /var/log/letsencrypt \
@@ -66,4 +66,4 @@ jobs:
         run: |
           curl -s -o /dev/null \
             -d "SSL certificate renewal failed. Check workflow run for details." \
-            ntfy.sh/resume-app-pb
+            ${{ vars.STAGING_NTFY_TOPIC_URL }}

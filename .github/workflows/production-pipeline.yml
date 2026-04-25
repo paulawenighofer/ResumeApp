@@ -52,11 +52,11 @@ jobs:
           az containerapp update \
             --name "${{ secrets.AZURE_CONTAINER_APP_NAME }}" \
             --resource-group "${{ secrets.AZURE_RESOURCE_GROUP }}" \
-            --set-env-vars FeatureFlags__EmailOtpDelivery="${FEATURES_EMAIL_OTP_DELIVERY:-true}" AiService__BaseUrl="${AI_SERVICE_BASE_URL}" AiService__ApiKey="${AI_SERVICE_API_KEY}" AiService__Model="${AI_SERVICE_MODEL}" AiService__TimeoutSeconds="${AI_SERVICE_TIMEOUT_SECONDS:-60}"
+            --set-env-vars FeatureFlags__EmailOtpDelivery="${FEATURES_EMAIL_OTP_DELIVERY:-true}" AiService__BaseUrl="${AI_SERVICE_BASE_URL}" AiService__ApiKey="${AI_SERVICE_API_KEY}" AiService__Model="${AI_SERVICE_MODEL}" AiService__TimeoutSeconds="${AI_SERVICE_TIMEOUT_SECONDS:-60}" AppScheme="${{ vars.PRODUCTION_APP_SCHEME }}" Jwt__ExpirationInMinutes="${{ vars.PRODUCTION_JWT_EXPIRATION_MINUTES }}"
             
 
 
       - name: Notify on failure
         if: failure()
         run: |
-          curl -d "Production Deployment on Azure Failed for Resume APP - Please fix it" ntfy.sh/resume-app-pb
+          curl -d "Production Deployment on Azure Failed for Resume APP - Please fix it" ${{ vars.PRODUCTION_NTFY_TOPIC_URL }}

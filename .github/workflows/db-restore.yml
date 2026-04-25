@@ -13,9 +13,9 @@ jobs:
     runs-on: self-hosted
     if: github.event.inputs.confirm == 'RESTORE'
     env:
-      KUBECONFIG: /home/bishwas/.kube/config
-      BACKUP_DIR: /home/bishwas/pg-backups
-      RESTORE_STAGING_DIR: /home/bishwas/pg-restore-staging
+      KUBECONFIG: ${{ vars.STAGING_RUNNER_KUBECONFIG }}
+      BACKUP_DIR: ${{ vars.STAGING_RUNNER_BACKUP_DIR }}
+      RESTORE_STAGING_DIR: ${{ vars.STAGING_RUNNER_BACKUP_DIR }}/restore-staging
       KUBERNETES_NAMESPACE: resumeapp
       KUBERNETES_DEPLOYMENT: resumeapp-postgres
       KUBERNETES_APP_DEPLOYMENT: resumeapp-api
@@ -173,10 +173,10 @@ jobs:
         if: failure()
         run: |
           curl -d "Postgres RESTORE FAILED for ResumeApp." \
-            https://ntfy.sh/resume-app-pb
+            ${{ vars.STAGING_NTFY_TOPIC_URL }}
 
       - name: Notify on success
         if: success()
         run: |
           curl -d "Postgres restore completed in ${{ env.RESTORE_SEC }}.${{ env.RESTORE_REM }}s." \
-            https://ntfy.sh/resume-app-pb
+            ${{ vars.STAGING_NTFY_TOPIC_URL }}

@@ -16,17 +16,17 @@ jobs:
       AI_SERVICE_TIMEOUT_SECONDS: ${{ vars.STAGING_AI_SERVICE_TIMEOUTSECONDS }}
       PR_NUMBER: ${{ github.event.pull_request.number }}
       PR_NAMESPACE: resumeapp-pr-${{ github.event.pull_request.number }}
-      PR_HOSTNAME: pr-${{ github.event.pull_request.number }}.resume-app-pb.duckdns.org
-      PR_GRAFANA_HOST: pr-${{ github.event.pull_request.number }}-grafana.resume-app-pb.duckdns.org
-      PR_PROMETHEUS_HOST: pr-${{ github.event.pull_request.number }}-prometheus.resume-app-pb.duckdns.org
-      PR_WEB_HOST: pr-${{ github.event.pull_request.number }}-web.resume-app-pb.duckdns.org
+      PR_HOSTNAME: pr-${{ github.event.pull_request.number }}.${{ vars.STAGING_APP_DOMAIN }}
+      PR_GRAFANA_HOST: pr-${{ github.event.pull_request.number }}-grafana.${{ vars.STAGING_APP_DOMAIN }}
+      PR_PROMETHEUS_HOST: pr-${{ github.event.pull_request.number }}-prometheus.${{ vars.STAGING_APP_DOMAIN }}
+      PR_WEB_HOST: pr-${{ github.event.pull_request.number }}-web.${{ vars.STAGING_APP_DOMAIN }}
       IMAGE_TAG: pr-${{ github.event.pull_request.number }}
-      KUBECONFIG: /home/bishwas/.kube/config
+      KUBECONFIG: ${{ vars.STAGING_RUNNER_KUBECONFIG }}
       INTEGRATION_TEST_NAMESPACE: resumeapp-it-pr-${{ github.event.pull_request.number }}-${{ github.run_id }}
       GITHUB_REPOSITORY: ${{ github.repository }}
       GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
       POSTGRES_USER: testuser
-      POSTGRES_PASSWORD: testpassword_change_in_ci
+      POSTGRES_PASSWORD: ${{ secrets.CI_POSTGRES_PASSWORD }}
       POSTGRES_DB: integrationtestdb
 
     steps:
@@ -69,13 +69,13 @@ jobs:
 
       - name: Build and push PR Docker image
         run: |
-          docker build -t paulawenighofer/resumeapp:$IMAGE_TAG .
-          docker push paulawenighofer/resumeapp:$IMAGE_TAG
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/resumeapp:$IMAGE_TAG .
+          docker push ${{ secrets.DOCKER_USERNAME }}/resumeapp:$IMAGE_TAG
 
       - name: Build and push PR Web Docker image
         run: |
-          docker build -f Dockerfile.web -t paulawenighofer/resumeapp-web:$IMAGE_TAG .
-          docker push paulawenighofer/resumeapp-web:$IMAGE_TAG
+          docker build -f Dockerfile.web -t ${{ secrets.DOCKER_USERNAME }}/resumeapp-web:$IMAGE_TAG .
+          docker push ${{ secrets.DOCKER_USERNAME }}/resumeapp-web:$IMAGE_TAG
 
       - name: Apply namespace
         run: |
@@ -103,14 +103,14 @@ jobs:
             --from-literal=Jwt__Key="${{ secrets.JWT_KEY }}" \
             --from-literal=Jwt__Issuer="${{ secrets.JWT_ISSUER }}" \
             --from-literal=Jwt__Audience="${{ secrets.JWT_AUDIENCE }}" \
-            --from-literal=Jwt__ExpirationInMinutes="1" \
+            --from-literal=Jwt__ExpirationInMinutes="${{ vars.STAGING_JWT_EXPIRATION_MINUTES }}" \
             --from-literal=Google__ClientId="${{ secrets.GOOGLE__CLIENTID }}" \
             --from-literal=Google__ClientSecret="${{ secrets.GOOGLE_CLIENTSECRET }}" \
             --from-literal=LinkedIn__ClientId="${{ secrets.LINKEDIN_CLIENTID }}" \
             --from-literal=LinkedIn__ClientSecret="${{ secrets.LINKEDIN_CLIENTSECRET }}" \
             --from-literal=GitHub__ClientId="${{ secrets.GH_CLIENT_ID }}" \
             --from-literal=GitHub__ClientSecret="${{ secrets.GH_CLIENT_SECRET }}" \
-            --from-literal=AppScheme="myresumebuilder" \
+            --from-literal=AppScheme="${{ vars.STAGING_APP_SCHEME }}" \
             --from-literal=ApiBaseUrl="https://${PR_HOSTNAME}" \
             --from-literal=POSTGRES_USER="${{ secrets.POSTGRES_USER }}" \
             --from-literal=POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}" \
@@ -216,7 +216,7 @@ jobs:
       - name: Notify on failure
         if: failure()
         run: |
-          curl -d "PR #${PR_NUMBER} environment deployment failed" ntfy.sh/resume-app-pb
+          curl -d "PR #${PR_NUMBER} environment deployment failed" ${{ vars.STAGING_NTFY_TOPIC_URL }}
 
   cleanup-pr-environment:
     name: Cleanup PR Environment
@@ -226,7 +226,7 @@ jobs:
       PR_NUMBER: ${{ github.event.pull_request.number }}
       PR_NAMESPACE: resumeapp-pr-${{ github.event.pull_request.number }}
       IMAGE_TAG: pr-${{ github.event.pull_request.number }}
-      KUBECONFIG: /home/bishwas/.kube/config
+      KUBECONFIG: ${{ vars.STAGING_RUNNER_KUBECONFIG }}
 
     steps:
       - name: Delete Kubernetes namespace
@@ -247,7 +247,7 @@ jobs:
             https://hub.docker.com/v2/users/login/ | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
           curl -s -X DELETE \
             -H "Authorization: JWT ${TOKEN}" \
-            "https://hub.docker.com/v2/repositories/paulawenighofer/resumeapp/tags/${IMAGE_TAG}/"
+            "https://hub.docker.com/v2/repositories/${{ secrets.DOCKER_USERNAME }}/resumeapp/tags/${IMAGE_TAG}/"
           echo "Deleted Docker Hub image tag ${IMAGE_TAG}"
 
       - name: Delete Web Docker Hub image tag
@@ -258,7 +258,7 @@ jobs:
             https://hub.docker.com/v2/users/login/ | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
           curl -s -X DELETE \
             -H "Authorization: JWT ${TOKEN}" \
-            "https://hub.docker.com/v2/repositories/paulawenighofer/resumeapp-web/tags/${IMAGE_TAG}/"
+            "https://hub.docker.com/v2/repositories/${{ secrets.DOCKER_USERNAME }}/resumeapp-web/tags/${IMAGE_TAG}/"
           echo "Deleted Docker Hub web image tag ${IMAGE_TAG}"
 
       - name: Post cleanup comment
@@ -272,4 +272,4 @@ jobs:
       - name: Notify on failure
         if: failure()
         run: |
-          curl -d "PR #${PR_NUMBER} environment cleanup failed" ntfy.sh/resume-app-pb
+          curl -d "PR #${PR_NUMBER} environment cleanup failed" ${{ vars.STAGING_NTFY_TOPIC_URL }}

@@ -11,8 +11,8 @@ jobs:
     runs-on: self-hosted
 
     env:
-      KUBECONFIG: /home/bishwas/.kube/config
-      BACKUP_DIR: /home/bishwas/pg-backups
+      KUBECONFIG: ${{ vars.STAGING_RUNNER_KUBECONFIG }}
+      BACKUP_DIR: ${{ vars.STAGING_RUNNER_BACKUP_DIR }}
       RETENTION_COUNT: 4
       KUBERNETES_NAMESPACE: resumeapp
       KUBERNETES_DEPLOYMENT: resumeapp-postgres
@@ -64,4 +64,4 @@ jobs:
         if: failure()
         run: |
           curl -d "Postgres backup FAILED for ResumeApp — check GitHub Actions." \
-            ntfy.sh/resume-app-pb
+            ${{ vars.STAGING_NTFY_TOPIC_URL }}
