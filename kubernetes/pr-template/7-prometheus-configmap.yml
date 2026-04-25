@@ -13,3 +13,26 @@ data:
         static_configs:
           - targets: ['otel-collector-service:8889']
         scrape_interval: 5s
+
+      - job_name: 'blackbox-api-uptime'
+        metrics_path: /probe
+        params:
+          module: [http_2xx]
+        static_configs:
+          - targets:
+              - https://${PR_HOSTNAME}/health/ready
+            labels:
+              environment: pr
+              instance: api
+              target: resumeapp-api
+        relabel_configs:
+          - source_labels: [__address__]
+            target_label: __param_target
+          - source_labels: [environment]
+            target_label: environment
+          - source_labels: [instance]
+            target_label: instance
+          - source_labels: [target]
+            target_label: target
+          - target_label: __address__
+            replacement: blackbox-exporter-service:9115

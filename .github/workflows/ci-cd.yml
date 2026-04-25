@@ -154,6 +154,7 @@ jobs:
       AI_SERVICE_BASE_URL: ${{ vars.STAGING_AI_SERVICE_BASEURL }}
       AI_SERVICE_MODEL: ${{ vars.STAGING_AI_SERVICE_MODEL }}
       AI_SERVICE_TIMEOUT_SECONDS: ${{ vars.STAGING_AI_SERVICE_TIMEOUTSECONDS }}
+      STAGING_APP_DOMAIN: ${{ vars.STAGING_APP_DOMAIN }}
     steps:
       - name: Check out repository code
         uses: actions/checkout@v5
@@ -232,6 +233,7 @@ jobs:
         env:
             KUBECONFIG: ${{ vars.STAGING_RUNNER_KUBECONFIG }}
         run: |
+          kubectl rollout restart deployment/prometheus -n resumeapp
           kubectl rollout restart deployment/grafana -n resumeapp
           kubectl rollout restart deployment/otel-collector -n resumeapp
 
