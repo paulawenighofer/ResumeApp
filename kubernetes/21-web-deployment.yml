@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: resumeapp-web
+  namespace: resumeapp
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  minReadySeconds: 5
+  selector:
+    matchLabels:
+      app: resumeapp-web
+  template:
+    metadata:
+      labels:
+        app: resumeapp-web
+    spec:
+      containers:
+        - name: resumeapp-web
+          image: paulawenighofer/resumeapp-web:$GITHUB_RUN_NUMBER
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5100
+          env:
+            - name: ASPNETCORE_URLS
+              value: http://+:5100
+            - name: DOTNET_USE_POLLING_FILE_WATCHER
+              value: "1"
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Development
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://otel-collector-service:4317
+            - name: OTEL_SERVICE_NAME
+              value: ResumeAppWeb
+          envFrom:
+            - secretRef:
+                name: resume-app-secrets

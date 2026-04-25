@@ -220,16 +220,6 @@ builder.Services.AddSingleton<UserActivityTracker>();
 // =============================================
 // SECTION 5: RATE LIMITING
 // =============================================
-// Protects OTP endpoints against brute-force attacks.
-// "otp-verify"  — applied to verify-otp and reset-password: 5 attempts per 15 min per IP.
-//   With 1,000,000 possible codes an attacker would need ~200,000 windows to brute-force
-//   a single code, making automated attacks impractical within the 10-minute OTP window.
-// "otp-send"    — applied to forgot-password and resend-otp: 3 sends per 10 min per IP.
-//   Prevents email flooding / SMS-bombing style abuse.
-// "resume-generation" — applied to POST /api/resumes/drafts: 10 per hour per user.
-//   Protects AI generation service from being hammered.
-// "resume-pdf-generation" — applied to POST /api/resumes/{id}/generate-pdf: 10 per hour per user.
-//   Prevents repeated PDF regeneration abuse and blob churn.
 var otpVerifyPermitLimit = builder.Configuration.GetValue<int?>("RateLimiting:OtpVerify:PermitLimit") ?? 5;
 var otpVerifyWindowMinutes = builder.Configuration.GetValue<int?>("RateLimiting:OtpVerify:WindowMinutes") ?? 15;
 var otpVerifySegmentsPerWindow = builder.Configuration.GetValue<int?>("RateLimiting:OtpVerify:SegmentsPerWindow") ?? 3;
@@ -398,12 +388,6 @@ app.MapGet("/health/startup", () =>
 
 app.MapGet("/health/ready", async (AppDbContext db, IConfiguration config, ILogger<Program> logger, CancellationToken cancellationToken) =>
 {
-    var connectionString = config.GetConnectionString("DefaultConnection");
-    var masked = connectionString != null
-        ? System.Text.RegularExpressions.Regex.Replace(connectionString, @"Password=[^;]*", "Password=***")
-        : "NOT SET";
-
-    logger.LogInformation("Connection string: {ConnectionString}", masked);
     try
     {
         var canConnect = await db.Database.CanConnectAsync(cancellationToken);
