@@ -163,6 +163,7 @@ jobs:
 
       - name: Restart observability pods to pick up new configmaps
         run: |
+          kubectl rollout restart deployment/prometheus -n ${PR_NAMESPACE}
           kubectl rollout restart deployment/grafana -n ${PR_NAMESPACE}
           kubectl rollout restart deployment/otel-collector -n ${PR_NAMESPACE}
 

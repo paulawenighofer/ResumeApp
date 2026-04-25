@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blackbox-exporter
+  namespace: resumeapp
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  minReadySeconds: 5
+  selector:
+    matchLabels:
+      app: blackbox-exporter
+  template:
+    metadata:
+      labels:
+        app: blackbox-exporter
+    spec:
+      containers:
+        - name: blackbox-exporter
+          image: prom/blackbox-exporter:v0.26.0
+          args:
+            - --config.file=/etc/blackbox_exporter/blackbox.yml
+          ports:
+            - containerPort: 9115
+          startupProbe:
+            httpGet:
+              path: /-/healthy
+              port: 9115
+            periodSeconds: 5
+            failureThreshold: 12
+          readinessProbe:
+            httpGet:
+              path: /-/healthy
+              port: 9115
+            periodSeconds: 5
+            initialDelaySeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: 9115
+            periodSeconds: 10
+            initialDelaySeconds: 15
+          volumeMounts:
+            - name: config
+              mountPath: /etc/blackbox_exporter
+      volumes:
+        - name: config
+          configMap:
+            name: blackbox-exporter-config
