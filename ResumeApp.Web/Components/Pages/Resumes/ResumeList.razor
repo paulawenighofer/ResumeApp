@@ -1,0 +1,118 @@
+@page "/resumes"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@inject ApiClient Api
+@inject NavigationManager Nav
+
+<PageTitle>My Resumes — Resume Builder</PageTitle>
+
+<div class="d-flex align-center justify-space-between mb-6">
+    <div>
+        <MudText Typo="Typo.h4" Style="font-weight:700;">My Resumes</MudText>
+        <MudText Typo="Typo.body1" Color="Color.Secondary">AI-generated resumes tailored to each job</MudText>
+    </div>
+    <MudButton Variant="Variant.Filled"
+               Color="Color.Primary"
+               StartIcon="@Icons.Material.Filled.AutoAwesome"
+               Href="/resumes/generate">
+        Generate New
+    </MudButton>
+</div>
+
+@if (_loading)
+{
+    <div class="d-flex justify-center mt-8">
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    </div>
+}
+else if (_resumes.Count == 0)
+{
+    <MudCard Elevation="2" Class="rounded-xl">
+        <MudCardContent Class="text-center pa-12">
+            <MudIcon Icon="@Icons.Material.Filled.Article" Size="Size.Large" Color="Color.Primary" Class="mb-4" Style="font-size:4rem;" />
+            <MudText Typo="Typo.h6" GutterBottom="true">No resumes yet</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">
+                Generate your first AI-tailored resume by pasting a job description.
+            </MudText>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/resumes/generate"
+                       StartIcon="@Icons.Material.Filled.AutoAwesome">
+                Generate Resume
+            </MudButton>
+        </MudCardContent>
+    </MudCard>
+}
+else
+{
+    <MudGrid Spacing="3">
+        @foreach (var resume in _resumes)
+        {
+            <MudItem xs="12" sm="6" lg="4">
+                <MudCard Elevation="2"
+                         Class="rounded-xl h-100"
+                         Style="cursor:pointer;"
+                         @onclick="@(() => Nav.NavigateTo("/resumes/" + resume.Id))">
+                    <MudCardContent>
+                        <div class="d-flex align-start justify-space-between mb-2">
+                            <MudIcon Icon="@Icons.Material.Filled.Business" Color="Color.Primary" Class="mr-2 mt-1" />
+                            <MudChip T="string" Size="Size.Small" Color="@GetStatusColor(resume.Status)" Label="true">
+                                @FormatStatus(resume.Status)
+                            </MudChip>
+                        </div>
+                        <MudText Typo="Typo.h6" Style="font-weight:600;" GutterBottom="true">
+                            @resume.TargetCompany
+                        </MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            Created @resume.CreatedAt.ToString("MMM dd, yyyy")
+                        </MudText>
+                        @if (resume.UpdatedAt.HasValue)
+                        {
+                            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-block">
+                                Updated @resume.UpdatedAt.Value.ToString("MMM dd, yyyy")
+                            </MudText>
+                        }
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Variant="Variant.Text" Color="Color.Primary" Size="Size.Small"
+                                   EndIcon="@Icons.Material.Filled.ChevronRight">
+                            View Details
+                        </MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+}
+
+@code {
+    private bool _loading = true;
+    private List<ResumeListItemDto> _resumes = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        try { _resumes = await Api.GetResumesAsync(); }
+        finally { _loading = false; }
+    }
+
+    private static Color GetStatusColor(Shared.Models.ResumeDraftStatus status) => status switch
+    {
+        Shared.Models.ResumeDraftStatus.PdfReady => Color.Success,
+        Shared.Models.ResumeDraftStatus.Approved => Color.Info,
+        Shared.Models.ResumeDraftStatus.DraftReady => Color.Primary,
+        Shared.Models.ResumeDraftStatus.Pending or Shared.Models.ResumeDraftStatus.Generated => Color.Warning,
+        Shared.Models.ResumeDraftStatus.DraftFailed or Shared.Models.ResumeDraftStatus.PdfFailed => Color.Error,
+        _ => Color.Default
+    };
+
+    private static string FormatStatus(Shared.Models.ResumeDraftStatus status) => status switch
+    {
+        Shared.Models.ResumeDraftStatus.Pending => "Pending",
+        Shared.Models.ResumeDraftStatus.Generated => "Processing",
+        Shared.Models.ResumeDraftStatus.DraftReady => "Ready to Review",
+        Shared.Models.ResumeDraftStatus.DraftFailed => "Generation Failed",
+        Shared.Models.ResumeDraftStatus.Approved => "Approved",
+        Shared.Models.ResumeDraftStatus.PdfGenerating => "Generating PDF",
+        Shared.Models.ResumeDraftStatus.PdfReady => "PDF Ready",
+        Shared.Models.ResumeDraftStatus.PdfFailed => "PDF Failed",
+        _ => status.ToString()
+    };
+}

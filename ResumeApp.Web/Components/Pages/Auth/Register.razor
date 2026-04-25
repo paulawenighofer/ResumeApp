@@ -1,0 +1,118 @@
+@page "/register"
+@rendermode InteractiveServer
+@layout AuthLayout
+@inject ApiClient Api
+@inject NavigationManager Nav
+
+<PageTitle>Create Account — Resume Builder</PageTitle>
+
+<MudText Typo="Typo.h5" GutterBottom="true" Style="font-weight:600;">Create account</MudText>
+<MudText Typo="Typo.body2" Class="mb-6" Color="Color.Secondary">Start building your perfect resume</MudText>
+
+@if (_errorMessage is not null)
+{
+    <MudAlert Severity="Severity.Error" Class="mb-4" Dense="true">@_errorMessage</MudAlert>
+}
+
+<EditForm Model="_form" OnValidSubmit="HandleRegister">
+    <DataAnnotationsValidator />
+
+    <div class="d-flex gap-3 mb-3">
+        <MudTextField @bind-Value="_form.FirstName"
+                      Label="First name"
+                      Variant="Variant.Outlined"
+                      For="@(() => _form.FirstName)" />
+        <MudTextField @bind-Value="_form.LastName"
+                      Label="Last name"
+                      Variant="Variant.Outlined"
+                      For="@(() => _form.LastName)" />
+    </div>
+
+    <MudTextField @bind-Value="_form.Email"
+                  Label="Email"
+                  InputType="InputType.Email"
+                  Variant="Variant.Outlined"
+                  Class="mb-3"
+                  Adornment="Adornment.Start"
+                  AdornmentIcon="@Icons.Material.Filled.Email"
+                  For="@(() => _form.Email)" />
+
+    <MudTextField @bind-Value="_form.Password"
+                  Label="Password"
+                  InputType="@_passwordInputType"
+                  Variant="Variant.Outlined"
+                  Class="mb-4"
+                  HelperText="Minimum 8 characters"
+                  Adornment="Adornment.End"
+                  AdornmentIcon="@_passwordIcon"
+                  OnAdornmentClick="TogglePassword"
+                  For="@(() => _form.Password)" />
+
+    <MudButton ButtonType="ButtonType.Submit"
+               Variant="Variant.Filled"
+               Color="Color.Primary"
+               FullWidth="true"
+               Size="Size.Large"
+               Disabled="_loading"
+               Class="mb-4">
+        @if (_loading)
+        {
+            <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+        }
+        Create Account
+    </MudButton>
+</EditForm>
+
+<MudText Align="Align.Center" Typo="Typo.body2">
+    Already have an account?
+    <MudLink Href="/login"> Sign in</MudLink>
+</MudText>
+
+@code {
+    private readonly RegisterDto _form = new();
+    private bool _loading;
+    private string? _errorMessage;
+    private InputType _passwordInputType = InputType.Password;
+    private string _passwordIcon = Icons.Material.Filled.VisibilityOff;
+
+    private async Task HandleRegister()
+    {
+        _loading = true;
+        _errorMessage = null;
+
+        try
+        {
+            var (success, message) = await Api.RegisterAsync(_form);
+            if (success)
+            {
+                Nav.NavigateTo($"/verify-otp?email={Uri.EscapeDataString(_form.Email)}");
+            }
+            else
+            {
+                _errorMessage = message ?? "Registration failed. Please try again.";
+            }
+        }
+        catch
+        {
+            _errorMessage = "Unable to connect. Please try again.";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void TogglePassword()
+    {
+        if (_passwordInputType == InputType.Password)
+        {
+            _passwordInputType = InputType.Text;
+            _passwordIcon = Icons.Material.Filled.Visibility;
+        }
+        else
+        {
+            _passwordInputType = InputType.Password;
+            _passwordIcon = Icons.Material.Filled.VisibilityOff;
+        }
+    }
+}

@@ -1,0 +1,197 @@
+@page "/"
+@page "/dashboard"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@inject ApiClient Api
+@inject NavigationManager Nav
+
+<PageTitle>Dashboard — Resume Builder</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-1" Style="font-weight:700;">
+    Welcome back, <AuthorizeView><Authorized>@context.User.FindFirstValue(ClaimTypes.GivenName)</Authorized></AuthorizeView>
+</MudText>
+<MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-6">
+    Here's your profile completion overview.
+</MudText>
+
+@if (_loading)
+{
+    <div class="d-flex justify-center mt-8">
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    </div>
+}
+else
+{
+    <MudGrid Spacing="3">
+        <!-- Profile completion card -->
+        <MudItem xs="12" md="8">
+            <MudCard Elevation="2" Class="rounded-xl">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6" Style="font-weight:600;">Profile Completion</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            Complete your profile to get better AI-tailored resumes
+                        </MudText>
+                    </CardHeaderContent>
+                    <CardHeaderActions>
+                        <MudChip T="string" Color="@(CompletionPercent == 100 ? Color.Success : Color.Primary)" Size="Size.Small">
+                            @CompletionPercent%
+                        </MudChip>
+                    </CardHeaderActions>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudProgressLinear Color="@(CompletionPercent == 100 ? Color.Success : Color.Primary)"
+                                       Value="@CompletionPercent"
+                                       Rounded="true"
+                                       Size="Size.Medium"
+                                       Class="mb-6" />
+                    <MudGrid Spacing="2">
+                        @foreach (var sec in _sections)
+                        {
+                            <MudItem xs="12" sm="6">
+                                <MudPaper Elevation="0"
+                                          Class="pa-3 rounded-lg d-flex align-center"
+                                          Style="background:rgba(255,255,255,0.04); cursor:pointer;"
+                                          @onclick="@(() => Nav.NavigateTo(sec.Href))">
+                                    <MudIcon Icon="@sec.Icon"
+                                             Color="@(sec.Count > 0 ? Color.Success : Color.Default)"
+                                             Class="mr-3" />
+                                    <div class="flex-grow-1">
+                                        <MudText Typo="Typo.body1" Style="font-weight:500;">@sec.Name</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                            @(sec.Count > 0 ? $"{sec.Count} entr{(sec.Count == 1 ? "y" : "ies")}" : "Not added yet")
+                                        </MudText>
+                                    </div>
+                                    @if (sec.Count > 0)
+                                    {
+                                        <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" />
+                                    }
+                                    else
+                                    {
+                                        <MudIcon Icon="@Icons.Material.Filled.ChevronRight" Color="Color.Default" Size="Size.Small" />
+                                    }
+                                </MudPaper>
+                            </MudItem>
+                        }
+                    </MudGrid>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        <!-- Quick actions -->
+        <MudItem xs="12" md="4">
+            <MudCard Elevation="2" Class="rounded-xl mb-3">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6" Style="font-weight:600;">Quick Actions</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent Class="pt-0">
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.AutoAwesome"
+                               FullWidth="true"
+                               Class="mb-2"
+                               Href="/resumes/generate">
+                        Generate New Resume
+                    </MudButton>
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.List"
+                               FullWidth="true"
+                               Href="/resumes">
+                        View All Resumes
+                    </MudButton>
+                </MudCardContent>
+            </MudCard>
+
+            <!-- Recent resumes -->
+            <MudCard Elevation="2" Class="rounded-xl">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6" Style="font-weight:600;">Recent Resumes</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent Class="pt-0">
+                    @if (_recentResumes.Count == 0)
+                    {
+                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="text-center py-2">
+                            No resumes yet
+                        </MudText>
+                    }
+                    else
+                    {
+                        @foreach (var resume in _recentResumes)
+                        {
+                            <MudPaper Elevation="0"
+                                      Class="pa-3 mb-2 rounded-lg d-flex align-center"
+                                      Style="background:rgba(255,255,255,0.04); cursor:pointer;"
+                                      @onclick="@(() => Nav.NavigateTo("/resumes/" + resume.Id))">
+                                <div class="flex-grow-1">
+                                    <MudText Typo="Typo.body2" Style="font-weight:500;" Inline="true">
+                                        @resume.TargetCompany
+                                    </MudText>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-block">
+                                        @resume.CreatedAt.ToString("MMM dd, yyyy")
+                                    </MudText>
+                                </div>
+                                <MudChip T="string" Size="Size.Small" Color="@GetStatusColor(resume.Status)">
+                                    @resume.Status
+                                </MudChip>
+                            </MudPaper>
+                        }
+                    }
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+}
+
+@code {
+    private bool _loading = true;
+    private List<ResumeListItemDto> _recentResumes = [];
+
+    private record SectionInfo(string Name, string Icon, string Href, int Count);
+    private List<SectionInfo> _sections = [];
+
+    private int CompletionPercent => _sections.Count == 0 ? 0
+        : (int)Math.Round(_sections.Count(s => s.Count > 0) * 100.0 / _sections.Count);
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var educations = await Api.GetEducationsAsync();
+            var experiences = await Api.GetExperiencesAsync();
+            var skills = await Api.GetSkillsAsync();
+            var projects = await Api.GetProjectsAsync();
+            var certifications = await Api.GetCertificationsAsync();
+            var resumes = await Api.GetResumesAsync();
+
+            _sections =
+            [
+                new("Education", Icons.Material.Filled.School, "/profile/education", educations.Count),
+                new("Experience", Icons.Material.Filled.Work, "/profile/experience", experiences.Count),
+                new("Skills", Icons.Material.Filled.Psychology, "/profile/skills", skills.Count),
+                new("Projects", Icons.Material.Filled.Code, "/profile/projects", projects.Count),
+                new("Certifications", Icons.Material.Filled.WorkspacePremium, "/profile/certifications", certifications.Count),
+            ];
+
+            _recentResumes = resumes.OrderByDescending(r => r.CreatedAt).Take(3).ToList();
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private static Color GetStatusColor(Shared.Models.ResumeDraftStatus status) => status switch
+    {
+        Shared.Models.ResumeDraftStatus.PdfReady => Color.Success,
+        Shared.Models.ResumeDraftStatus.Approved => Color.Info,
+        Shared.Models.ResumeDraftStatus.DraftReady => Color.Primary,
+        Shared.Models.ResumeDraftStatus.Pending or Shared.Models.ResumeDraftStatus.Generated => Color.Warning,
+        Shared.Models.ResumeDraftStatus.DraftFailed or Shared.Models.ResumeDraftStatus.PdfFailed => Color.Error,
+        _ => Color.Default
+    };
+}

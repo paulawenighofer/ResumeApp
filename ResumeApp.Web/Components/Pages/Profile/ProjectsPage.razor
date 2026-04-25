@@ -1,0 +1,247 @@
+@page "/profile/projects"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@inject ApiClient Api
+@inject ISnackbar Snackbar
+@inject IDialogService Dialogs
+
+<PageTitle>Projects — Resume Builder</PageTitle>
+
+<div class="d-flex align-center justify-space-between mb-6">
+    <div>
+        <MudText Typo="Typo.h4" Style="font-weight:700;">Projects</MudText>
+        <MudText Typo="Typo.body1" Color="Color.Secondary">Portfolio and personal projects</MudText>
+    </div>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary"
+               StartIcon="@Icons.Material.Filled.Add"
+               OnClick="OpenAddDialog">
+        Add Project
+    </MudButton>
+</div>
+
+@if (_loading)
+{
+    <div class="d-flex justify-center mt-8">
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    </div>
+}
+else if (_items.Count == 0)
+{
+    <MudCard Elevation="2" Class="rounded-xl">
+        <MudCardContent Class="text-center pa-12">
+            <MudIcon Icon="@Icons.Material.Filled.Code" Size="Size.Large" Color="Color.Primary" Class="mb-4" Style="font-size:4rem;" />
+            <MudText Typo="Typo.h6" GutterBottom="true">No projects added</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">Showcase what you've built.</MudText>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Add" OnClick="OpenAddDialog">
+                Add Project
+            </MudButton>
+        </MudCardContent>
+    </MudCard>
+}
+else
+{
+    <MudGrid Spacing="3">
+        @foreach (var item in _items)
+        {
+            <MudItem xs="12" md="6">
+                <MudCard Elevation="2" Class="rounded-xl h-100">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6" Style="font-weight:600;">@item.Title</MudText>
+                            @if (!string.IsNullOrWhiteSpace(item.TechnologiesUsed))
+                            {
+                                <div class="d-flex flex-wrap gap-1 mt-1">
+                                    @foreach (var tech in item.TechnologiesUsed.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                                    {
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Dark">@tech.Trim()</MudChip>
+                                    }
+                                </div>
+                            }
+                        </CardHeaderContent>
+                        <CardHeaderActions>
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                                           OnClick="() => OpenEditDialog(item)" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
+                                           Color="Color.Error" OnClick="() => ConfirmDelete(item)" />
+                        </CardHeaderActions>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        @if (!string.IsNullOrWhiteSpace(item.Description))
+                        {
+                            <MudText Typo="Typo.body2" Class="mb-2">@item.Description</MudText>
+                        }
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            @(item.StartDate.HasValue ? item.StartDate.Value.ToString("MMM yyyy") : "")
+                            @(item.StartDate.HasValue && item.EndDate.HasValue ? " — " : "")
+                            @(item.EndDate.HasValue ? item.EndDate.Value.ToString("MMM yyyy") : "")
+                        </MudText>
+                    </MudCardContent>
+                    @if (!string.IsNullOrWhiteSpace(item.ProjectUrl))
+                    {
+                        <MudCardActions>
+                            <MudButton Variant="Variant.Text" Color="Color.Primary" Size="Size.Small"
+                                       StartIcon="@Icons.Material.Filled.OpenInNew"
+                                       Href="@item.ProjectUrl" Target="_blank">
+                                View Project
+                            </MudButton>
+                        </MudCardActions>
+                    }
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+}
+
+<!-- Add/Edit Dialog -->
+<MudDialog @bind-Visible="_dialogVisible" Options="_dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">@(_editing ? "Edit Project" : "Add Project")</MudText>
+    </TitleContent>
+    <DialogContent>
+        <EditForm Model="_form" OnValidSubmit="SaveItem">
+            <DataAnnotationsValidator />
+            <MudGrid Spacing="3">
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_form.Title" Label="Project Title *"
+                                  Variant="Variant.Outlined" For="@(() => _form.Title)" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_form.Description" Label="Description"
+                                  Variant="Variant.Outlined" Lines="4"
+                                  HelperText="What did you build and why?" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_form.TechnologiesUsed" Label="Technologies Used"
+                                  Variant="Variant.Outlined"
+                                  HelperText="Comma-separated: C#, React, PostgreSQL" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_form.ProjectUrl" Label="Project URL"
+                                  Variant="Variant.Outlined"
+                                  InputType="InputType.Url"
+                                  HelperText="GitHub link, live demo, etc." />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudDatePicker @bind-Date="_startDate" Label="Start Date"
+                                   Variant="Variant.Outlined" DateFormat="MMM yyyy" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudDatePicker @bind-Date="_endDate" Label="End Date"
+                                   Variant="Variant.Outlined" DateFormat="MMM yyyy"
+                                   HelperText="Leave empty if ongoing" />
+                </MudItem>
+            </MudGrid>
+            <div class="d-flex justify-end gap-2 mt-4">
+                <MudButton OnClick="CloseDialog">Cancel</MudButton>
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled"
+                           Color="Color.Primary" Disabled="_saving">
+                    @(_saving ? "Saving…" : "Save")
+                </MudButton>
+            </div>
+        </EditForm>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    private bool _loading = true;
+    private List<Project> _items = [];
+    private Project _form = new();
+    private bool _editing;
+    private bool _dialogVisible;
+    private bool _saving;
+    private DateTime? _startDate;
+    private DateTime? _endDate;
+
+    private readonly DialogOptions _dialogOptions = new()
+    {
+        MaxWidth = MaxWidth.Medium,
+        FullWidth = true,
+        CloseOnEscapeKey = true
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        try { _items = await Api.GetProjectsAsync(); }
+        finally { _loading = false; }
+    }
+
+    private void OpenAddDialog()
+    {
+        _form = new Project();
+        _startDate = null;
+        _endDate = null;
+        _editing = false;
+        _dialogVisible = true;
+    }
+
+    private void OpenEditDialog(Project item)
+    {
+        _form = new Project
+        {
+            Id = item.Id,
+            Title = item.Title,
+            Description = item.Description,
+            TechnologiesUsed = item.TechnologiesUsed,
+            ProjectUrl = item.ProjectUrl,
+            StartDate = item.StartDate,
+            EndDate = item.EndDate,
+            UserId = item.UserId
+        };
+        _startDate = item.StartDate;
+        _endDate = item.EndDate;
+        _editing = true;
+        _dialogVisible = true;
+    }
+
+    private void CloseDialog() => _dialogVisible = false;
+
+    private async Task SaveItem()
+    {
+        _saving = true;
+        _form.StartDate = _startDate;
+        _form.EndDate = _endDate;
+
+        try
+        {
+            if (_editing)
+            {
+                var ok = await Api.UpdateProjectAsync(_form.Id, _form);
+                if (ok)
+                {
+                    var idx = _items.FindIndex(x => x.Id == _form.Id);
+                    if (idx >= 0) _items[idx] = _form;
+                    Snackbar.Add("Project updated!", Severity.Success);
+                    CloseDialog();
+                }
+                else Snackbar.Add("Update failed.", Severity.Error);
+            }
+            else
+            {
+                var created = await Api.CreateProjectAsync(_form);
+                if (created is not null)
+                {
+                    _items.Insert(0, created);
+                    Snackbar.Add("Project added!", Severity.Success);
+                    CloseDialog();
+                }
+                else Snackbar.Add("Create failed.", Severity.Error);
+            }
+        }
+        finally { _saving = false; }
+    }
+
+    private async Task ConfirmDelete(Project item)
+    {
+        var result = await Dialogs.ShowMessageBox(
+            "Delete Project", $"Remove \"{item.Title}\"?",
+            yesText: "Delete", cancelText: "Cancel");
+
+        if (result == true)
+        {
+            var ok = await Api.DeleteProjectAsync(item.Id);
+            if (ok) { _items.Remove(item); Snackbar.Add("Deleted.", Severity.Success); }
+            else Snackbar.Add("Delete failed.", Severity.Error);
+        }
+    }
+}

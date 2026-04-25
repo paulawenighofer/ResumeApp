@@ -1,0 +1,33 @@
+@rendermode InteractiveServer
+@inject NavigationManager Nav
+
+<MudNavMenu>
+    <MudNavLink Href="/dashboard"
+                Match="NavLinkMatch.All"
+                Icon="@Icons.Material.Filled.Dashboard">
+        Dashboard
+    </MudNavLink>
+
+    <MudNavGroup Title="My Profile" Icon="@Icons.Material.Filled.Person" @bind-Expanded="_profileOpen">
+        <MudNavLink Href="/profile/education" Icon="@Icons.Material.Filled.School">Education</MudNavLink>
+        <MudNavLink Href="/profile/experience" Icon="@Icons.Material.Filled.Work">Experience</MudNavLink>
+        <MudNavLink Href="/profile/skills" Icon="@Icons.Material.Filled.Psychology">Skills</MudNavLink>
+        <MudNavLink Href="/profile/projects" Icon="@Icons.Material.Filled.Code">Projects</MudNavLink>
+        <MudNavLink Href="/profile/certifications" Icon="@Icons.Material.Filled.WorkspacePremium">Certifications</MudNavLink>
+        <MudNavLink Href="/profile" Icon="@Icons.Material.Filled.AccountCircle">My Profile</MudNavLink>
+    </MudNavGroup>
+
+    <MudNavGroup Title="Resumes" Icon="@Icons.Material.Filled.Article" @bind-Expanded="_resumesOpen">
+        <MudNavLink Href="/resumes" Icon="@Icons.Material.Filled.List">All Resumes</MudNavLink>
+        <MudNavLink Href="/resumes/generate" Icon="@Icons.Material.Filled.AutoAwesome">Generate New</MudNavLink>
+    </MudNavGroup>
+
+    <MudDivider Class="my-2" />
+
+    <MudNavLink Href="/settings" Icon="@Icons.Material.Filled.Settings">Settings</MudNavLink>
+</MudNavMenu>
+
+@code {
+    private bool _profileOpen = true;
+    private bool _resumesOpen = true;
+}

@@ -1,0 +1,133 @@
+@page "/settings"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@inject NavigationManager Nav
+@inject IDialogService Dialogs
+
+<PageTitle>Settings — Resume Builder</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-1" Style="font-weight:700;">Settings</MudText>
+<MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-6">Manage your account preferences</MudText>
+
+<MudGrid Spacing="3">
+    <MudItem xs="12" md="8">
+
+        <MudCard Elevation="2" Class="rounded-xl mb-4">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6" Style="font-weight:600;">Account</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudList T="string" Dense="false">
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.AccountCircle" IconColor="Color.Primary"
+                                 OnClick='() => Nav.NavigateTo("/profile")'
+                                 Style="cursor:pointer;">
+                        <MudText Style="font-weight:500;">Profile</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            View and update your profile information
+                        </MudText>
+                    </MudListItem>
+                    <MudDivider />
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Lock" IconColor="Color.Primary"
+                                 OnClick='() => Nav.NavigateTo("/forgot-password")'
+                                 Style="cursor:pointer;">
+                        <MudText Style="font-weight:500;">Change Password</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            Reset your password via email verification
+                        </MudText>
+                    </MudListItem>
+                </MudList>
+            </MudCardContent>
+        </MudCard>
+
+        <MudCard Elevation="2" Class="rounded-xl mb-4">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6" Style="font-weight:600;">Data</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudList T="string" Dense="false">
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.School" IconColor="Color.Primary"
+                                 Href="/profile/education" Style="cursor:pointer;">
+                        <MudText Style="font-weight:500;">Education</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">Manage your education entries</MudText>
+                    </MudListItem>
+                    <MudDivider />
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Work" IconColor="Color.Primary"
+                                 Href="/profile/experience" Style="cursor:pointer;">
+                        <MudText Style="font-weight:500;">Experience</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">Manage your work history</MudText>
+                    </MudListItem>
+                    <MudDivider />
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Psychology" IconColor="Color.Primary"
+                                 Href="/profile/skills" Style="cursor:pointer;">
+                        <MudText Style="font-weight:500;">Skills</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">Manage your skills</MudText>
+                    </MudListItem>
+                    <MudDivider />
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Code" IconColor="Color.Primary"
+                                 Href="/profile/projects" Style="cursor:pointer;">
+                        <MudText Style="font-weight:500;">Projects</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">Manage your projects</MudText>
+                    </MudListItem>
+                    <MudDivider />
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.WorkspacePremium" IconColor="Color.Primary"
+                                 Href="/profile/certifications" Style="cursor:pointer;">
+                        <MudText Style="font-weight:500;">Certifications</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">Manage your certifications</MudText>
+                    </MudListItem>
+                </MudList>
+            </MudCardContent>
+        </MudCard>
+
+        <MudCard Elevation="2" Class="rounded-xl" Style="border:1px solid rgba(244,67,54,0.3);">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6" Style="font-weight:600;" Color="Color.Error">Danger Zone</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <div class="d-flex align-center justify-space-between">
+                    <div>
+                        <MudText Style="font-weight:500;">Sign Out</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">Sign out of your account on this device</MudText>
+                    </div>
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Error"
+                               StartIcon="@Icons.Material.Filled.Logout"
+                               OnClick="SignOut">
+                        Sign Out
+                    </MudButton>
+                </div>
+            </MudCardContent>
+        </MudCard>
+
+    </MudItem>
+
+    <MudItem xs="12" md="4">
+        <MudCard Elevation="2" Class="rounded-xl">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6" Style="font-weight:600;">About</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudList T="string" Dense="true">
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Info" IconColor="Color.Primary">
+                        <MudText Typo="Typo.body2">Resume Builder Web</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">Version 1.0.0</MudText>
+                    </MudListItem>
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Code" IconColor="Color.Primary">
+                        <MudText Typo="Typo.body2">Built with Blazor + MudBlazor</MudText>
+                    </MudListItem>
+                </MudList>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private void SignOut() => Nav.NavigateTo("/account/signout", forceLoad: true);
+}

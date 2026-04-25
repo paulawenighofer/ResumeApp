@@ -1,0 +1,105 @@
+@inherits LayoutComponentBase
+@inject NavigationManager Nav
+
+<MudThemeProvider Theme="_theme" IsDarkMode="true" />
+<MudDialogProvider FullWidth="true" MaxWidth="MaxWidth.Medium" />
+<MudSnackbarProvider />
+<MudPopoverProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="0" Color="Color.Dark" Dense="false">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                       Color="Color.Inherit"
+                       Edge="Edge.Start"
+                       OnClick="ToggleDrawer" />
+        <div class="app-brand ml-2">
+            <span class="app-brand-icon">R</span>
+            Resume Builder
+        </div>
+        <MudSpacer />
+        <AuthorizeView>
+            <Authorized>
+                <div class="app-user-badge mr-2 d-none d-sm-flex">
+                    <div class="app-user-avatar">
+                        @(context.User.FindFirstValue(ClaimTypes.GivenName) is { Length: > 0 } n ? n[0] : '?')
+                    </div>
+                    @context.User.FindFirstValue(ClaimTypes.GivenName) @context.User.FindFirstValue(ClaimTypes.Surname)
+                </div>
+                <MudTooltip Text="Sign out">
+                    <MudIconButton Icon="@Icons.Material.Filled.Logout"
+                                   Color="Color.Inherit"
+                                   OnClick="SignOut" />
+                </MudTooltip>
+            </Authorized>
+        </AuthorizeView>
+    </MudAppBar>
+
+    <MudDrawer @bind-Open="_drawerOpen"
+               Elevation="0"
+               Variant="DrawerVariant.Responsive"
+               Breakpoint="Breakpoint.Md"
+               ClipMode="DrawerClipMode.Always">
+        <NavMenu />
+    </MudDrawer>
+
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-6 pa-sm-8">
+            @Body
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    private bool _drawerOpen = true;
+
+    private readonly MudTheme _theme = new()
+    {
+        PaletteLight = new PaletteLight
+        {
+            Primary = "#4F7EF5",
+            Secondary = "#A78BFA",
+            AppbarBackground = "#09090B",
+        },
+        PaletteDark = new PaletteDark
+        {
+            Primary = "#4F7EF5",
+            PrimaryDarken = "#3562D4",
+            PrimaryLighten = "#7BA3FF",
+            Secondary = "#A78BFA",
+            Background = "#09090B",
+            Surface = "#17171F",
+            AppbarBackground = "#09090B",
+            DrawerBackground = "#0D0D12",
+            DrawerText = "#A1A1AA",
+            DrawerIcon = "#4F7EF5",
+            TextPrimary = "#F4F4F6",
+            TextSecondary = "#70707A",
+            Success = "#22C55E",
+            SuccessLighten = "#4ADE80",
+            Error = "#EF4444",
+            Warning = "#F59E0B",
+            Info = "#38BDF8",
+            ActionDefault = "#70707A",
+            TableLines = "rgba(255,255,255,0.06)",
+            OverlayLight = "rgba(9,9,11,0.85)",
+            HoverOpacity = 0.06,
+            RippleOpacity = 0.1,
+            GrayLight = "rgba(255,255,255,0.10)",
+            GrayLighter = "rgba(255,255,255,0.05)",
+            AppbarText = "#F4F4F6",
+        },
+        Typography = new Typography
+        {
+            Default = new Default
+            {
+                FontFamily = ["Plus Jakarta Sans", "system-ui", "-apple-system", "sans-serif"],
+                FontSize = "0.9375rem",
+                LineHeight = 1.6
+            }
+        }
+    };
+
+    private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
+
+    private void SignOut() => Nav.NavigateTo("/account/signout", forceLoad: true);
+}

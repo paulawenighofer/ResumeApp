@@ -1,0 +1,207 @@
+@page "/profile/skills"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@inject ApiClient Api
+@inject ISnackbar Snackbar
+@inject IDialogService Dialogs
+
+<PageTitle>Skills — Resume Builder</PageTitle>
+
+<div class="d-flex align-center justify-space-between mb-6">
+    <div>
+        <MudText Typo="Typo.h4" Style="font-weight:700;">Skills</MudText>
+        <MudText Typo="Typo.body1" Color="Color.Secondary">Your technical and professional skills</MudText>
+    </div>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary"
+               StartIcon="@Icons.Material.Filled.Add"
+               OnClick="OpenAddDialog">
+        Add Skill
+    </MudButton>
+</div>
+
+@if (_loading)
+{
+    <div class="d-flex justify-center mt-8">
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    </div>
+}
+else if (_items.Count == 0)
+{
+    <MudCard Elevation="2" Class="rounded-xl">
+        <MudCardContent Class="text-center pa-12">
+            <MudIcon Icon="@Icons.Material.Filled.Psychology" Size="Size.Large" Color="Color.Primary" Class="mb-4" Style="font-size:4rem;" />
+            <MudText Typo="Typo.h6" GutterBottom="true">No skills added</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">Add your technical and soft skills.</MudText>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Add" OnClick="OpenAddDialog">
+                Add Skill
+            </MudButton>
+        </MudCardContent>
+    </MudCard>
+}
+else
+{
+    @foreach (var group in _items.GroupBy(s => s.Category ?? "General").OrderBy(g => g.Key))
+    {
+        <MudText Typo="Typo.subtitle1" Class="mb-2 mt-4" Style="font-weight:600;">@group.Key</MudText>
+        <div class="d-flex flex-wrap gap-2 mb-4">
+            @foreach (var skill in group.OrderBy(s => s.Name))
+            {
+                <MudChip T="string" Color="Color.Primary"
+                         Size="Size.Medium"
+                         OnClose="@((_) => ConfirmDelete(skill))"
+                         OnClick="@(() => OpenEditDialog(skill))"
+                         Style="cursor:pointer;">
+                    @skill.Name
+                    @if (skill.ProficiencyLevel.HasValue)
+                    {
+                        <MudText Typo="Typo.caption" Class="ml-1 opacity-70">
+                            · @ProficiencyLabel(skill.ProficiencyLevel.Value)
+                        </MudText>
+                    }
+                </MudChip>
+            }
+        </div>
+    }
+}
+
+<!-- Add/Edit Dialog -->
+<MudDialog @bind-Visible="_dialogVisible" Options="_dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">@(_editing ? "Edit Skill" : "Add Skill")</MudText>
+    </TitleContent>
+    <DialogContent>
+        <EditForm Model="_form" OnValidSubmit="SaveItem">
+            <DataAnnotationsValidator />
+            <MudGrid Spacing="3">
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_form.Name" Label="Skill Name *"
+                                  Variant="Variant.Outlined"
+                                  HelperText="e.g., C#, React, Project Management"
+                                  For="@(() => _form.Name)" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_form.Category" Label="Category"
+                                  Variant="Variant.Outlined"
+                                  HelperText="e.g., Programming Language, Framework, Soft Skill" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudSelect @bind-Value="_form.ProficiencyLevel" Label="Proficiency Level"
+                               Variant="Variant.Outlined" Clearable="true">
+                        <MudSelectItem Value="@((int?)1)">Beginner</MudSelectItem>
+                        <MudSelectItem Value="@((int?)2)">Intermediate</MudSelectItem>
+                        <MudSelectItem Value="@((int?)3)">Advanced</MudSelectItem>
+                        <MudSelectItem Value="@((int?)4)">Expert</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+            </MudGrid>
+            <div class="d-flex justify-end gap-2 mt-4">
+                <MudButton OnClick="CloseDialog">Cancel</MudButton>
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled"
+                           Color="Color.Primary" Disabled="_saving">
+                    @(_saving ? "Saving…" : "Save")
+                </MudButton>
+            </div>
+        </EditForm>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    private bool _loading = true;
+    private List<Skill> _items = [];
+    private Skill _form = new();
+    private bool _editing;
+    private bool _dialogVisible;
+    private bool _saving;
+
+    private readonly DialogOptions _dialogOptions = new()
+    {
+        MaxWidth = MaxWidth.Small,
+        FullWidth = true,
+        CloseOnEscapeKey = true
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        try { _items = await Api.GetSkillsAsync(); }
+        finally { _loading = false; }
+    }
+
+    private void OpenAddDialog()
+    {
+        _form = new Skill();
+        _editing = false;
+        _dialogVisible = true;
+    }
+
+    private void OpenEditDialog(Skill item)
+    {
+        _form = new Skill
+        {
+            Id = item.Id,
+            Name = item.Name,
+            Category = item.Category,
+            ProficiencyLevel = item.ProficiencyLevel,
+            UserId = item.UserId
+        };
+        _editing = true;
+        _dialogVisible = true;
+    }
+
+    private void CloseDialog() => _dialogVisible = false;
+
+    private async Task SaveItem()
+    {
+        _saving = true;
+        try
+        {
+            if (_editing)
+            {
+                var ok = await Api.UpdateSkillAsync(_form.Id, _form);
+                if (ok)
+                {
+                    var idx = _items.FindIndex(x => x.Id == _form.Id);
+                    if (idx >= 0) _items[idx] = _form;
+                    Snackbar.Add("Skill updated!", Severity.Success);
+                    CloseDialog();
+                }
+                else Snackbar.Add("Update failed.", Severity.Error);
+            }
+            else
+            {
+                var created = await Api.CreateSkillAsync(_form);
+                if (created is not null)
+                {
+                    _items.Add(created);
+                    Snackbar.Add("Skill added!", Severity.Success);
+                    CloseDialog();
+                }
+                else Snackbar.Add("Create failed.", Severity.Error);
+            }
+        }
+        finally { _saving = false; }
+    }
+
+    private async Task ConfirmDelete(Skill item)
+    {
+        var result = await Dialogs.ShowMessageBox(
+            "Delete Skill", $"Remove \"{item.Name}\"?",
+            yesText: "Delete", cancelText: "Cancel");
+
+        if (result == true)
+        {
+            var ok = await Api.DeleteSkillAsync(item.Id);
+            if (ok) { _items.Remove(item); Snackbar.Add("Deleted.", Severity.Success); }
+            else Snackbar.Add("Delete failed.", Severity.Error);
+        }
+    }
+
+    private static string ProficiencyLabel(int level) => level switch
+    {
+        1 => "Beginner",
+        2 => "Intermediate",
+        3 => "Advanced",
+        4 => "Expert",
+        _ => level.ToString()
+    };
+}

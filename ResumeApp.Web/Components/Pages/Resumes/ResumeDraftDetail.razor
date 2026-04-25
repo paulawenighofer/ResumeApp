@@ -1,0 +1,240 @@
+@page "/resumes/{Id:int}"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@inject ApiClient Api
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+@inject IDialogService Dialogs
+
+<PageTitle>Resume Draft — Resume Builder</PageTitle>
+
+@if (_loading)
+{
+    <div class="d-flex justify-center mt-8">
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    </div>
+}
+else if (_draft is null)
+{
+    <MudAlert Severity="Severity.Error">Resume not found.</MudAlert>
+}
+else
+{
+    <div class="d-flex align-center mb-4 gap-3">
+        <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick='() => Nav.NavigateTo("/resumes")' />
+        <div class="flex-grow-1">
+            <MudText Typo="Typo.h5" Style="font-weight:700;">@_draft.TargetCompany</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                Created @_draft.CreatedAt.ToString("MMM dd, yyyy HH:mm")
+            </MudText>
+        </div>
+        <MudChip T="string" Color="@GetStatusColor(_draft.Status)" Size="Size.Medium" Label="true">
+            @FormatStatus(_draft.Status)
+        </MudChip>
+    </div>
+
+    <!-- Status-based action bar -->
+    <MudPaper Elevation="0" Class="pa-3 mb-4 rounded-xl d-flex align-center gap-3"
+              Style="background:rgba(108,99,255,0.08); border:1px solid rgba(108,99,255,0.2);">
+        @if (_draft.Status == Shared.Models.ResumeDraftStatus.Pending || _draft.Status == Shared.Models.ResumeDraftStatus.Generated)
+        {
+            <MudIcon Icon="@Icons.Material.Filled.HourglassTop" Color="Color.Warning" />
+            <MudText Typo="Typo.body2">AI is generating your resume. This may take up to a minute.</MudText>
+            <MudSpacer />
+            <MudButton Variant="Variant.Outlined" Size="Size.Small" StartIcon="@Icons.Material.Filled.Refresh"
+                       OnClick="RefreshDraft">Refresh</MudButton>
+        }
+        else if (_draft.Status == Shared.Models.ResumeDraftStatus.DraftFailed)
+        {
+            <MudIcon Icon="@Icons.Material.Filled.Error" Color="Color.Error" />
+            <MudText Typo="Typo.body2">Generation failed: @(_draft.FailedReason ?? "Unknown error")</MudText>
+        }
+        else if (_draft.Status == Shared.Models.ResumeDraftStatus.DraftReady)
+        {
+            <MudIcon Icon="@Icons.Material.Filled.RateReview" Color="Color.Primary" />
+            <MudText Typo="Typo.body2">Review and edit your resume, then approve it.</MudText>
+            <MudSpacer />
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Save"
+                       Disabled="_saving" OnClick="SaveEdit">Save</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Success" StartIcon="@Icons.Material.Filled.CheckCircle"
+                       OnClick="ConfirmApprove">Approve</MudButton>
+        }
+        else if (_draft.Status == Shared.Models.ResumeDraftStatus.Approved)
+        {
+            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" />
+            <MudText Typo="Typo.body2">Approved. Generate a PDF to download.</MudText>
+            <MudSpacer />
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.PictureAsPdf"
+                       Disabled="_generatingPdf" OnClick="HandleGeneratePdf">
+                @(_generatingPdf ? "Generating…" : "Generate PDF")
+            </MudButton>
+        }
+        else if (_draft.Status == Shared.Models.ResumeDraftStatus.PdfGenerating)
+        {
+            <MudIcon Icon="@Icons.Material.Filled.HourglassTop" Color="Color.Info" />
+            <MudText Typo="Typo.body2">PDF is being generated.</MudText>
+            <MudSpacer />
+            <MudButton Variant="Variant.Outlined" Size="Size.Small" StartIcon="@Icons.Material.Filled.Refresh"
+                       OnClick="RefreshDraft">Refresh</MudButton>
+        }
+        else if (_draft.Status == Shared.Models.ResumeDraftStatus.PdfReady)
+        {
+            <MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Color="Color.Success" />
+            <MudText Typo="Typo.body2">PDF is ready to download.</MudText>
+            <MudSpacer />
+            <MudButton Variant="Variant.Filled" Color="Color.Success" StartIcon="@Icons.Material.Filled.Download"
+                       OnClick="DownloadPdf">Download PDF</MudButton>
+        }
+    </MudPaper>
+
+    <!-- JSON editor -->
+    @if (CanEdit)
+    {
+        <MudCard Elevation="2" Class="rounded-xl">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6" Style="font-weight:600;">Resume JSON</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">
+                        Edit the JSON directly. Changes are saved when you click Save.
+                    </MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudTextField @bind-Value="_editedJson"
+                              Variant="Variant.Outlined"
+                              Lines="25"
+                              Style="font-family:monospace; font-size:13px;"
+                              FullWidth="true" />
+            </MudCardContent>
+        </MudCard>
+    }
+    else if (_draft.ApprovedJson is not null)
+    {
+        <MudCard Elevation="2" Class="rounded-xl">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6" Style="font-weight:600;">Approved Resume</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudTextField Value="@_draft.ApprovedJson"
+                              ReadOnly="true"
+                              Variant="Variant.Outlined"
+                              Lines="25"
+                              Style="font-family:monospace; font-size:13px;"
+                              FullWidth="true" />
+            </MudCardContent>
+        </MudCard>
+    }
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private ResumeDetailDto? _draft;
+    private bool _loading = true;
+    private bool _saving;
+    private bool _generatingPdf;
+    private string _editedJson = string.Empty;
+
+    private bool CanEdit => _draft?.Status == Shared.Models.ResumeDraftStatus.DraftReady;
+
+    protected override async Task OnInitializedAsync() => await LoadDraft();
+
+    private async Task LoadDraft()
+    {
+        _loading = true;
+        try
+        {
+            _draft = await Api.GetResumeAsync(Id);
+            _editedJson = _draft?.EditedResumeJson ?? _draft?.GeneratedResumeJson ?? string.Empty;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task RefreshDraft() => await LoadDraft();
+
+    private async Task SaveEdit()
+    {
+        _saving = true;
+        try
+        {
+            var ok = await Api.SaveDraftEditAsync(Id, _editedJson);
+            Snackbar.Add(ok ? "Saved!" : "Save failed.", ok ? Severity.Success : Severity.Error);
+        }
+        finally { _saving = false; }
+    }
+
+    private async Task ConfirmApprove()
+    {
+        var result = await Dialogs.ShowMessageBox(
+            "Approve Resume",
+            "Once approved, the JSON cannot be edited. Are you sure?",
+            yesText: "Approve", cancelText: "Cancel");
+
+        if (result == true)
+        {
+            var response = await Api.ApproveDraftAsync(Id, _editedJson);
+            if (response is not null)
+            {
+                Snackbar.Add("Resume approved!", Severity.Success);
+                await LoadDraft();
+            }
+            else
+            {
+                Snackbar.Add("Approval failed.", Severity.Error);
+            }
+        }
+    }
+
+    private async Task HandleGeneratePdf()
+    {
+        _generatingPdf = true;
+        try
+        {
+            var ok = await Api.GeneratePdfAsync(Id);
+            if (ok)
+            {
+                Snackbar.Add("PDF generation started. Refresh shortly.", Severity.Success);
+                await LoadDraft();
+            }
+            else
+            {
+                Snackbar.Add("Failed to start PDF generation.", Severity.Error);
+            }
+        }
+        finally { _generatingPdf = false; }
+    }
+
+    private void DownloadPdf()
+    {
+        Nav.NavigateTo($"/proxy/resumes/{Id}/pdf", forceLoad: true);
+    }
+
+    private static Color GetStatusColor(Shared.Models.ResumeDraftStatus status) => status switch
+    {
+        Shared.Models.ResumeDraftStatus.PdfReady => Color.Success,
+        Shared.Models.ResumeDraftStatus.Approved => Color.Info,
+        Shared.Models.ResumeDraftStatus.DraftReady => Color.Primary,
+        Shared.Models.ResumeDraftStatus.Pending or Shared.Models.ResumeDraftStatus.Generated => Color.Warning,
+        Shared.Models.ResumeDraftStatus.DraftFailed or Shared.Models.ResumeDraftStatus.PdfFailed => Color.Error,
+        _ => Color.Default
+    };
+
+    private static string FormatStatus(Shared.Models.ResumeDraftStatus status) => status switch
+    {
+        Shared.Models.ResumeDraftStatus.Pending => "Pending",
+        Shared.Models.ResumeDraftStatus.Generated => "Processing",
+        Shared.Models.ResumeDraftStatus.DraftReady => "Ready to Review",
+        Shared.Models.ResumeDraftStatus.DraftFailed => "Generation Failed",
+        Shared.Models.ResumeDraftStatus.Approved => "Approved",
+        Shared.Models.ResumeDraftStatus.PdfGenerating => "Generating PDF",
+        Shared.Models.ResumeDraftStatus.PdfReady => "PDF Ready",
+        Shared.Models.ResumeDraftStatus.PdfFailed => "PDF Failed",
+        _ => status.ToString()
+    };
+}
