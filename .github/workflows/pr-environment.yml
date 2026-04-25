@@ -105,9 +105,9 @@ jobs:
             --from-literal=Jwt__Audience="${{ secrets.JWT_AUDIENCE }}" \
             --from-literal=Jwt__ExpirationInMinutes="${{ vars.STAGING_JWT_EXPIRATION_MINUTES }}" \
             --from-literal=Google__ClientId="${{ secrets.GOOGLE__CLIENTID }}" \
-            --from-literal=Google__ClientSecret="${{ secrets.GOOGLE_CLIENTSECRET }}" \
-            --from-literal=LinkedIn__ClientId="${{ secrets.LINKEDIN_CLIENTID }}" \
-            --from-literal=LinkedIn__ClientSecret="${{ secrets.LINKEDIN_CLIENTSECRET }}" \
+            --from-literal=Google__ClientSecret="${{ secrets.GOOGLE__CLIENTSECRET }}" \
+            --from-literal=LinkedIn__ClientId="${{ secrets.LINKEDIN__CLIENTID }}" \
+            --from-literal=LinkedIn__ClientSecret="${{ secrets.LINKEDIN__CLIENTSECRET }}" \
             --from-literal=GitHub__ClientId="${{ secrets.GH_CLIENT_ID }}" \
             --from-literal=GitHub__ClientSecret="${{ secrets.GH_CLIENT_SECRET }}" \
             --from-literal=AppScheme="${{ vars.STAGING_APP_SCHEME }}" \
@@ -117,6 +117,9 @@ jobs:
             --from-literal=POSTGRES_DB="${{ secrets.POSTGRES_DB }}" \
             --from-literal=Smtp__Username="${{ secrets.SMTP_USERNAME }}" \
             --from-literal=Smtp__Password="${{ secrets.SMTP_PASSWORD }}" \
+            --from-literal=AzureBlob__ConnectionString="${{ secrets.AZURE_BLOB_CONNECTION_STRING }}" \
+            --from-literal=AzureBlob__ProfileImagesContainer="${{ vars.STAGING_AZURE_BLOB_PROFILES_CONTAINER }}" \
+            --from-literal=AzureBlob__ProfileImagesBasePath="${{ vars.STAGING_AZURE_BLOB_PROFILES_BASE_PATH }}" \
             --from-literal=AiService__BaseUrl="${AI_SERVICE_BASE_URL}" \
             --from-literal=AiService__ApiKey="${{ secrets.AI_SERVICE_APIKEY }}" \
             --from-literal=AiService__Model="${AI_SERVICE_MODEL}" \
