@@ -9,13 +9,14 @@ env:
   KUBECONFIG: /home/bishwas/.kube/config
   CERT_DIR: /home/bishwas/certs/resumeapp
   CERT_LIVE: /home/bishwas/certs/resumeapp/letsencrypt/live/resume-app-pb.duckdns.org
+  CERT_WORK: /home/bishwas/certs/resumeapp/work
 
 jobs:
   renew-and-deploy:
     runs-on: self-hosted
     steps:
       - name: Create cert directories
-        run: mkdir -p "$CERT_DIR/letsencrypt" "$CERT_DIR/logs"
+        run: mkdir -p "$CERT_DIR/letsencrypt" "$CERT_DIR/logs" "$CERT_WORK"
 
       - name: Run certbot via Docker (infinityofspace/certbot_dns_duckdns)
         run: |
@@ -23,11 +24,15 @@ jobs:
             --user "$(id -u):$(id -g)" \
             -v "$CERT_DIR/letsencrypt:/etc/letsencrypt" \
             -v "$CERT_DIR/logs:/var/log/letsencrypt" \
+            -v "$CERT_WORK:/var/lib/letsencrypt" \
             infinityofspace/certbot_dns_duckdns:latest \
               certonly \
               --non-interactive \
               --agree-tos \
               --email bishwasbisu@gmail.com \
+              --config-dir /etc/letsencrypt \
+              --work-dir /var/lib/letsencrypt \
+              --logs-dir /var/log/letsencrypt \
               --preferred-challenges dns \
               --authenticator dns-duckdns \
               --dns-duckdns-token "${{ secrets.DUCKDNS_TOKEN }}" \
