@@ -37,7 +37,7 @@ public class RequestLoggingMiddleware
             await _next(context);
             var elapsedMs = Stopwatch.GetElapsedTime(start).TotalMilliseconds;
             var status = context.Response.StatusCode;
-            RecordRequestMetric(context, metrics, status);
+            RecordRequestMetric(context, metrics, status, elapsedMs);
 
             if (status >= 500)
                 _logger.LogError(
@@ -55,7 +55,7 @@ public class RequestLoggingMiddleware
         catch (Exception ex)
         {
             var elapsedMs = Stopwatch.GetElapsedTime(start).TotalMilliseconds;
-            RecordRequestMetric(context, metrics, StatusCodes.Status500InternalServerError);
+            RecordRequestMetric(context, metrics, StatusCodes.Status500InternalServerError, elapsedMs);
             _logger.LogError(
                 ex,
                 "Unhandled exception {Method} {Path} in {ElapsedMs:0.000} ms {UserId}",
@@ -67,7 +67,7 @@ public class RequestLoggingMiddleware
         }
     }
 
-    private static void RecordRequestMetric(HttpContext context, ApiMetrics metrics, int statusCode)
+    private static void RecordRequestMetric(HttpContext context, ApiMetrics metrics, int statusCode, double durationMs)
     {
         if (!ShouldTrackRequest(context))
         {
@@ -78,7 +78,8 @@ public class RequestLoggingMiddleware
             context.Request.Scheme,
             context.Request.Method,
             GetNormalizedRoute(context),
-            statusCode);
+            statusCode,
+            durationMs);
     }
 
     private static bool ShouldTrackRequest(HttpContext context)

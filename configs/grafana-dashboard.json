@@ -56,11 +56,59 @@
       "pluginVersion": "12.4.2",
       "targets": [
         {
-          "expr": "sum(increase(resumeapp_http_requests_total{scheme=\"http\"}[1d]))",
+          "expr": "sum(increase(resumeapp_http_requests_total[1d]))",
           "refId": "A"
         }
       ],
       "title": "Total HTTP Requests Today",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green" },
+              { "color": "orange", "value": 250 },
+              { "color": "red", "value": 1000 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
+      "id": 29,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "expr": "sum(rate(resumeapp_http_request_duration_ms_sum[5m])) / sum(rate(resumeapp_http_request_duration_ms_count[5m]))",
+          "refId": "A"
+        }
+      ],
+      "title": "Avg Response Time (5m)",
       "type": "stat"
     },
     {

@@ -14,6 +14,7 @@ public sealed class ApiMetrics : IDisposable
 
     private readonly Counter<long> _registrations;
     private readonly Counter<long> _httpRequests;
+    private readonly Histogram<double> _httpRequestDurationMs;
     private readonly Counter<long> _loginAttempts;
     private readonly Counter<long> _otpVerifications;
     private readonly Counter<long> _passwordResetRequests;
@@ -45,6 +46,11 @@ public sealed class ApiMetrics : IDisposable
         _httpRequests = _meter.CreateCounter<long>(
             "resumeapp_http_requests_total",
             description: "Count of completed API HTTP requests by scheme, method, route, and status code");
+
+        _httpRequestDurationMs = _meter.CreateHistogram<double>(
+            "resumeapp_http_request_duration_ms",
+            unit: "ms",
+            description: "HTTP request duration in milliseconds");
 
         _loginAttempts = _meter.CreateCounter<long>(
             "resumeapp_auth_login_attempts_total",
@@ -132,12 +138,16 @@ public sealed class ApiMetrics : IDisposable
     public void RecordRegistration(string outcome) =>
         _registrations.Add(1, CreateTags(("outcome", outcome)));
 
-    public void RecordHttpRequest(string scheme, string method, string route, int statusCode) =>
-        _httpRequests.Add(1, CreateTags(
+    public void RecordHttpRequest(string scheme, string method, string route, int statusCode, double durationMs)
+    {
+        var tags = CreateTags(
             ("scheme", scheme),
             ("method", method),
             ("route", route),
-            ("status_code", statusCode.ToString())));
+            ("status_code", statusCode.ToString()));
+        _httpRequests.Add(1, tags);
+        _httpRequestDurationMs.Record(durationMs, tags);
+    }
 
     public void RecordLoginAttempt(string outcome) =>
         _loginAttempts.Add(1, CreateTags(("outcome", outcome)));
