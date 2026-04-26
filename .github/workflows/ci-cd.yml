@@ -28,29 +28,14 @@ jobs:
           '
 
   unit-tests:
-    runs-on: windows-latest
+    runs-on: self-hosted
     needs: linting
-    defaults:
-      run:
-        shell: bash
     steps:
-      - name: Check out repository code
-        uses: actions/checkout@v5
-
-      - name: Setup .NET 9 SDK
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 9.0.x
-
-      - name: Restore workloads for the app project
-        run: dotnet workload restore ResumeApp/ResumeApp.csproj
-
-      - name: Restore MAUI tests
+      - name: MAUI Tests
         run: |
-          dotnet restore "Maui Tests/Maui Tests.csproj"
+          nix-shell -p dotnetCorePackages.sdk_9_0 \
+           --run "dotnet test 'Maui Tests/Maui Tests.csproj' -p:MauiTestBuild=true"
 
-      - name: Run MAUI tests
-        run: dotnet test "Maui Tests/Maui Tests.csproj" --no-restore
 
   integration-tests:
     runs-on: self-hosted
