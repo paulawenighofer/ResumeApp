@@ -18,18 +18,25 @@ public class RequestLoggingMiddleware
 
     public async Task InvokeAsync(HttpContext context, ApiMetrics metrics)
     {
-        if (context.Request.Path.StartsWithSegments("/metrics"))
+        var path = context.Request.Path;
+
+        if (path.StartsWithSegments("/metrics"))
         {
             await _next(context);
             return;
         }
 
+        var isHealthEndpoint = path.StartsWithSegments("/health");
         var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
-        _logger.LogInformation(
-            "Incoming request {Method} {Path}  {UserId}",
-            context.Request.Method,
-            context.Request.Path,
-            userId ?? "anonymous");
+
+        // Health probes happen every second — suppress the incoming-request line to avoid log flooding
+        if (!isHealthEndpoint)
+            _logger.LogInformation(
+                "Incoming request {Method} {Path} {UserId}",
+                context.Request.Method,
+                path,
+                userId ?? "anonymous");
+
         var start = Stopwatch.GetTimestamp();
 
         try
@@ -39,18 +46,22 @@ public class RequestLoggingMiddleware
             var status = context.Response.StatusCode;
             RecordRequestMetric(context, metrics, status, elapsedMs);
 
+            // Suppress completion log for successful health probes; still log failures
+            if (isHealthEndpoint && status < 400)
+                return;
+
             if (status >= 500)
                 _logger.LogError(
                     "Request failed {Method} {Path} with status {StatusCode} in {ElapsedMs:0.000} ms {UserId}",
-                    context.Request.Method, context.Request.Path, status, elapsedMs, userId ?? "anonymous");
+                    context.Request.Method, path, status, elapsedMs, userId ?? "anonymous");
             else if (status >= 400)
                 _logger.LogWarning(
                     "Request rejected {Method} {Path} with status {StatusCode} in {ElapsedMs:0.000} ms {UserId}",
-                    context.Request.Method, context.Request.Path, status, elapsedMs, userId ?? "anonymous");
+                    context.Request.Method, path, status, elapsedMs, userId ?? "anonymous");
             else
                 _logger.LogInformation(
                     "Completed request {Method} {Path} with status {StatusCode} in {ElapsedMs:0.000} ms {UserId}",
-                    context.Request.Method, context.Request.Path, status, elapsedMs, userId ?? "anonymous");
+                    context.Request.Method, path, status, elapsedMs, userId ?? "anonymous");
         }
         catch (Exception ex)
         {
@@ -60,7 +71,7 @@ public class RequestLoggingMiddleware
                 ex,
                 "Unhandled exception {Method} {Path} in {ElapsedMs:0.000} ms {UserId}",
                 context.Request.Method,
-                context.Request.Path,
+                path,
                 elapsedMs,
                 userId ?? "anonymous");
             throw;

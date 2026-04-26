@@ -40,87 +40,80 @@ public sealed class ApiMetrics : IDisposable
         _meter = new Meter(MeterName, MeterVersion);
 
         _registrations = _meter.CreateCounter<long>(
-            "resumeapp_auth_registrations_total",
+            "resumeapp_auth_registrations",
             description: "Count of user registration attempts by outcome");
 
         _httpRequests = _meter.CreateCounter<long>(
-            "resumeapp_http_requests_total",
+            "resumeapp_http_requests",
             description: "Count of completed API HTTP requests by scheme, method, route, and status code");
 
         _httpRequestDurationMs = _meter.CreateHistogram<double>(
             "resumeapp_http_request_duration_ms",
-            unit: "ms",
             description: "HTTP request duration in milliseconds");
 
         _loginAttempts = _meter.CreateCounter<long>(
-            "resumeapp_auth_login_attempts_total",
+            "resumeapp_auth_login_attempts",
             description: "Count of login attempts by outcome");
 
         _otpVerifications = _meter.CreateCounter<long>(
-            "resumeapp_auth_otp_verifications_total",
+            "resumeapp_auth_otp_verifications",
             description: "Count of OTP verification attempts by outcome");
 
         _passwordResetRequests = _meter.CreateCounter<long>(
-            "resumeapp_auth_password_reset_requests_total",
+            "resumeapp_auth_password_reset_requests",
             description: "Count of password reset requests");
 
         _socialLogins = _meter.CreateCounter<long>(
-            "resumeapp_auth_social_logins_total",
+            "resumeapp_auth_social_logins",
             description: "Count of social login callbacks by provider and outcome");
 
         _emailSends = _meter.CreateCounter<long>(
-            "resumeapp_email_sends_total",
+            "resumeapp_email_sends",
             description: "Count of transactional email sends by template and outcome");
 
         _emailSendDurationMs = _meter.CreateHistogram<double>(
             "resumeapp_email_send_duration_ms",
-            unit: "ms",
-            description: "Time to send transactional emails");
+            description: "Time to send transactional emails in milliseconds");
 
         _profileMutations = _meter.CreateCounter<long>(
-            "resumeapp_profile_mutations_total",
+            "resumeapp_profile_mutations",
             description: "Count of profile data mutations by section and action");
 
         _uploadOperations = _meter.CreateCounter<long>(
-            "resumeapp_upload_operations_total",
+            "resumeapp_upload_operations",
             description: "Count of upload operations by category and outcome");
 
         _uploadBytes = _meter.CreateHistogram<long>(
             "resumeapp_upload_bytes",
-            unit: "By",
-            description: "Upload size for profile and project assets");
+            description: "Upload size in bytes for profile and project assets");
 
         _uploadDurationMs = _meter.CreateHistogram<double>(
             "resumeapp_upload_duration_ms",
-            unit: "ms",
-            description: "Duration of upload operations");
+            description: "Duration of upload operations in milliseconds");
 
         _resumeDraftGenerations = _meter.CreateCounter<long>(
-            "resumeapp_resume_draft_generations_total",
+            "resumeapp_resume_draft_generations",
             description: "Count of AI resume draft generation attempts by outcome");
 
         _resumeDraftGenerationDurationMs = _meter.CreateHistogram<double>(
             "resumeapp_resume_draft_generation_duration_ms",
-            unit: "ms",
-            description: "Time to complete AI resume draft generation");
+            description: "Time to complete AI resume draft generation in milliseconds");
 
         _resumePdfGenerations = _meter.CreateCounter<long>(
-            "resumeapp_resume_pdf_generations_total",
+            "resumeapp_resume_pdf_generations",
             description: "Count of resume PDF generation attempts by outcome");
 
         _resumePdfGenerationDurationMs = _meter.CreateHistogram<double>(
             "resumeapp_resume_pdf_generation_duration_ms",
-            unit: "ms",
-            description: "Time to complete resume PDF generation");
+            description: "Time to complete resume PDF generation in milliseconds");
 
         _blobOperations = _meter.CreateCounter<long>(
-            "resumeapp_blob_operations_total",
+            "resumeapp_blob_operations",
             description: "Count of blob storage operations by category, action, and outcome");
 
         _blobOperationDurationMs = _meter.CreateHistogram<double>(
             "resumeapp_blob_operation_duration_ms",
-            unit: "ms",
-            description: "Duration of blob storage operations");
+            description: "Duration of blob storage operations in milliseconds");
 
         _meter.CreateObservableGauge<long>(
             "resumeapp_active_users",
@@ -221,14 +214,6 @@ public sealed class ApiMetrics : IDisposable
         _blobOperations.Add(1, tags);
         _blobOperationDurationMs.Record(durationMs, tags);
 
-        if (!string.IsNullOrWhiteSpace(userId))
-        {
-            _activityTracker.RecordActivity(userId);
-        }
-    }
-
-    public void RecordUserActivity(string? userId)
-    {
         if (!string.IsNullOrWhiteSpace(userId))
         {
             _activityTracker.RecordActivity(userId);
