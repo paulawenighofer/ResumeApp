@@ -42,12 +42,17 @@ jobs:
       - name: Linting
         run: |
           nix-shell -p dotnetCorePackages.sdk_9_0 \
-           --run "dotnet restore API/API.csproj && dotnet restore IntegrationTests/IntegrationTests.csproj && dotnet format API/API.csproj --verify-no-changes --no-restore && dotnet format IntegrationTests/IntegrationTests.csproj --verify-no-changes --no-restore"
+           --run "dotnet restore API/API.csproj && dotnet restore ResumeApp.Web/ResumeApp.Web.csproj && dotnet restore IntegrationTests/IntegrationTests.csproj && dotnet format API/API.csproj --verify-no-changes --no-restore && dotnet format IntegrationTests/IntegrationTests.csproj --verify-no-changes --no-restore"
+
+      - name: Build (warnings as errors)
+        run: |
+          nix-shell -p dotnetCorePackages.sdk_9_0 \
+           --run "dotnet build API/API.csproj --no-restore -warnaserror && dotnet build ResumeApp.Web/ResumeApp.Web.csproj --no-restore -warnaserror && dotnet build IntegrationTests/IntegrationTests.csproj --no-restore -warnaserror"
 
       - name: MAUI Tests
         run: |
           nix-shell -p dotnetCorePackages.sdk_9_0 \
-           --run "dotnet test 'Maui Tests/Maui Tests.csproj' -p:MauiTestBuild=true"
+           --run "dotnet test 'Maui Tests/Maui Tests.csproj' -p:MauiTestBuild=true -warnaserror -p:NoWarn=NETSDK1206"
 
       - name: Create integration test database
         run: |
