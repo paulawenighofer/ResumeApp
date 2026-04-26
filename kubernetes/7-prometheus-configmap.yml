@@ -16,6 +16,7 @@ data:
 
       - job_name: 'blackbox-api-uptime'
         metrics_path: /probe
+        scrape_interval: 1s
         params:
           module: [http_2xx]
         static_configs:
