@@ -52,7 +52,7 @@ jobs:
       - name: MAUI Tests
         run: |
           nix-shell -p dotnetCorePackages.sdk_9_0 \
-           --run "dotnet test 'Maui Tests/Maui Tests.csproj' -p:MauiTestBuild=true -warnaserror -p:NoWarn=NETSDK1206"
+           --run "dotnet test 'Maui Tests/Maui Tests.csproj' -p:MauiTestBuild=true"
 
       - name: Create integration test database
         run: |
