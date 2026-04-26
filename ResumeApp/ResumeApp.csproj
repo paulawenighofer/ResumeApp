@@ -26,6 +26,7 @@
 		<RunAnalyzersDuringLiveAnalysis>true</RunAnalyzersDuringLiveAnalysis>
 		<MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
 		<NoWarn>$(NoWarn);MVVMTK0045;XC0023</NoWarn>
+		<SkipValidateMauiImplicitPackageReferences>true</SkipValidateMauiImplicitPackageReferences>
 
 		<!-- Display name -->
 		<ApplicationTitle>ResumeApp</ApplicationTitle>

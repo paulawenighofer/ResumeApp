@@ -50,7 +50,7 @@ jobs:
           dotnet restore "Maui Tests/Maui Tests.csproj"
 
       - name: Run MAUI tests
-        run: dotnet test "Maui Tests/Maui Tests.csproj" --no-restore -warnaserror -p:NoWarn=NETSDK1206
+        run: dotnet test "Maui Tests/Maui Tests.csproj" --no-restore -warnaserror -p:NoWarn="NETSDK1206;MVVMTK0045;XC0023"
 
   integration-tests:
     runs-on: self-hosted
