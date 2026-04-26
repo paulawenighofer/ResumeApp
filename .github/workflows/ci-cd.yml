@@ -15,7 +15,16 @@ jobs:
         run: |
           nix-shell -p dotnetCorePackages.sdk_9_0 --run '
             dotnet restore API/API.csproj &&
+            dotnet restore ResumeApp.Web/ResumeApp.Web.csproj &&
             dotnet restore IntegrationTests/IntegrationTests.csproj
+          '
+
+      - name: Build (warnings as errors)
+        run: |
+          nix-shell -p dotnetCorePackages.sdk_9_0 --run '
+            dotnet build API/API.csproj --no-restore -warnaserror &&
+            dotnet build ResumeApp.Web/ResumeApp.Web.csproj --no-restore -warnaserror &&
+            dotnet build IntegrationTests/IntegrationTests.csproj --no-restore -warnaserror
           '
 
   unit-tests:
@@ -41,7 +50,7 @@ jobs:
           dotnet restore "Maui Tests/Maui Tests.csproj"
 
       - name: Run MAUI tests
-        run: dotnet test "Maui Tests/Maui Tests.csproj" --no-restore
+        run: dotnet test "Maui Tests/Maui Tests.csproj" --no-restore -warnaserror
 
   integration-tests:
     runs-on: self-hosted
