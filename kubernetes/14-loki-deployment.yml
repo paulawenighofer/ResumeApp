@@ -48,7 +48,12 @@ spec:
             - name: loki-config
               mountPath: /etc/loki/loki-config.yaml
               subPath: loki-config.yaml
+            - name: loki-data
+              mountPath: /tmp/loki
       volumes:
         - name: loki-config
           configMap:
             name: loki-config
+        - name: loki-data
+          persistentVolumeClaim:
+            claimName: resumeapp-pvc-loki
