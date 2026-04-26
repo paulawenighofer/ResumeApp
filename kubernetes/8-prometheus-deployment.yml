@@ -45,7 +45,12 @@ spec:
           volumeMounts:
             - name: config
               mountPath: /etc/prometheus
+            - name: prometheus-data
+              mountPath: /prometheus
       volumes:
         - name: config
           configMap:
             name: prometheus-config
+        - name: prometheus-data
+          persistentVolumeClaim:
+            claimName: resumeapp-pvc-prometheus
