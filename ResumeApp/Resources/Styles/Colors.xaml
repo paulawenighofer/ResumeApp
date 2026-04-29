@@ -61,4 +61,50 @@
     <SolidColorBrush x:Key="SecondaryBlueBrush" Color="{StaticResource SecondaryBlue}"/>
     <SolidColorBrush x:Key="SurfaceWhiteBrush" Color="{StaticResource SurfaceWhite}"/>
     <SolidColorBrush x:Key="PageBackgroundBrush" Color="{StaticResource PageBackground}"/>
+
+    <!-- Input field dark variants -->
+    <Color x:Key="InputSurfaceDark">#2D2D2D</Color>
+    <Color x:Key="InputStrokeDark">#404040</Color>
+
+    <!-- Icon background pairs (light / dark) -->
+    <Color x:Key="IconBgVioletLight">#EDE9FE</Color>
+    <Color x:Key="IconBgVioletDark">#2E1065</Color>
+    <Color x:Key="IconBgBlueLight">#DBEAFE</Color>
+    <Color x:Key="IconBgBlueDark">#1E3A5F</Color>
+    <Color x:Key="IconBgCyanLight">#E0F2FE</Color>
+    <Color x:Key="IconBgCyanDark">#0C4A6E</Color>
+    <Color x:Key="IconBgGreenLight">#D1FAE5</Color>
+    <Color x:Key="IconBgGreenDark">#064E3B</Color>
+    <Color x:Key="IconBgAmberLight">#FEF3C7</Color>
+    <Color x:Key="IconBgAmberDark">#451A03</Color>
+    <Color x:Key="CardIconBgLight">#EEE9FF</Color>
+    <Color x:Key="CardIconBgDark">#2E1065</Color>
+
+    <!-- Notification / status box pairs -->
+    <Color x:Key="InfoBoxBgLight">#EEF2FF</Color>
+    <Color x:Key="InfoBoxBgDark">#1E1B4B</Color>
+    <Color x:Key="InfoBoxVioletBgLight">#EDE9FE</Color>
+    <Color x:Key="InfoBoxVioletBgDark">#2E1065</Color>
+    <Color x:Key="WarningBoxBgLight">#FFFBEB</Color>
+    <Color x:Key="WarningBoxBgDark">#3B1A02</Color>
+    <Color x:Key="WarningTextLight">#92400E</Color>
+    <Color x:Key="WarningTextDark">#FDE68A</Color>
+    <Color x:Key="SuccessBoxBgLight">#ECFDF5</Color>
+    <Color x:Key="SuccessBoxBgDark">#022C22</Color>
+    <Color x:Key="ApprovalBoxBgLight">#EFF6FF</Color>
+    <Color x:Key="ApprovalBoxBgDark">#1E3A5F</Color>
+    <Color x:Key="ApprovalTextLight">#1E40AF</Color>
+    <Color x:Key="ApprovalTextDark">#93C5FD</Color>
+    <Color x:Key="StatusBadgeBgLight">#F5F3FF</Color>
+    <Color x:Key="StatusBadgeBgDark">#2E1065</Color>
+
+    <!-- Email suggestion chip pairs -->
+    <Color x:Key="EmailChipBgLight">#EEF2FF</Color>
+    <Color x:Key="EmailChipBgDark">#1E1B4B</Color>
+    <Color x:Key="EmailChipStrokeLight">#D8D9FF</Color>
+    <Color x:Key="EmailChipStrokeDark">#3730A3</Color>
+
+    <!-- Danger/sign-out button pairs -->
+    <Color x:Key="DangerBtnBgLight">#FEE2E2</Color>
+    <Color x:Key="DangerBtnBgDark">#3B0D0D</Color>
 </ResourceDictionary>

@@ -16,7 +16,7 @@
                 <Label Text="Profile"
                        FontSize="28"
                        FontFamily="OpenSansSemibold"
-                       TextColor="{StaticResource TextPrimary}" />
+                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
 
                 <!-- Profile card -->
                 <Border Style="{StaticResource CardStyle}">
@@ -45,7 +45,7 @@
                             <Label Text="{Binding UserName}"
                                    FontSize="18"
                                    FontFamily="OpenSansSemibold"
-                                   TextColor="{StaticResource TextPrimary}" />
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                             <Label Text="{Binding UserEmail}"
                                    FontSize="13"
                                    TextColor="{StaticResource TextSecondary}" />
@@ -74,14 +74,14 @@
                         <Border WidthRequest="40" HeightRequest="40"
                                 StrokeThickness="0"
                                 StrokeShape="RoundRectangle 12"
-                                BackgroundColor="#EDE9FE">
+                                BackgroundColor="{AppThemeBinding Light={StaticResource IconBgVioletLight}, Dark={StaticResource IconBgVioletDark}}">
                             <Label Text="&#xf19d;" FontFamily="FASolid" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center" />
                         </Border>
                         <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center" Margin="12,0,0,0">
                             <Label Text="Education"
                                    FontSize="16"
                                    FontFamily="OpenSansSemibold"
-                                   TextColor="{StaticResource TextPrimary}" />
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                             <Label Text="Schools, degrees &amp; certifications"
                                    Style="{StaticResource SubtitleStyle}"
                                    FontSize="12" />
@@ -103,14 +103,14 @@
                         <Border WidthRequest="40" HeightRequest="40"
                                 StrokeThickness="0"
                                 StrokeShape="RoundRectangle 12"
-                                BackgroundColor="#E0F2FE">
+                                BackgroundColor="{AppThemeBinding Light={StaticResource IconBgCyanLight}, Dark={StaticResource IconBgCyanDark}}">
                             <Label Text="&#xf5a2;" FontFamily="FASolid" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center" />
                         </Border>
                         <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center" Margin="12,0,0,0">
                             <Label Text="Certifications"
                                    FontSize="16"
                                    FontFamily="OpenSansSemibold"
-                                   TextColor="{StaticResource TextPrimary}" />
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                             <Label Text="Credentials &amp; licenses"
                                    Style="{StaticResource SubtitleStyle}"
                                    FontSize="12" />
@@ -132,14 +132,14 @@
                         <Border WidthRequest="40" HeightRequest="40"
                                 StrokeThickness="0"
                                 StrokeShape="RoundRectangle 12"
-                                BackgroundColor="#DBEAFE">
+                                BackgroundColor="{AppThemeBinding Light={StaticResource IconBgBlueLight}, Dark={StaticResource IconBgBlueDark}}">
                             <Label Text="&#xf0b1;" FontFamily="FASolid" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center" />
                         </Border>
                         <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center" Margin="12,0,0,0">
                             <Label Text="Experience"
                                    FontSize="16"
                                    FontFamily="OpenSansSemibold"
-                                   TextColor="{StaticResource TextPrimary}" />
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                             <Label Text="Work history &amp; internships"
                                    Style="{StaticResource SubtitleStyle}"
                                    FontSize="12" />
@@ -161,14 +161,14 @@
                         <Border WidthRequest="40" HeightRequest="40"
                                 StrokeThickness="0"
                                 StrokeShape="RoundRectangle 12"
-                                BackgroundColor="#D1FAE5">
+                                BackgroundColor="{AppThemeBinding Light={StaticResource IconBgGreenLight}, Dark={StaticResource IconBgGreenDark}}">
                             <Label Text="&#xf005;" FontFamily="FASolid" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center" />
                         </Border>
                         <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center" Margin="12,0,0,0">
                             <Label Text="Skills"
                                    FontSize="16"
                                    FontFamily="OpenSansSemibold"
-                                   TextColor="{StaticResource TextPrimary}" />
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                             <Label Text="Technical &amp; soft skills"
                                    Style="{StaticResource SubtitleStyle}"
                                    FontSize="12" />
@@ -190,14 +190,14 @@
                         <Border WidthRequest="40" HeightRequest="40"
                                 StrokeThickness="0"
                                 StrokeShape="RoundRectangle 12"
-                                BackgroundColor="#FEF3C7">
+                                BackgroundColor="{AppThemeBinding Light={StaticResource IconBgAmberLight}, Dark={StaticResource IconBgAmberDark}}">
                             <Label Text="&#xf135;" FontFamily="FASolid" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center" />
                         </Border>
                         <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center" Margin="12,0,0,0">
                             <Label Text="Projects"
                                    FontSize="16"
                                    FontFamily="OpenSansSemibold"
-                                   TextColor="{StaticResource TextPrimary}" />
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                             <Label Text="Portfolio &amp; side projects"
                                    Style="{StaticResource SubtitleStyle}"
                                    FontSize="12" />

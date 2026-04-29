@@ -9,7 +9,7 @@
              x:DataType="vm:ResumeDraftDetailViewModel"
              Shell.NavBarIsVisible="False"
              Shell.TabBarIsVisible="False"
-             BackgroundColor="{StaticResource PageBackground}">
+             BackgroundColor="{AppThemeBinding Light={StaticResource PageBackground}, Dark={StaticResource OffBlack}}">
 
     <ContentPage.Behaviors>
         <toolkit:EventToCommandBehavior EventName="Appearing"
@@ -24,7 +24,7 @@
 
             <Label FontSize="24"
                    FontFamily="OpenSansSemibold"
-                   TextColor="{StaticResource TextPrimary}"
+                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
                    Text="Resume Draft" />
 
             <Border Style="{StaticResource CardStyle}">
@@ -32,11 +32,11 @@
                     <Label Text="{Binding TargetCompany}"
                            FontSize="18"
                            FontFamily="OpenSansSemibold"
-                           TextColor="{StaticResource TextPrimary}" />
+                           TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
 
                     <Border Padding="10,4"
                             Stroke="{Binding StatusColorHex}"
-                            BackgroundColor="#F5F3FF"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource StatusBadgeBgLight}, Dark={StaticResource StatusBadgeBgDark}}"
                             StrokeShape="RoundRectangle 12"
                             HorizontalOptions="Start">
                         <Label Text="{Binding StatusText}"
@@ -58,12 +58,12 @@
             <!-- Status Messages for Edits -->
             <Border IsVisible="{Binding ShowSaveDraftStatus}"
                     Padding="12,8"
-                    Stroke="#10B981"
-                    BackgroundColor="#ECFDF5"
+                    Stroke="{StaticResource SuccessGreen}"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource SuccessBoxBgLight}, Dark={StaticResource SuccessBoxBgDark}}"
                     StrokeShape="RoundRectangle 8">
                 <Label Text="{Binding SaveDraftStatusMessage}"
                        FontSize="13"
-                       TextColor="#10B981" />
+                       TextColor="{StaticResource SuccessGreen}" />
             </Border>
 
             <CollectionView ItemsSource="{Binding Sections}"
@@ -77,14 +77,14 @@
                                 <Label Text="{Binding Title}"
                                        FontSize="16"
                                        FontFamily="OpenSansSemibold"
-                                       TextColor="{StaticResource TextPrimary}" />
+                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
 
                                 <VerticalStackLayout BindableLayout.ItemsSource="{Binding Items}" Spacing="8">
                                     <BindableLayout.ItemTemplate>
                                         <DataTemplate x:DataType="x:String">
                                             <Label Text="{Binding .}"
                                                    FontSize="13"
-                                                   TextColor="{StaticResource TextPrimary}" />
+                                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                                         </DataTemplate>
                                     </BindableLayout.ItemTemplate>
                                 </VerticalStackLayout>
@@ -141,14 +141,14 @@
 
             <Border IsVisible="{Binding IsApproved}"
                     Padding="12,8"
-                    Stroke="#1E40AF"
-                    BackgroundColor="#EFF6FF"
+                    Stroke="{AppThemeBinding Light={StaticResource ApprovalTextLight}, Dark={StaticResource ApprovalTextDark}}"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource ApprovalBoxBgLight}, Dark={StaticResource ApprovalBoxBgDark}}"
                     StrokeShape="RoundRectangle 8"
                     Margin="0,16,0,0">
                 <Label Text="✓ Resume approved and locked for PDF generation"
                        FontSize="13"
                        FontFamily="OpenSansSemibold"
-                       TextColor="#1E40AF" />
+                       TextColor="{AppThemeBinding Light={StaticResource ApprovalTextLight}, Dark={StaticResource ApprovalTextDark}}" />
             </Border>
         </VerticalStackLayout>
     </ScrollView>

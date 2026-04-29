@@ -9,8 +9,8 @@
     <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" Padding="4,4">
         <Border WidthRequest="36"
                 HeightRequest="36"
-                BackgroundColor="{StaticResource SurfaceWhite}"
-                Stroke="{StaticResource CardBorder}"
+                BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceWhite}, Dark={StaticResource Gray900}}"
+                Stroke="{AppThemeBinding Light={StaticResource CardBorder}, Dark={StaticResource InputStrokeDark}}"
                 StrokeThickness="1"
                 StrokeShape="RoundRectangle 12">
             <Border.GestureRecognizers>
@@ -19,7 +19,7 @@
             <Label Text="&#xf053;"
                    FontFamily="FASolid"
                    FontSize="14"
-                   TextColor="{StaticResource TextPrimary}"
+                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
                    HorizontalOptions="Center"
                    VerticalOptions="Center" />
         </Border>
@@ -27,7 +27,7 @@
                Text="{Binding Title, Source={x:Reference Root}}"
                FontFamily="OpenSansSemibold"
                FontSize="18"
-               TextColor="{StaticResource TextPrimary}"
+               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
                VerticalOptions="Center" />
     </Grid>
 </ContentView>

@@ -114,7 +114,7 @@
                                         HeightRequest="36"
                                         StrokeThickness="0"
                                         StrokeShape="RoundRectangle 12"
-                                        BackgroundColor="#EEE9FF"
+                                        BackgroundColor="{AppThemeBinding Light={StaticResource CardIconBgLight}, Dark={StaticResource CardIconBgDark}}"
                                         VerticalOptions="Center">
                                     <Label Text="&#xf15b;"
                                            FontFamily="FASolid"
@@ -127,7 +127,7 @@
                                     <Label Text="Generate Resume"
                                            FontSize="16"
                                            FontFamily="OpenSansSemibold"
-                                           TextColor="{StaticResource TextPrimary}" />
+                                           TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                                     <Label Text="Build an AI-optimized resume"
                                            Style="{StaticResource SubtitleStyle}"
                                            FontSize="12" />
@@ -159,7 +159,7 @@
                                 <Label Text="Skills"
                                        FontSize="15"
                                        FontFamily="OpenSansSemibold"
-                                       TextColor="{StaticResource TextPrimary}" />
+                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                                 <Label Text="Add &amp; manage"
                                        Style="{StaticResource SubtitleStyle}"
                                        FontSize="11" />
@@ -178,7 +178,7 @@
                                 <Label Text="Projects"
                                        FontSize="15"
                                        FontFamily="OpenSansSemibold"
-                                       TextColor="{StaticResource TextPrimary}" />
+                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                                 <Label Text="Showcase work"
                                        Style="{StaticResource SubtitleStyle}"
                                        FontSize="11" />
@@ -201,14 +201,14 @@
                             <Border WidthRequest="40" HeightRequest="40"
                                     StrokeThickness="0"
                                     StrokeShape="RoundRectangle 12"
-                                    BackgroundColor="#EDE9FE">
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource IconBgVioletLight}, Dark={StaticResource IconBgVioletDark}}">
                                 <Label Text="&#xf19d;" FontFamily="FASolid" FontSize="18" HorizontalOptions="Center" VerticalOptions="Center" />
                             </Border>
                             <VerticalStackLayout Grid.Column="1" Spacing="6" VerticalOptions="Center">
                                 <Label Text="Education"
                                        FontSize="14"
                                        FontFamily="OpenSansSemibold"
-                                       TextColor="{StaticResource TextPrimary}" />
+                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                                 <ProgressBar Progress="{Binding EducationCompletionProgress}"
                                              ProgressColor="{StaticResource PrimaryViolet}"
                                              HeightRequest="6" />
@@ -234,14 +234,14 @@
                             <Border WidthRequest="40" HeightRequest="40"
                                     StrokeThickness="0"
                                     StrokeShape="RoundRectangle 12"
-                                    BackgroundColor="#DBEAFE">
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource IconBgBlueLight}, Dark={StaticResource IconBgBlueDark}}">
                                 <Label Text="&#xf0b1;" FontFamily="FASolid" FontSize="18" HorizontalOptions="Center" VerticalOptions="Center" />
                             </Border>
                             <VerticalStackLayout Grid.Column="1" Spacing="6" VerticalOptions="Center">
                                 <Label Text="Experience"
                                        FontSize="14"
                                        FontFamily="OpenSansSemibold"
-                                       TextColor="{StaticResource TextPrimary}" />
+                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                                 <ProgressBar Progress="{Binding ExperienceCompletionProgress}"
                                              ProgressColor="{StaticResource SecondaryBlue}"
                                              HeightRequest="6" />

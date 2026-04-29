@@ -8,7 +8,7 @@
              Title="Generate Resume"
              Shell.NavBarIsVisible="False"
              Shell.TabBarIsVisible="False"
-             BackgroundColor="{StaticResource PageBackground}">
+             BackgroundColor="{AppThemeBinding Light={StaticResource PageBackground}, Dark={StaticResource OffBlack}}">
 
     <Grid>
         <ScrollView IsEnabled="{Binding IsBusy, Converter={StaticResource inverseBoolean}}">
@@ -18,7 +18,7 @@
 
                 <Label FontSize="24"
                        FontFamily="OpenSansSemibold"
-                       TextColor="{StaticResource TextPrimary}">
+                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}">
                     <Label.FormattedText>
                         <FormattedString>
                             <Span Text="&#xf0d0; " FontFamily="FASolid" />
@@ -30,7 +30,7 @@
                        Style="{StaticResource SubtitleStyle}" />
 
                 <Border Style="{StaticResource CardStyle}"
-                        BackgroundColor="#EEF2FF">
+                        BackgroundColor="{AppThemeBinding Light={StaticResource InfoBoxBgLight}, Dark={StaticResource InfoBoxBgDark}}">
                     <HorizontalStackLayout Spacing="10">
                         <Label Text="&#xf05a;"
                                FontFamily="FASolid"
@@ -49,7 +49,7 @@
                         <Label Text="Target Role"
                                FontFamily="OpenSansSemibold"
                                FontSize="15"
-                               TextColor="{StaticResource TextPrimary}" />
+                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
 
                         <Label Text="Job Title *"
                                FontSize="13"
@@ -80,7 +80,7 @@
                         <Label Text="Job Description *"
                                FontFamily="OpenSansSemibold"
                                FontSize="15"
-                               TextColor="{StaticResource TextPrimary}" />
+                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
 
                         <Editor Placeholder="Paste the full job description here..."
                                 AutoSize="TextChanges"
@@ -99,7 +99,7 @@
                         <Label Text="Personal Summary (optional)"
                                FontFamily="OpenSansSemibold"
                                FontSize="15"
-                               TextColor="{StaticResource TextPrimary}" />
+                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                         <Editor Placeholder="Add extra context you want AI to emphasize..."
                                 AutoSize="TextChanges"
                                 MinimumHeightRequest="90"
@@ -114,34 +114,34 @@
                         <Label Text="Include Sections"
                                FontFamily="OpenSansSemibold"
                                FontSize="15"
-                               TextColor="{StaticResource TextPrimary}" />
+                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
 
                         <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
                             <CheckBox Grid.Column="0" IsChecked="{Binding IncludeEducation}" Color="{StaticResource PrimaryViolet}" />
-                            <Label Grid.Column="1" Text="Education" VerticalOptions="Center" TextColor="{StaticResource TextPrimary}" />
+                            <Label Grid.Column="1" Text="Education" VerticalOptions="Center" TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                         </Grid>
                         <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
                             <CheckBox Grid.Column="0" IsChecked="{Binding IncludeExperience}" Color="{StaticResource PrimaryViolet}" />
-                            <Label Grid.Column="1" Text="Work Experience" VerticalOptions="Center" TextColor="{StaticResource TextPrimary}" />
+                            <Label Grid.Column="1" Text="Work Experience" VerticalOptions="Center" TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                         </Grid>
                         <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
                             <CheckBox Grid.Column="0" IsChecked="{Binding IncludeSkills}" Color="{StaticResource PrimaryViolet}" />
-                            <Label Grid.Column="1" Text="Skills" VerticalOptions="Center" TextColor="{StaticResource TextPrimary}" />
+                            <Label Grid.Column="1" Text="Skills" VerticalOptions="Center" TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                         </Grid>
                         <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
                             <CheckBox Grid.Column="0" IsChecked="{Binding IncludeProjects}" Color="{StaticResource PrimaryViolet}" />
-                            <Label Grid.Column="1" Text="Projects" VerticalOptions="Center" TextColor="{StaticResource TextPrimary}" />
+                            <Label Grid.Column="1" Text="Projects" VerticalOptions="Center" TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                         </Grid>
                         <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
                             <CheckBox Grid.Column="0" IsChecked="{Binding IncludeCertifications}" Color="{StaticResource PrimaryViolet}" />
-                            <Label Grid.Column="1" Text="Certifications" VerticalOptions="Center" TextColor="{StaticResource TextPrimary}" />
+                            <Label Grid.Column="1" Text="Certifications" VerticalOptions="Center" TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                         </Grid>
                     </VerticalStackLayout>
                 </Border>
 
                 <!-- Status message -->
                 <Border Style="{StaticResource CardStyle}"
-                        BackgroundColor="#EDE9FE"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource InfoBoxVioletBgLight}, Dark={StaticResource InfoBoxVioletBgDark}}"
                         IsVisible="{Binding HasStatus}">
                     <Label Text="{Binding StatusMessage}"
                            TextColor="{StaticResource PrimaryViolet}"
@@ -170,7 +170,7 @@
             <Border HorizontalOptions="Center"
                     VerticalOptions="Center"
                     Padding="20"
-                    BackgroundColor="White"
+                    BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource Gray950}}"
                     Stroke="{StaticResource CardBorder}"
                     StrokeShape="RoundRectangle 16">
                 <VerticalStackLayout Spacing="12" WidthRequest="260">
@@ -180,7 +180,7 @@
                     <Label Text="Generating your draft..."
                            FontFamily="OpenSansSemibold"
                            HorizontalTextAlignment="Center"
-                           TextColor="{StaticResource TextPrimary}" />
+                           TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                     <Label Text="Please wait while we tailor your resume to this role."
                            FontSize="13"
                            HorizontalTextAlignment="Center"
