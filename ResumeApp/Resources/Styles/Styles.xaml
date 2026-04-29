@@ -442,7 +442,7 @@
     </Style>
 
     <Style x:Key="DangerButtonStyle" TargetType="Button">
-        <Setter Property="BackgroundColor" Value="#FEE2E2" />
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource DangerBtnBgLight}, Dark={StaticResource DangerBtnBgDark}}" />
         <Setter Property="TextColor" Value="{StaticResource DangerRed}" />
         <Setter Property="CornerRadius" Value="10" />
         <Setter Property="FontSize" Value="13" />

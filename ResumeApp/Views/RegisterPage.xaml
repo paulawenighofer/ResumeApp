@@ -6,7 +6,7 @@
              x:DataType="vm:RegisterViewModel"
              x:Name="RegisterPageRoot"
              Shell.NavBarIsVisible="False"
-             BackgroundColor="{StaticResource PageBackground}">
+             BackgroundColor="{AppThemeBinding Light={StaticResource PageBackground}, Dark={StaticResource OffBlack}}">
 
     <ScrollView>
         <VerticalStackLayout Spacing="14" Padding="28,60,28,28" VerticalOptions="Center">
@@ -28,7 +28,7 @@
                    FontSize="26"
                    FontFamily="OpenSansSemibold"
                    HorizontalOptions="Center"
-                   TextColor="{StaticResource TextPrimary}" />
+                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
             <Label Text="Start building tailored resumes in minutes."
                    Style="{StaticResource SubtitleStyle}"
                    HorizontalOptions="Center"
@@ -38,10 +38,10 @@
             <Border Style="{StaticResource CardStyle}" Padding="16">
                 <VerticalStackLayout Spacing="10">
                     <Label Text="First name" FontSize="13" FontFamily="OpenSansSemibold" TextColor="{StaticResource TextSecondary}" />
-                    <Border BackgroundColor="{StaticResource SurfaceWhite}" Stroke="{StaticResource CardBorder}"
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceWhite}, Dark={StaticResource InputSurfaceDark}}" Stroke="{AppThemeBinding Light={StaticResource CardBorder}, Dark={StaticResource InputStrokeDark}}"
                             StrokeThickness="1.5" StrokeShape="RoundRectangle 12" Padding="4,0">
                         <Entry Placeholder="John" Text="{Binding FirstName}"
-                               FontSize="15" TextColor="{StaticResource TextPrimary}"
+                               FontSize="15" TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
                                PlaceholderColor="{StaticResource InactiveIcon}" />
                     </Border>
                     <Label Text="{Binding FirstNameValidationMessage}"
@@ -50,10 +50,10 @@
                            IsVisible="{Binding HasFirstNameValidation}" />
 
                     <Label Text="Last name" FontSize="13" FontFamily="OpenSansSemibold" TextColor="{StaticResource TextSecondary}" />
-                    <Border BackgroundColor="{StaticResource SurfaceWhite}" Stroke="{StaticResource CardBorder}"
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceWhite}, Dark={StaticResource InputSurfaceDark}}" Stroke="{AppThemeBinding Light={StaticResource CardBorder}, Dark={StaticResource InputStrokeDark}}"
                             StrokeThickness="1.5" StrokeShape="RoundRectangle 12" Padding="4,0">
                         <Entry Placeholder="Doe" Text="{Binding LastName}"
-                               FontSize="15" TextColor="{StaticResource TextPrimary}"
+                               FontSize="15" TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
                                PlaceholderColor="{StaticResource InactiveIcon}" />
                     </Border>
                     <Label Text="{Binding LastNameValidationMessage}"
@@ -62,10 +62,10 @@
                            IsVisible="{Binding HasLastNameValidation}" />
 
                     <Label Text="Email" FontSize="13" FontFamily="OpenSansSemibold" TextColor="{StaticResource TextSecondary}" />
-                    <Border BackgroundColor="{StaticResource SurfaceWhite}" Stroke="{StaticResource CardBorder}"
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceWhite}, Dark={StaticResource InputSurfaceDark}}" Stroke="{AppThemeBinding Light={StaticResource CardBorder}, Dark={StaticResource InputStrokeDark}}"
                             StrokeThickness="1.5" StrokeShape="RoundRectangle 12" Padding="4,0">
                         <Entry Placeholder="you@example.com" Keyboard="Email" Text="{Binding Email}"
-                               FontSize="15" TextColor="{StaticResource TextPrimary}"
+                               FontSize="15" TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
                                PlaceholderColor="{StaticResource InactiveIcon}" />
                     </Border>
 
@@ -76,8 +76,8 @@
                                                Spacing="8">
                             <BindableLayout.ItemTemplate>
                                 <DataTemplate x:DataType="{x:Null}">
-                                    <Border BackgroundColor="#EEF2FF"
-                                            Stroke="#D8D9FF"
+                                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource EmailChipBgLight}, Dark={StaticResource EmailChipBgDark}}"
+                                            Stroke="{AppThemeBinding Light={StaticResource EmailChipStrokeLight}, Dark={StaticResource EmailChipStrokeDark}}"
                                             StrokeThickness="1"
                                             StrokeShape="RoundRectangle 14"
                                             Padding="10,4">
@@ -100,11 +100,11 @@
                            IsVisible="{Binding HasEmailValidation}" />
 
                     <Label Text="Password" FontSize="13" FontFamily="OpenSansSemibold" TextColor="{StaticResource TextSecondary}" Margin="0,4,0,0" />
-                    <Border BackgroundColor="{StaticResource SurfaceWhite}" Stroke="{StaticResource CardBorder}"
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceWhite}, Dark={StaticResource InputSurfaceDark}}" Stroke="{AppThemeBinding Light={StaticResource CardBorder}, Dark={StaticResource InputStrokeDark}}"
                             StrokeThickness="1.5" StrokeShape="RoundRectangle 12" Padding="8,0">
                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                             <Entry Grid.Column="0" Placeholder="At least 8 characters" IsPassword="{Binding IsPasswordHidden}" Text="{Binding Password}"
-                                   FontSize="15" TextColor="{StaticResource TextPrimary}"
+                                   FontSize="15" TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
                                    PlaceholderColor="{StaticResource InactiveIcon}" />
                             <Label Grid.Column="1"
                                    Text="{Binding PasswordToggleIcon}"
@@ -124,11 +124,11 @@
                            IsVisible="{Binding HasPasswordValidation}" />
 
                     <Label Text="Confirm password" FontSize="13" FontFamily="OpenSansSemibold" TextColor="{StaticResource TextSecondary}" />
-                    <Border BackgroundColor="{StaticResource SurfaceWhite}" Stroke="{StaticResource CardBorder}"
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceWhite}, Dark={StaticResource InputSurfaceDark}}" Stroke="{AppThemeBinding Light={StaticResource CardBorder}, Dark={StaticResource InputStrokeDark}}"
                             StrokeThickness="1.5" StrokeShape="RoundRectangle 12" Padding="8,0">
                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                             <Entry Grid.Column="0" Placeholder="Re-enter password" IsPassword="{Binding IsConfirmPasswordHidden}" Text="{Binding ConfirmPassword}"
-                                   FontSize="15" TextColor="{StaticResource TextPrimary}"
+                                   FontSize="15" TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
                                    PlaceholderColor="{StaticResource InactiveIcon}" />
                             <Label Grid.Column="1"
                                    Text="{Binding ConfirmPasswordToggleIcon}"

@@ -6,7 +6,7 @@
              x:Class="ResumeApp.Views.OtpVerificationPage"
              x:DataType="vm:OtpVerificationViewModel"
              Shell.NavBarIsVisible="False"
-             BackgroundColor="{StaticResource PageBackground}">
+             BackgroundColor="{AppThemeBinding Light={StaticResource PageBackground}, Dark={StaticResource OffBlack}}">
 
     <ScrollView>
         <VerticalStackLayout Spacing="16" Padding="28,40,28,28" VerticalOptions="Center">
@@ -22,7 +22,7 @@
                    FontSize="26"
                    FontFamily="OpenSansSemibold"
                    HorizontalOptions="Center"
-                   TextColor="{StaticResource TextPrimary}" />
+                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
 
             <Label FontSize="14"
                    HorizontalOptions="Center"
@@ -34,13 +34,13 @@
                         <Span Text="We sent a 6-digit code to " />
                         <Span Text="{Binding Email}"
                               FontFamily="OpenSansSemibold"
-                              TextColor="{StaticResource TextPrimary}" />
+                              TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                     </FormattedString>
                 </Label.FormattedText>
             </Label>
 
-            <Border BackgroundColor="{StaticResource SurfaceWhite}"
-                    Stroke="{StaticResource CardBorder}"
+            <Border BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceWhite}, Dark={StaticResource InputSurfaceDark}}"
+                    Stroke="{AppThemeBinding Light={StaticResource CardBorder}, Dark={StaticResource InputStrokeDark}}"
                     StrokeThickness="1.5"
                     StrokeShape="RoundRectangle 12"
                     Padding="4,0">
@@ -50,7 +50,7 @@
                        Text="{Binding Code}"
                        FontSize="24"
                        FontFamily="OpenSansSemibold"
-                       TextColor="{StaticResource TextPrimary}"
+                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
                        PlaceholderColor="{StaticResource InactiveIcon}"
                        HorizontalTextAlignment="Center" />
             </Border>

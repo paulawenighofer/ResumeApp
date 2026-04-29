@@ -51,7 +51,7 @@
                     <Grid ColumnDefinitions="40,*,24">
                         <Border WidthRequest="40" HeightRequest="40"
                                 StrokeThickness="0" StrokeShape="RoundRectangle 12"
-                                BackgroundColor="#FEF3C7">
+                                BackgroundColor="{AppThemeBinding Light={StaticResource IconBgAmberLight}, Dark={StaticResource IconBgAmberDark}}">
                             <Label Text="&#xf1f8;" FontFamily="FASolid" FontSize="18" HorizontalOptions="Center" VerticalOptions="Center" />
                         </Border>
                         <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center" Margin="12,0,0,0">
@@ -79,7 +79,7 @@
                     <Grid ColumnDefinitions="40,*">
                         <Border WidthRequest="40" HeightRequest="40"
                                 StrokeThickness="0" StrokeShape="RoundRectangle 12"
-                                BackgroundColor="#EDE9FE">
+                                BackgroundColor="{AppThemeBinding Light={StaticResource IconBgVioletLight}, Dark={StaticResource IconBgVioletDark}}">
                             <Label Text="&#xf005;" FontFamily="FASolid" FontSize="18" TextColor="{StaticResource PrimaryViolet}"
                                    HorizontalOptions="Center" VerticalOptions="Center" />
                         </Border>
@@ -125,7 +125,7 @@
 
                 <Button Text="Sign out"
                         Command="{Binding LogoutCommand}"
-                        BackgroundColor="#FEE2E2"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource DangerBtnBgLight}, Dark={StaticResource DangerBtnBgDark}}"
                         TextColor="{StaticResource DangerRed}"
                         CornerRadius="12"
                         HeightRequest="50" />

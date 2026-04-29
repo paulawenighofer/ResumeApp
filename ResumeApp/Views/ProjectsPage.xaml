@@ -11,7 +11,7 @@
              Title="Projects"
              Shell.NavBarIsVisible="False"
              Shell.TabBarIsVisible="False"
-             BackgroundColor="{StaticResource PageBackground}">
+             BackgroundColor="{AppThemeBinding Light={StaticResource PageBackground}, Dark={StaticResource OffBlack}}">
 
     <ScrollView>
         <VerticalStackLayout Padding="24,16" Spacing="16">
@@ -20,7 +20,7 @@
 
             <Label FontSize="26"
                    FontFamily="OpenSansSemibold"
-                   TextColor="{StaticResource TextPrimary}">
+                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}">
                 <Label.FormattedText>
                     <FormattedString>
                         <Span Text="&#xf135; " FontFamily="FASolid" />
@@ -139,14 +139,14 @@
                     <DataTemplate x:DataType="models:ProjectEntry">
                         <Border Margin="0,0,0,12"
                                 Padding="16"
-                                BackgroundColor="{StaticResource SurfaceWhite}"
-                                Stroke="{StaticResource CardBorder}"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceWhite}, Dark={StaticResource Gray950}}"
+                                Stroke="{AppThemeBinding Light={StaticResource CardBorder}, Dark={StaticResource Gray600}}"
                                 StrokeShape="RoundRectangle 14">
                             <VerticalStackLayout Spacing="6">
                                 <Label Text="{Binding Name}"
                                        FontSize="16"
                                        FontFamily="OpenSansSemibold"
-                                       TextColor="{StaticResource TextPrimary}" />
+                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                                 <Label Text="{Binding ProjectType}"
                                        TextColor="{StaticResource PrimaryViolet}"
                                        FontSize="14" />
@@ -158,7 +158,7 @@
                                        TextColor="{StaticResource SecondaryBlue}" />
                                 <Label Text="{Binding Description}"
                                        FontSize="13"
-                                       TextColor="{StaticResource TextPrimary}" />
+                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                                 <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,4,0,0">
                                     <Button Grid.Column="0"
                                             Text="Edit"

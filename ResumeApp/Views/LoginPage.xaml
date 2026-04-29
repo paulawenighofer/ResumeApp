@@ -6,7 +6,7 @@
              x:DataType="vm:LoginViewModel"
              x:Name="LoginPageRoot"
              Shell.NavBarIsVisible="False"
-             BackgroundColor="{StaticResource PageBackground}">
+             BackgroundColor="{AppThemeBinding Light={StaticResource PageBackground}, Dark={StaticResource OffBlack}}">
 
     <ScrollView>
         <VerticalStackLayout
@@ -40,7 +40,7 @@
                    FontSize="26"
                    FontFamily="OpenSansSemibold"
                    HorizontalOptions="Center"
-                   TextColor="{StaticResource TextPrimary}" />
+                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
 
             <Label Text="Welcome back! Let's continue building your career story."
                    Style="{StaticResource SubtitleStyle}"
@@ -57,8 +57,8 @@
                            FontSize="13"
                            FontFamily="OpenSansSemibold"
                            TextColor="{StaticResource TextSecondary}" />
-                    <Border BackgroundColor="{StaticResource SurfaceWhite}"
-                            Stroke="{StaticResource CardBorder}"
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceWhite}, Dark={StaticResource InputSurfaceDark}}"
+                            Stroke="{AppThemeBinding Light={StaticResource CardBorder}, Dark={StaticResource InputStrokeDark}}"
                             StrokeThickness="1.5"
                             StrokeShape="RoundRectangle 12"
                             Padding="4,0">
@@ -67,7 +67,7 @@
                                IsTextPredictionEnabled="True"
                                Text="{Binding Email}"
                                FontSize="15"
-                               TextColor="{StaticResource TextPrimary}"
+                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
                                PlaceholderColor="{StaticResource InactiveIcon}" />
                     </Border>
 
@@ -79,8 +79,8 @@
                                                Spacing="8">
                             <BindableLayout.ItemTemplate>
                                 <DataTemplate x:DataType="{x:Null}">
-                                    <Border BackgroundColor="#EEF2FF"
-                                            Stroke="#D8D9FF"
+                                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource EmailChipBgLight}, Dark={StaticResource EmailChipBgDark}}"
+                                            Stroke="{AppThemeBinding Light={StaticResource EmailChipStrokeLight}, Dark={StaticResource EmailChipStrokeDark}}"
                                             StrokeThickness="1"
                                             StrokeShape="RoundRectangle 14"
                                             Padding="10,4">
@@ -109,8 +109,8 @@
                            FontFamily="OpenSansSemibold"
                            TextColor="{StaticResource TextSecondary}"
                            Margin="0,4,0,0" />
-                    <Border BackgroundColor="{StaticResource SurfaceWhite}"
-                            Stroke="{StaticResource CardBorder}"
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceWhite}, Dark={StaticResource InputSurfaceDark}}"
+                            Stroke="{AppThemeBinding Light={StaticResource CardBorder}, Dark={StaticResource InputStrokeDark}}"
                             StrokeThickness="1.5"
                             StrokeShape="RoundRectangle 12"
                             Padding="8,0">
@@ -120,7 +120,7 @@
                                    IsPassword="{Binding IsPasswordHidden}"
                                    Text="{Binding Password}"
                                    FontSize="15"
-                                   TextColor="{StaticResource TextPrimary}"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
                                    PlaceholderColor="{StaticResource InactiveIcon}" />
                             <Label Grid.Column="1"
                                    Text="{Binding PasswordToggleIcon}"
@@ -198,8 +198,8 @@
             <VerticalStackLayout Spacing="10">
 
                 <!-- Google -->
-                <Border BackgroundColor="{StaticResource SurfaceWhite}"
-                        Stroke="{StaticResource CardBorder}"
+                <Border BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceWhite}, Dark={StaticResource InputSurfaceDark}}"
+                        Stroke="{AppThemeBinding Light={StaticResource CardBorder}, Dark={StaticResource InputStrokeDark}}"
                         StrokeThickness="1.5"
                         StrokeShape="RoundRectangle 12"
                         HeightRequest="50">
@@ -213,7 +213,7 @@
                                TextColor="#4285F4"
                                VerticalOptions="Center" />
                         <Label Text="Continue with Google"
-                               TextColor="{StaticResource TextPrimary}"
+                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
                                FontSize="14"
                                FontFamily="OpenSansSemibold"
                                VerticalOptions="Center" />
