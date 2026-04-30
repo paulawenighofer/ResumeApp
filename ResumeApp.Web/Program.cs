@@ -8,7 +8,6 @@ using ResumeApp.Web.Services;
 using Shared.DTO;
 using System.Net.Http.Headers;
 using System.Security.Claims;
-using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,10 +33,9 @@ builder.Services.AddMemoryCache();
 // Persist Data Protection keys to a mounted volume so they survive container restarts.
 // Without this, each restart generates new keys and invalidates all existing
 // antiforgery tokens and auth cookies, causing "key not found in key ring" errors.
-var dataProtectionKeysFolder = Path.Combine(builder.Environment.ContentRootPath, "DataProtection-Keys");
 builder.Services.AddDataProtection()
-    .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysFolder))
-    .SetApplicationName("ResumeApp");
+    .PersistKeysToFileSystem(new DirectoryInfo("/app/dataprotection-keys"))
+    .SetApplicationName("ResumeApp.Web");
 
 var apiBaseUrl = builder.Configuration["ApiBaseUrl"] ?? "https://resumeapp-web-api.victoriousriver-0bd90a87.westus2.azurecontainerapps.io/";
 
