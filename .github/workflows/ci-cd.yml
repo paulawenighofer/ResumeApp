@@ -62,7 +62,7 @@ jobs:
 
       - name: Wait for integration PostgreSQL
         run: |
-          kubectl rollout status deployment/resumeapp-it-postgres -n ${INTEGRATION_TEST_NAMESPACE} --timeout=300s
+          kubectl wait deployment/resumeapp-it-postgres -n ${INTEGRATION_TEST_NAMESPACE} --for=condition=Available=True --timeout=300s
           echo "::notice::Integration PostgreSQL is ready"
 
       - name: Watch integration test progress
@@ -225,8 +225,10 @@ jobs:
         env:
             KUBECONFIG: ${{ vars.STAGING_RUNNER_KUBECONFIG }}
         run: |
-          kubectl delete -n resumeapp configmap grafana-dashboard-config-configmap || true
-          kubectl create -n resumeapp configmap grafana-dashboard-config-configmap --from-file=configs/grafana-dashboard.json
+          kubectl create configmap grafana-dashboard-config-configmap \
+            --from-file=configs/grafana-dashboard.json \
+            -n resumeapp \
+            --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Measure staging API deployment downtime
         env:
@@ -254,14 +256,14 @@ jobs:
             -e RUN_ID="${GITHUB_RUN_ID}" \
             -e PROBE_INTERVAL_MS="100" \
             -e MAX_DURATION="10m" \
-            grafana/k6:0.49.0 run --quiet --no-summary /work/scripts/observability/deployment-uptime.js \
+            grafana/k6:0.49.0 run --quiet --no-summary --log-format=raw /work/scripts/observability/deployment-uptime.js \
             > "${RAW_K6_LOG}" 2>&1 &
           K6_PID=$!
 
           sleep 2
 
           cat kubernetes/4-api-deployment.yml | envsubst | kubectl apply -f -
-          kubectl rollout status deployment/resumeapp-api -n resumeapp --timeout=300s
+          kubectl wait deployment/resumeapp-api -n resumeapp --for=condition=Available=True --timeout=300s
           ROLLOUT_STATUS=$?
 
           kill -TERM ${K6_PID} 2>/dev/null || true
@@ -310,7 +312,7 @@ jobs:
             KUBECONFIG: ${{ vars.STAGING_RUNNER_KUBECONFIG }}
         run: |
           cat kubernetes/21-web-deployment.yml | envsubst | kubectl apply -f -
-          kubectl rollout status deployment/resumeapp-web -n resumeapp --timeout=300s
+          kubectl wait deployment/resumeapp-web -n resumeapp --for=condition=Available=True --timeout=300s
 
       - name: Restart observability pods to pick up new configmaps
         env:

@@ -313,7 +313,8 @@ builder.Services.AddOpenTelemetry()
             .AddMeter(ApiMetrics.MeterName)
             .AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation()
-            .AddRuntimeInstrumentation();
+            .AddRuntimeInstrumentation()
+            .AddProcessInstrumentation();
 
         if (hasOtlpEndpoint)
         {
