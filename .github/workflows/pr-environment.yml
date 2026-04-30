@@ -59,7 +59,7 @@ jobs:
           for file in ./kubernetes/integration-template/{0,1,2,3}-*.yml; do
             cat "$file" | envsubst | kubectl apply -f -
           done
-          kubectl rollout status deployment/resumeapp-it-postgres -n ${INTEGRATION_TEST_NAMESPACE} --timeout=300s
+          kubectl wait deployment/resumeapp-it-postgres -n ${INTEGRATION_TEST_NAMESPACE} --for=condition=Available=True --timeout=300s
 
       - name: Integration Tests
         run: |
@@ -142,12 +142,14 @@ jobs:
 
       - name: Update Grafana dashboard configmap
         run: |
-          kubectl delete -n ${PR_NAMESPACE} configmap grafana-dashboard-config-configmap || true
-          kubectl create -n ${PR_NAMESPACE} configmap grafana-dashboard-config-configmap --from-file=configs/grafana-dashboard.json
+          kubectl create configmap grafana-dashboard-config-configmap \
+            --from-file=configs/grafana-dashboard.json \
+            -n ${PR_NAMESPACE} \
+            --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Wait for PostgreSQL to be ready
         run: |
-          kubectl rollout status deployment/resumeapp-postgres -n ${PR_NAMESPACE} --timeout=300s
+          kubectl wait deployment/resumeapp-postgres -n ${PR_NAMESPACE} --for=condition=Available=True --timeout=300s
 
       - name: Measure API deployment downtime
         run: |
@@ -173,14 +175,14 @@ jobs:
             -e RUN_ID="${GITHUB_RUN_ID}" \
             -e PROBE_INTERVAL_MS="100" \
             -e MAX_DURATION="10m" \
-            grafana/k6:0.49.0 run --quiet --no-summary /work/scripts/observability/deployment-uptime.js \
+            grafana/k6:0.49.0 run --quiet --no-summary --log-format=raw /work/scripts/observability/deployment-uptime.js \
             > "${RAW_K6_LOG}" 2>&1 &
           K6_PID=$!
 
           sleep 2
 
           kubectl rollout restart deployment/resumeapp-api -n ${PR_NAMESPACE}
-          kubectl rollout status deployment/resumeapp-api -n ${PR_NAMESPACE} --timeout=300s
+          kubectl wait deployment/resumeapp-api -n ${PR_NAMESPACE} --for=condition=Available=True --timeout=300s
           ROLLOUT_STATUS=$?
 
           kill -TERM ${K6_PID} 2>/dev/null || true
@@ -227,7 +229,7 @@ jobs:
       - name: Restart Web to pull new image
         run: |
           kubectl rollout restart deployment/resumeapp-web -n ${PR_NAMESPACE}
-          kubectl rollout status deployment/resumeapp-web -n ${PR_NAMESPACE} --timeout=300s
+          kubectl wait deployment/resumeapp-web -n ${PR_NAMESPACE} --for=condition=Available=True --timeout=300s
 
       - name: Debug rollout on failure
         if: failure()
@@ -237,10 +239,12 @@ jobs:
           kubectl describe pods -n ${PR_NAMESPACE} -l app=resumeapp-api
 
       - name: Restart observability pods to pick up new configmaps
+        if: always()
         run: |
           kubectl rollout restart deployment/prometheus -n ${PR_NAMESPACE}
           kubectl rollout restart deployment/grafana -n ${PR_NAMESPACE}
           kubectl rollout restart deployment/otel-collector -n ${PR_NAMESPACE}
+          kubectl wait deployment/grafana -n ${PR_NAMESPACE} --for=condition=Available=True --timeout=120s
 
       - name: Echo PR environment URLs
         run: |
