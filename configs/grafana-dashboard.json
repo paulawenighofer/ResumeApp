@@ -57,7 +57,7 @@
       "targets": [
         {
           "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
-          "expr": "sum(increase(resumeapp_http_requests_total[1d]))",
+          "expr": "ceil(sum(increase(resumeapp_http_requests_total[1d])))",
           "refId": "A"
         }
       ],
@@ -891,48 +891,6 @@
         }
       ],
       "title": "Average Response Time (most recent run)",
-      "type": "stat"
-    },
-    {
-      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "color": {"mode": "thresholds"},
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {"color": "green", "value": 0},
-              {"color": "orange", "value": 1},
-              {"color": "red", "value": 5}
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {"h": 4, "w": 8, "x": 16, "y": 47},
-      "id": 19,
-      "links": [],
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "percentChangeColorMode": "standard",
-        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "targets": [
-        {
-          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
-          "expr": "sum(ceil(increase((1 - probe_success{job=\"blackbox-api-uptime\",target=\"resumeapp-api\"})[24h])))",
-          "refId": "A"
-        }
-      ],
-      "title": "Dropped Packets",
       "type": "stat"
     },
     {

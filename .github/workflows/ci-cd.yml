@@ -267,25 +267,45 @@ jobs:
           ROLLOUT_STATUS=$?
 
           kill -TERM ${K6_PID} 2>/dev/null || true
-          wait ${K6_PID} 2>/dev/null
+          # Give Docker up to 10s to flush buffered output before reading the log
+          for i in $(seq 1 10); do
+            wait ${K6_PID} 2>/dev/null && break
+            sleep 1
+          done
           K6_STATUS=$?
           set -e
 
-          echo "k6 exit code: ${K6_STATUS}"
+          PROBE_COUNT=$(grep -c '"event_type":"probe"' "${RAW_K6_LOG}" 2>/dev/null || echo "0")
+          echo "k6 exit code: ${K6_STATUS} | probe events captured: ${PROBE_COUNT}"
 
           kubectl port-forward svc/loki-service "${LOKI_PORT}:3100" -n resumeapp > "${ARTIFACT_DIR}/loki-port-forward.log" 2>&1 &
           PORT_FORWARD_PID=$!
-          sleep 5
+
+          # Wait up to 30s for the port-forward to be reachable before pushing
+          LOKI_READY=0
+          for attempt in $(seq 1 30); do
+            if curl -sf "http://127.0.0.1:${LOKI_PORT}/ready" > /dev/null 2>&1; then
+              echo "Loki port-forward ready (attempt ${attempt}/30)"
+              LOKI_READY=1
+              break
+            fi
+            sleep 1
+          done
 
           set +e
-          nix-shell -p python3 --run "python3 scripts/observability/prepare_and_push_deployment_logs.py --input '${RAW_K6_LOG}' --output '${PROCESSED_K6_LOG}' --summary-output '${SUMMARY_JSON}' --deployment-id '${DEPLOYMENT_ID}' --environment 'staging' --service 'resumeapp-api' --workflow '${GITHUB_WORKFLOW}' --run-id '${GITHUB_RUN_ID}' --target-url '${TARGET_URL}' --probe-interval-ms 100 --loki-url 'http://127.0.0.1:${LOKI_PORT}/loki/api/v1/push'"
-          PREP_STATUS=$?
+          if [ "${LOKI_READY}" -eq 1 ]; then
+            nix-shell -p python3 --run "python3 scripts/observability/prepare_and_push_deployment_logs.py --input '${RAW_K6_LOG}' --output '${PROCESSED_K6_LOG}' --summary-output '${SUMMARY_JSON}' --deployment-id '${DEPLOYMENT_ID}' --environment 'staging' --service 'resumeapp-api' --workflow '${GITHUB_WORKFLOW}' --run-id '${GITHUB_RUN_ID}' --target-url '${TARGET_URL}' --probe-interval-ms 100 --loki-url 'http://127.0.0.1:${LOKI_PORT}/loki/api/v1/push'"
+            PREP_STATUS=$?
+          else
+            echo "::warning::Loki port-forward did not become ready in 30s — skipping log push."
+            PREP_STATUS=1
+          fi
           kill -TERM ${PORT_FORWARD_PID} 2>/dev/null || true
           wait ${PORT_FORWARD_PID} 2>/dev/null || true
           set -e
 
           if [ ${PREP_STATUS} -ne 0 ]; then
-            echo "::warning::Failed to process or push staging deployment downtime logs to Loki."
+            echo "::warning::Failed to process or push staging deployment downtime logs to Loki (exit ${PREP_STATUS})."
           fi
 
           if [ -f "${SUMMARY_JSON}" ]; then
