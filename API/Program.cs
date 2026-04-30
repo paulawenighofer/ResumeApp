@@ -19,6 +19,8 @@ using Shared.Models;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.RateLimiting;
+using System.IO;
+using Microsoft.AspNetCore.DataProtection;
 
 var builder = WebApplication.CreateBuilder(args);
 var startupCompleted = false;
@@ -82,6 +84,14 @@ builder.Services.AddSwaggerGen(options =>
 });
 builder.Services.AddSingleton<InMemoryResumeStore>();
 builder.Services.AddFeatureManagement(builder.Configuration.GetSection("FeatureFlags"));
+
+// Persist DataProtection keys to a stable location so antiforgery tokens survive restarts
+// and multiple instances. This prevents "An exception was thrown while deserializing the token." errors
+// caused by missing keys when trying to unprotect antiforgery cookies/tokens.
+var dataProtectionKeysFolder = Path.Combine(builder.Environment.ContentRootPath, "DataProtection-Keys");
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysFolder))
+    .SetApplicationName("ResumeApp");
 
 builder.Services
     .AddOptions<AiServiceOptions>()
