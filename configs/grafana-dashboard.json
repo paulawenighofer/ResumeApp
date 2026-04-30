@@ -1,3384 +1,1508 @@
 {
-  "annotations": [
-    {
-      "kind": "AnnotationQuery",
-      "spec": {
-        "builtIn": true,
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {"type": "grafana", "uid": "-- Grafana --"},
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
         "name": "Annotations & Alerts",
-        "query": {
-          "datasource": {
-            "name": "-- Grafana --"
-          },
-          "group": "grafana",
-          "kind": "DataQuery",
-          "spec": {},
-          "version": "v0"
-        }
+        "type": "dashboard"
       }
-    }
-  ],
-  "cursorSync": "Crosshair",
+    ]
+  },
   "editable": true,
-  "elements": {
-    "panel-1": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "${DS_PROMETHEUS}"
-                    },
-                    "group": "prometheus",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "expr": "sum(increase(resumeapp_http_requests_total[1d]))"
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "description": "",
-        "id": 1,
-        "links": [],
-        "title": "Total HTTP Requests Today",
-        "vizConfig": {
-          "group": "stat",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "color": {
-                  "mode": "thresholds"
-                },
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": 0
-                    }
-                  ]
-                },
-                "unit": "short"
-              },
-              "overrides": []
-            },
-            "options": {
-              "colorMode": "value",
-              "graphMode": "area",
-              "justifyMode": "auto",
-              "orientation": "auto",
-              "percentChangeColorMode": "standard",
-              "reduceOptions": {
-                "calcs": [
-                  "lastNotNull"
-                ],
-                "fields": "",
-                "values": false
-              },
-              "showPercentChange": false,
-              "textMode": "auto",
-              "wideLayout": true
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-10": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "${DS_LOKI}"
-                    },
-                    "group": "loki",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "direction": "backward",
-                      "editorMode": "code",
-                      "expr": "{service_name=\"ResumeApp.API\"} | detected_level = `Information`",
-                      "queryType": "range"
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "description": "",
-        "id": 10,
-        "links": [],
-        "title": "Info Logs",
-        "vizConfig": {
-          "group": "logs",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {},
-              "overrides": []
-            },
-            "options": {
-              "dedupStrategy": "none",
-              "enableInfiniteScrolling": false,
-              "enableLogDetails": true,
-              "prettifyLogMessage": true,
-              "showControls": false,
-              "showFieldSelector": false,
-              "showLabels": false,
-              "showLevel": true,
-              "showTime": false,
-              "sortOrder": "Descending",
-              "timestampResolution": "ms",
-              "unwrappedColumns": false,
-              "wrapLogMessage": true
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-11": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "${DS_LOKI}"
-                    },
-                    "group": "loki",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "expr": "{service_name=\"ResumeApp.API\"} | detected_level = `Warning`"
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "description": "",
-        "id": 11,
-        "links": [],
-        "title": "Warning Logs",
-        "vizConfig": {
-          "group": "logs",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {},
-              "overrides": []
-            },
-            "options": {
-              "dedupStrategy": "none",
-              "enableInfiniteScrolling": false,
-              "enableLogDetails": true,
-              "prettifyLogMessage": true,
-              "showControls": false,
-              "showFieldSelector": false,
-              "showLabels": false,
-              "showLevel": true,
-              "showTime": false,
-              "sortOrder": "Descending",
-              "timestampResolution": "ms",
-              "unwrappedColumns": false,
-              "wrapLogMessage": true
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-12": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "${DS_LOKI}"
-                    },
-                    "group": "loki",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "expr": "{service_name=\"ResumeApp.API\"} | detected_level = `Error`"
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "description": "",
-        "id": 12,
-        "links": [],
-        "title": "Error Logs",
-        "vizConfig": {
-          "group": "logs",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {},
-              "overrides": []
-            },
-            "options": {
-              "dedupStrategy": "none",
-              "enableInfiniteScrolling": false,
-              "enableLogDetails": true,
-              "prettifyLogMessage": true,
-              "showControls": false,
-              "showFieldSelector": false,
-              "showLabels": false,
-              "showLevel": true,
-              "showTime": false,
-              "sortOrder": "Descending",
-              "timestampResolution": "ms",
-              "unwrappedColumns": false,
-              "wrapLogMessage": true
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-13": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "${DS_LOKI}"
-                    },
-                    "group": "loki",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "expr": "sum(count_over_time({service_name=\"ResumeApp.API\"} | detected_level = `Error` [24h]))"
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "description": "",
-        "id": 13,
-        "links": [],
-        "title": "Total Error Logs Count",
-        "vizConfig": {
-          "group": "stat",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "color": {
-                  "mode": "thresholds"
-                },
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": 0
-                    },
-                    {
-                      "color": "red",
-                      "value": 1
-                    }
-                  ]
-                },
-                "unit": "short"
-              },
-              "overrides": []
-            },
-            "options": {
-              "colorMode": "background",
-              "graphMode": "none",
-              "justifyMode": "center",
-              "orientation": "auto",
-              "percentChangeColorMode": "standard",
-              "reduceOptions": {
-                "calcs": [
-                  "lastNotNull"
-                ],
-                "fields": "",
-                "values": false
-              },
-              "showPercentChange": false,
-              "textMode": "auto",
-              "wideLayout": true
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-14": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "${DS_PROMETHEUS}"
-                    },
-                    "group": "prometheus",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "expr": "sum(rate(process_cpu_time_total[5m]))"
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "description": "",
-        "id": 14,
-        "links": [],
-        "title": "CPU Utilization",
-        "vizConfig": {
-          "group": "gauge",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "color": {
-                  "mode": "thresholds"
-                },
-                "min": 0,
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": 0
-                    },
-                    {
-                      "color": "orange",
-                      "value": 0.5
-                    },
-                    {
-                      "color": "red",
-                      "value": 0.9
-                    }
-                  ]
-                },
-                "unit": "short"
-              },
-              "overrides": []
-            },
-            "options": {
-              "barShape": "flat",
-              "barWidthFactor": 0.5,
-              "effects": {
-                "barGlow": false,
-                "centerGlow": false,
-                "gradient": false
-              },
-              "endpointMarker": "point",
-              "minVizHeight": 75,
-              "minVizWidth": 75,
-              "orientation": "auto",
-              "reduceOptions": {
-                "calcs": [
-                  "lastNotNull"
-                ],
-                "fields": "",
-                "values": false
-              },
-              "segmentCount": 1,
-              "segmentSpacing": 0.3,
-              "shape": "gauge",
-              "showThresholdLabels": false,
-              "showThresholdMarkers": true,
-              "sizing": "auto",
-              "sparkline": false,
-              "textMode": "auto"
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-15": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "${DS_PROMETHEUS}"
-                    },
-                    "group": "prometheus",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "expr": "process_memory_usage"
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "description": "",
-        "id": 15,
-        "links": [],
-        "title": "Memory Use",
-        "vizConfig": {
-          "group": "gauge",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "color": {
-                  "mode": "thresholds"
-                },
-                "min": 0,
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": 0
-                    },
-                    {
-                      "color": "orange",
-                      "value": 500000000
-                    },
-                    {
-                      "color": "red",
-                      "value": 1000000000
-                    }
-                  ]
-                },
-                "unit": "decbytes"
-              },
-              "overrides": []
-            },
-            "options": {
-              "barShape": "flat",
-              "barWidthFactor": 0.5,
-              "effects": {
-                "barGlow": false,
-                "centerGlow": false,
-                "gradient": false
-              },
-              "endpointMarker": "point",
-              "minVizHeight": 75,
-              "minVizWidth": 75,
-              "orientation": "auto",
-              "reduceOptions": {
-                "calcs": [
-                  "lastNotNull"
-                ],
-                "fields": "",
-                "values": false
-              },
-              "segmentCount": 1,
-              "segmentSpacing": 0.3,
-              "shape": "gauge",
-              "showThresholdLabels": false,
-              "showThresholdMarkers": true,
-              "sizing": "auto",
-              "sparkline": false,
-              "textMode": "auto"
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-16": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "${DS_PROMETHEUS}"
-                    },
-                    "group": "prometheus",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "expr": "process_runtime_dotnet_thread_pool_threads_count",
-                      "legendFormat": "Threads"
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "description": "",
-        "id": 16,
-        "links": [],
-        "title": "Thread Pool",
-        "vizConfig": {
-          "group": "timeseries",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "color": {
-                  "mode": "palette-classic"
-                },
-                "custom": {
-                  "axisBorderShow": false,
-                  "axisCenteredZero": false,
-                  "axisColorMode": "text",
-                  "axisLabel": "",
-                  "axisPlacement": "auto",
-                  "barAlignment": 0,
-                  "barWidthFactor": 0.6,
-                  "drawStyle": "line",
-                  "fillOpacity": 0,
-                  "gradientMode": "none",
-                  "hideFrom": {
-                    "legend": false,
-                    "tooltip": false,
-                    "viz": false
-                  },
-                  "insertNulls": false,
-                  "lineInterpolation": "linear",
-                  "lineWidth": 1,
-                  "pointSize": 5,
-                  "scaleDistribution": {
-                    "type": "linear"
-                  },
-                  "showPoints": "auto",
-                  "showValues": false,
-                  "spanNulls": false,
-                  "stacking": {
-                    "group": "A",
-                    "mode": "none"
-                  },
-                  "thresholdsStyle": {
-                    "mode": "off"
-                  }
-                },
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": 0
-                    },
-                    {
-                      "color": "red",
-                      "value": 80
-                    }
-                  ]
-                },
-                "unit": "short"
-              },
-              "overrides": []
-            },
-            "options": {
-              "annotations": {
-                "clustering": -1,
-                "multiLane": false
-              },
-              "legend": {
-                "calcs": [],
-                "displayMode": "list",
-                "placement": "bottom",
-                "showLegend": true
-              },
-              "tooltip": {
-                "hideZeros": false,
-                "mode": "single",
-                "sort": "none"
-              }
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-17": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "${DS_PROMETHEUS}"
-                    },
-                    "group": "prometheus",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "expr": "avg_over_time(probe_success{job=\"blackbox-api-uptime\",target=\"resumeapp-api\"}[24h]) * 100"
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "description": "",
-        "id": 17,
-        "links": [],
-        "title": "Long Term Uptime",
-        "vizConfig": {
-          "group": "gauge",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "color": {
-                  "mode": "thresholds"
-                },
-                "decimals": 2,
-                "max": 100,
-                "min": 0,
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "red",
-                      "value": 0
-                    },
-                    {
-                      "color": "orange",
-                      "value": 95
-                    },
-                    {
-                      "color": "green",
-                      "value": 99
-                    }
-                  ]
-                },
-                "unit": "percent"
-              },
-              "overrides": []
-            },
-            "options": {
-              "barShape": "flat",
-              "barWidthFactor": 0.5,
-              "effects": {
-                "barGlow": false,
-                "centerGlow": false,
-                "gradient": false
-              },
-              "endpointMarker": "point",
-              "minVizHeight": 75,
-              "minVizWidth": 75,
-              "orientation": "auto",
-              "reduceOptions": {
-                "calcs": [
-                  "lastNotNull"
-                ],
-                "fields": "",
-                "values": false
-              },
-              "segmentCount": 1,
-              "segmentSpacing": 0.3,
-              "shape": "gauge",
-              "showThresholdLabels": false,
-              "showThresholdMarkers": true,
-              "sizing": "auto",
-              "sparkline": false,
-              "textMode": "auto"
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-18": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "${DS_PROMETHEUS}"
-                    },
-                    "group": "prometheus",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "expr": "probe_http_duration_seconds{job=\"blackbox-api-uptime\",target=\"resumeapp-api\",phase=\"processing\"} * 1000"
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "description": "",
-        "id": 18,
-        "links": [],
-        "title": "Average Response Time (most recent run)",
-        "vizConfig": {
-          "group": "stat",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "color": {
-                  "mode": "thresholds"
-                },
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": 0
-                    },
-                    {
-                      "color": "orange",
-                      "value": 250
-                    },
-                    {
-                      "color": "red",
-                      "value": 1000
-                    }
-                  ]
-                },
-                "unit": "ms"
-              },
-              "overrides": []
-            },
-            "options": {
-              "colorMode": "value",
-              "graphMode": "area",
-              "justifyMode": "auto",
-              "orientation": "auto",
-              "percentChangeColorMode": "standard",
-              "reduceOptions": {
-                "calcs": [
-                  "lastNotNull"
-                ],
-                "fields": "",
-                "values": false
-              },
-              "showPercentChange": false,
-              "textMode": "auto",
-              "wideLayout": true
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-19": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "${DS_PROMETHEUS}"
-                    },
-                    "group": "prometheus",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "expr": "sum(ceil(increase((1 - probe_success{job=\"blackbox-api-uptime\",target=\"resumeapp-api\"})[24h])))"
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "description": "",
-        "id": 19,
-        "links": [],
-        "title": "Dropped Packets",
-        "vizConfig": {
-          "group": "stat",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "color": {
-                  "mode": "thresholds"
-                },
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": 0
-                    },
-                    {
-                      "color": "orange",
-                      "value": 1
-                    },
-                    {
-                      "color": "red",
-                      "value": 5
-                    }
-                  ]
-                },
-                "unit": "short"
-              },
-              "overrides": []
-            },
-            "options": {
-              "colorMode": "value",
-              "graphMode": "none",
-              "justifyMode": "center",
-              "orientation": "auto",
-              "percentChangeColorMode": "standard",
-              "reduceOptions": {
-                "calcs": [
-                  "lastNotNull"
-                ],
-                "fields": "",
-                "values": false
-              },
-              "showPercentChange": false,
-              "textMode": "auto",
-              "wideLayout": true
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-2": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "${DS_PROMETHEUS}"
-                    },
-                    "group": "prometheus",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "expr": "sum(rate(resumeapp_http_request_duration_ms_sum[5m])) / sum(rate(resumeapp_http_request_duration_ms_count[5m]))"
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "description": "",
-        "id": 2,
-        "links": [],
-        "title": "Avg Response Time",
-        "vizConfig": {
-          "group": "stat",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "color": {
-                  "mode": "thresholds"
-                },
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": 0
-                    },
-                    {
-                      "color": "orange",
-                      "value": 250
-                    },
-                    {
-                      "color": "red",
-                      "value": 1000
-                    }
-                  ]
-                },
-                "unit": "ms"
-              },
-              "overrides": []
-            },
-            "options": {
-              "colorMode": "value",
-              "graphMode": "area",
-              "justifyMode": "auto",
-              "orientation": "auto",
-              "percentChangeColorMode": "standard",
-              "reduceOptions": {
-                "calcs": [
-                  "lastNotNull"
-                ],
-                "fields": "",
-                "values": false
-              },
-              "showPercentChange": false,
-              "textMode": "auto",
-              "wideLayout": true
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-20": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "${DS_PROMETHEUS}"
-                    },
-                    "group": "prometheus",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "expr": "probe_success{job=\"blackbox-api-uptime\",target=\"resumeapp-api\"}"
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "description": "",
-        "id": 20,
-        "links": [],
-        "title": "Current API Status",
-        "vizConfig": {
-          "group": "stat",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "color": {
-                  "mode": "thresholds"
-                },
-                "mappings": [
-                  {
-                    "options": {
-                      "0": {
-                        "color": "red",
-                        "text": "Down"
-                      },
-                      "1": {
-                        "color": "green",
-                        "text": "Up"
-                      }
-                    },
-                    "type": "value"
-                  }
-                ],
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "red",
-                      "value": 0
-                    },
-                    {
-                      "color": "green",
-                      "value": 1
-                    }
-                  ]
-                }
-              },
-              "overrides": []
-            },
-            "options": {
-              "colorMode": "background",
-              "graphMode": "none",
-              "justifyMode": "center",
-              "orientation": "auto",
-              "percentChangeColorMode": "standard",
-              "reduceOptions": {
-                "calcs": [
-                  "lastNotNull"
-                ],
-                "fields": "",
-                "values": false
-              },
-              "showPercentChange": false,
-              "textMode": "value",
-              "wideLayout": true
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-21": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "${DS_PROMETHEUS}"
-                    },
-                    "group": "prometheus",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "expr": "(1 - avg_over_time(probe_success{job=\"blackbox-api-uptime\",target=\"resumeapp-api\"}[24h])) * 86400"
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "description": "",
-        "id": 21,
-        "links": [],
-        "title": "API Downtime Last 24h",
-        "vizConfig": {
-          "group": "stat",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "color": {
-                  "mode": "thresholds"
-                },
-                "decimals": 0,
-                "min": 0,
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": 0
-                    },
-                    {
-                      "color": "orange",
-                      "value": 5
-                    },
-                    {
-                      "color": "red",
-                      "value": 30
-                    }
-                  ]
-                },
-                "unit": "s"
-              },
-              "overrides": []
-            },
-            "options": {
-              "colorMode": "value",
-              "graphMode": "area",
-              "justifyMode": "auto",
-              "orientation": "auto",
-              "percentChangeColorMode": "standard",
-              "reduceOptions": {
-                "calcs": [
-                  "lastNotNull"
-                ],
-                "fields": "",
-                "values": false
-              },
-              "showPercentChange": false,
-              "textMode": "auto",
-              "wideLayout": true
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-22": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "${DS_PROMETHEUS}"
-                    },
-                    "group": "prometheus",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "expr": "probe_duration_seconds{job=\"blackbox-api-uptime\",target=\"resumeapp-api\"}"
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "description": "",
-        "id": 22,
-        "links": [],
-        "title": "API Probe Duration",
-        "vizConfig": {
-          "group": "stat",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "color": {
-                  "mode": "thresholds"
-                },
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": 0
-                    },
-                    {
-                      "color": "orange",
-                      "value": 0.5
-                    },
-                    {
-                      "color": "red",
-                      "value": 2
-                    }
-                  ]
-                },
-                "unit": "s"
-              },
-              "overrides": []
-            },
-            "options": {
-              "colorMode": "value",
-              "graphMode": "area",
-              "justifyMode": "auto",
-              "orientation": "auto",
-              "percentChangeColorMode": "standard",
-              "reduceOptions": {
-                "calcs": [
-                  "lastNotNull"
-                ],
-                "fields": "",
-                "values": false
-              },
-              "showPercentChange": false,
-              "textMode": "auto",
-              "wideLayout": true
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-23": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "${DS_PROMETHEUS}"
-                    },
-                    "group": "prometheus",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "expr": "probe_success{job=\"blackbox-api-uptime\",target=\"resumeapp-api\"}",
-                      "legendFormat": "{{environment}}-{{instance}}"
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "description": "",
-        "id": 23,
-        "links": [],
-        "title": "API Uptime Timeline",
-        "vizConfig": {
-          "group": "timeseries",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "color": {
-                  "mode": "palette-classic"
-                },
-                "custom": {
-                  "axisBorderShow": false,
-                  "axisCenteredZero": false,
-                  "axisColorMode": "text",
-                  "axisLabel": "",
-                  "axisPlacement": "auto",
-                  "barAlignment": 0,
-                  "barWidthFactor": 0.6,
-                  "drawStyle": "line",
-                  "fillOpacity": 0,
-                  "gradientMode": "none",
-                  "hideFrom": {
-                    "legend": false,
-                    "tooltip": false,
-                    "viz": false
-                  },
-                  "insertNulls": false,
-                  "lineInterpolation": "linear",
-                  "lineWidth": 1,
-                  "pointSize": 5,
-                  "scaleDistribution": {
-                    "type": "linear"
-                  },
-                  "showPoints": "auto",
-                  "showValues": false,
-                  "spanNulls": false,
-                  "stacking": {
-                    "group": "A",
-                    "mode": "none"
-                  },
-                  "thresholdsStyle": {
-                    "mode": "off"
-                  }
-                },
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "red",
-                      "value": 0
-                    },
-                    {
-                      "color": "green",
-                      "value": 1
-                    }
-                  ]
-                }
-              },
-              "overrides": []
-            },
-            "options": {
-              "annotations": {
-                "clustering": -1,
-                "multiLane": false
-              },
-              "legend": {
-                "calcs": [],
-                "displayMode": "table",
-                "placement": "bottom",
-                "showLegend": true
-              },
-              "tooltip": {
-                "hideZeros": false,
-                "mode": "single",
-                "sort": "none"
-              }
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-24": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "${DS_LOKI}"
-                    },
-                    "group": "loki",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "direction": "backward",
-                      "editorMode": "code",
-                      "expr": "last_over_time({source=\"deployment-k6\",service=\"resumeapp-api\"} | json | event_type=\"summary\" | unwrap estimated_downtime_ms [15d])",
-                      "queryType": "range"
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "description": "",
-        "id": 24,
-        "links": [],
-        "title": "Last Deployment Downtime",
-        "vizConfig": {
-          "group": "stat",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "color": {
-                  "mode": "thresholds"
-                },
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": 0
-                    },
-                    {
-                      "color": "orange",
-                      "value": 250
-                    },
-                    {
-                      "color": "red",
-                      "value": 2000
-                    }
-                  ]
-                },
-                "unit": "ms"
-              },
-              "overrides": []
-            },
-            "options": {
-              "colorMode": "value",
-              "graphMode": "area",
-              "justifyMode": "auto",
-              "orientation": "auto",
-              "percentChangeColorMode": "standard",
-              "reduceOptions": {
-                "calcs": [
-                  "lastNotNull"
-                ],
-                "fields": "",
-                "values": false
-              },
-              "showPercentChange": false,
-              "textMode": "auto",
-              "wideLayout": true
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-25": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "${DS_LOKI}"
-                    },
-                    "group": "loki",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "direction": "backward",
-                      "editorMode": "code",
-                      "expr": "avg_over_time({source=\"deployment-k6\",service=\"resumeapp-api\"} | json | event_type=\"summary\" | unwrap estimated_downtime_ms [15d])",
-                      "queryType": "range"
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "description": "",
-        "id": 25,
-        "links": [],
-        "title": "Avg Deployment Downtime",
-        "vizConfig": {
-          "group": "stat",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "color": {
-                  "mode": "thresholds"
-                },
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": 0
-                    },
-                    {
-                      "color": "orange",
-                      "value": 250
-                    },
-                    {
-                      "color": "red",
-                      "value": 2000
-                    }
-                  ]
-                },
-                "unit": "ms"
-              },
-              "overrides": []
-            },
-            "options": {
-              "colorMode": "value",
-              "graphMode": "area",
-              "justifyMode": "auto",
-              "orientation": "auto",
-              "percentChangeColorMode": "standard",
-              "reduceOptions": {
-                "calcs": [
-                  "lastNotNull"
-                ],
-                "fields": "",
-                "values": false
-              },
-              "showPercentChange": false,
-              "textMode": "auto",
-              "wideLayout": true
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-26": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "${DS_LOKI}"
-                    },
-                    "group": "loki",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "direction": "backward",
-                      "editorMode": "code",
-                      "expr": "last_over_time({source=\"deployment-k6\",service=\"resumeapp-api\"} | json | event_type=\"summary\" | unwrap success_percent [15d])",
-                      "queryType": "range"
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "description": "",
-        "id": 26,
-        "links": [],
-        "title": "Last Deployment Availability",
-        "vizConfig": {
-          "group": "stat",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "decimals": 3,
-                "max": 100,
-                "min": 0,
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "red",
-                      "value": 0
-                    },
-                    {
-                      "color": "orange",
-                      "value": 99
-                    },
-                    {
-                      "color": "green",
-                      "value": 99.9
-                    }
-                  ]
-                },
-                "unit": "percent"
-              },
-              "overrides": []
-            },
-            "options": {
-              "colorMode": "value",
-              "graphMode": "area",
-              "justifyMode": "auto",
-              "orientation": "auto",
-              "percentChangeColorMode": "standard",
-              "reduceOptions": {
-                "calcs": [
-                  "lastNotNull"
-                ],
-                "fields": "",
-                "values": false
-              },
-              "showPercentChange": false,
-              "textMode": "auto",
-              "wideLayout": true
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-27": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "${DS_LOKI}"
-                    },
-                    "group": "loki",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "direction": "backward",
-                      "editorMode": "code",
-                      "expr": "last_over_time({source=\"deployment-k6\",service=\"resumeapp-api\"} | json | event_type=\"summary\" | unwrap failed_probes [15d])",
-                      "queryType": "range"
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "description": "",
-        "id": 27,
-        "links": [],
-        "title": "Last Deployment Failed Probes",
-        "vizConfig": {
-          "group": "stat",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "color": {
-                  "mode": "thresholds"
-                },
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": 0
-                    },
-                    {
-                      "color": "orange",
-                      "value": 1
-                    },
-                    {
-                      "color": "red",
-                      "value": 5
-                    }
-                  ]
-                },
-                "unit": "short"
-              },
-              "overrides": []
-            },
-            "options": {
-              "colorMode": "value",
-              "graphMode": "area",
-              "justifyMode": "auto",
-              "orientation": "auto",
-              "percentChangeColorMode": "standard",
-              "reduceOptions": {
-                "calcs": [
-                  "lastNotNull"
-                ],
-                "fields": "",
-                "values": false
-              },
-              "showPercentChange": false,
-              "textMode": "auto",
-              "wideLayout": true
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-28": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "${DS_LOKI}"
-                    },
-                    "group": "loki",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "expr": "{source=\"deployment-k6\",service=\"resumeapp-api\"} | json | event_type=\"summary\""
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "description": "",
-        "id": 28,
-        "links": [],
-        "title": "Deployment Window",
-        "vizConfig": {
-          "group": "logs",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {},
-              "overrides": []
-            },
-            "options": {
-              "dedupStrategy": "none",
-              "enableInfiniteScrolling": false,
-              "enableLogDetails": true,
-              "prettifyLogMessage": true,
-              "showControls": false,
-              "showFieldSelector": false,
-              "showLabels": false,
-              "showLevel": true,
-              "showTime": false,
-              "sortOrder": "Descending",
-              "timestampResolution": "ms",
-              "unwrappedColumns": false,
-              "wrapLogMessage": true
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-29": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "${DS_LOKI}"
-                    },
-                    "group": "loki",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "expr": "last_over_time({source=\"deployment-k6\",service=\"resumeapp-api\"} | json | event_type=\"probe\" | unwrap success_value [200ms])",
-                      "legendFormat": "deployment probes",
-                      "queryType": "range"
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "description": "",
-        "id": 29,
-        "links": [],
-        "title": "Deployment Probe Timeline",
-        "vizConfig": {
-          "group": "state-timeline",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "color": {
-                  "mode": "thresholds"
-                },
-                "custom": {
-                  "axisPlacement": "auto",
-                  "fillOpacity": 70,
-                  "hideFrom": {
-                    "legend": false,
-                    "tooltip": false,
-                    "viz": false
-                  },
-                  "insertNulls": false,
-                  "lineWidth": 0,
-                  "spanNulls": false
-                },
-                "mappings": [
-                  {
-                    "options": {
-                      "0": {
-                        "color": "red",
-                        "text": "Failed"
-                      },
-                      "1": {
-                        "color": "green",
-                        "text": "Healthy"
-                      }
-                    },
-                    "type": "value"
-                  }
-                ],
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "red",
-                      "value": 0
-                    },
-                    {
-                      "color": "green",
-                      "value": 1
-                    }
-                  ]
-                }
-              },
-              "overrides": []
-            },
-            "options": {
-              "alignValue": "left",
-              "annotations": {
-                "clustering": -1,
-                "multiLane": false
-              },
-              "colWidth": 0.9,
-              "legend": {
-                "displayMode": "list",
-                "placement": "bottom",
-                "showLegend": true
-              },
-              "mergeValues": false,
-              "rowHeight": 0.9,
-              "showValue": "never",
-              "tooltip": {
-                "hideZeros": false,
-                "mode": "single",
-                "sort": "none"
-              }
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-3": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "${DS_PROMETHEUS}"
-                    },
-                    "group": "prometheus",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "expr": "sum(increase(resumeapp_email_sends_total{outcome=\"success\"}[1d]))"
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "description": "",
-        "id": 3,
-        "links": [],
-        "title": "Emails Sent Today",
-        "vizConfig": {
-          "group": "stat",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "color": {
-                  "mode": "thresholds"
-                },
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": 0
-                    }
-                  ]
-                },
-                "unit": "short"
-              },
-              "overrides": []
-            },
-            "options": {
-              "colorMode": "value",
-              "graphMode": "area",
-              "justifyMode": "auto",
-              "orientation": "auto",
-              "percentChangeColorMode": "standard",
-              "reduceOptions": {
-                "calcs": [
-                  "lastNotNull"
-                ],
-                "fields": "",
-                "values": false
-              },
-              "showPercentChange": false,
-              "textMode": "auto",
-              "wideLayout": true
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-30": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "${DS_LOKI}"
-                    },
-                    "group": "loki",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "expr": "last_over_time({source=\"deployment-k6\",service=\"resumeapp-api\"} | json | event_type=\"probe\" | unwrap duration_ms [200ms])",
-                      "legendFormat": "deployment latency",
-                      "queryType": "range"
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "description": "",
-        "id": 30,
-        "links": [],
-        "title": "Deployment Probe Latency",
-        "vizConfig": {
-          "group": "timeseries",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "color": {
-                  "mode": "palette-classic"
-                },
-                "custom": {
-                  "axisBorderShow": false,
-                  "axisCenteredZero": false,
-                  "axisColorMode": "text",
-                  "axisLabel": "",
-                  "axisPlacement": "auto",
-                  "barAlignment": 0,
-                  "barWidthFactor": 0.6,
-                  "drawStyle": "line",
-                  "fillOpacity": 0,
-                  "gradientMode": "none",
-                  "hideFrom": {
-                    "legend": false,
-                    "tooltip": false,
-                    "viz": false
-                  },
-                  "insertNulls": false,
-                  "lineInterpolation": "linear",
-                  "lineWidth": 1,
-                  "pointSize": 5,
-                  "scaleDistribution": {
-                    "type": "linear"
-                  },
-                  "showPoints": "auto",
-                  "showValues": false,
-                  "spanNulls": false,
-                  "stacking": {
-                    "group": "A",
-                    "mode": "none"
-                  },
-                  "thresholdsStyle": {
-                    "mode": "off"
-                  }
-                },
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": 0
-                    },
-                    {
-                      "color": "red",
-                      "value": 80
-                    }
-                  ]
-                },
-                "unit": "ms"
-              },
-              "overrides": []
-            },
-            "options": {
-              "annotations": {
-                "clustering": -1,
-                "multiLane": false
-              },
-              "legend": {
-                "calcs": [],
-                "displayMode": "table",
-                "placement": "bottom",
-                "showLegend": true
-              },
-              "tooltip": {
-                "hideZeros": false,
-                "mode": "single",
-                "sort": "none"
-              }
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-4": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "${DS_PROMETHEUS}"
-                    },
-                    "group": "prometheus",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "expr": "sum(increase(resumeapp_auth_registrations_total{outcome=\"success\"}[1d]))"
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "description": "",
-        "id": 4,
-        "links": [],
-        "title": "Sign-ups Today",
-        "vizConfig": {
-          "group": "stat",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "color": {
-                  "mode": "thresholds"
-                },
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": 0
-                    },
-                    {
-                      "color": "orange",
-                      "value": 1
-                    }
-                  ]
-                },
-                "unit": "short"
-              },
-              "overrides": []
-            },
-            "options": {
-              "colorMode": "value",
-              "graphMode": "area",
-              "justifyMode": "auto",
-              "orientation": "auto",
-              "percentChangeColorMode": "standard",
-              "reduceOptions": {
-                "calcs": [
-                  "lastNotNull"
-                ],
-                "fields": "",
-                "values": false
-              },
-              "showPercentChange": false,
-              "textMode": "auto",
-              "wideLayout": true
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-5": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "${DS_PROMETHEUS}"
-                    },
-                    "group": "prometheus",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "editorMode": "code",
-                      "expr": "sum by (outcome) (increase(resumeapp_auth_login_attempts_total[1d]))",
-                      "legendFormat": "{{outcome}}",
-                      "range": true
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "description": "",
-        "id": 5,
-        "links": [],
-        "title": "Login Success vs Failure",
-        "vizConfig": {
-          "group": "barchart",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "color": {
-                  "mode": "palette-classic"
-                },
-                "custom": {
-                  "axisBorderShow": false,
-                  "axisCenteredZero": false,
-                  "axisColorMode": "text",
-                  "axisLabel": "",
-                  "axisPlacement": "auto",
-                  "fillOpacity": 80,
-                  "gradientMode": "none",
-                  "hideFrom": {
-                    "legend": false,
-                    "tooltip": false,
-                    "viz": false
-                  },
-                  "lineWidth": 1,
-                  "scaleDistribution": {
-                    "type": "linear"
-                  },
-                  "thresholdsStyle": {
-                    "mode": "off"
-                  }
-                },
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": 0
-                    },
-                    {
-                      "color": "red",
-                      "value": 80
-                    }
-                  ]
-                }
-              },
-              "overrides": []
-            },
-            "options": {
-              "barRadius": 0.05,
-              "barWidth": 0.97,
-              "fullHighlight": false,
-              "groupWidth": 0.7,
-              "legend": {
-                "calcs": [],
-                "displayMode": "table",
-                "placement": "bottom",
-                "showLegend": true
-              },
-              "orientation": "auto",
-              "showValue": "auto",
-              "stacking": "none",
-              "tooltip": {
-                "hideZeros": false,
-                "mode": "single",
-                "sort": "none"
-              },
-              "xTickLabelRotation": 0,
-              "xTickLabelSpacing": 200
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-6": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "${DS_PROMETHEUS}"
-                    },
-                    "group": "prometheus",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "expr": "sum by (provider, outcome) (increase(resumeapp_auth_social_logins_total[7d]))",
-                      "legendFormat": "{{provider}} {{outcome}}"
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "description": "",
-        "id": 6,
-        "links": [],
-        "title": "Social Logins By Provider",
-        "vizConfig": {
-          "group": "barchart",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "color": {
-                  "mode": "palette-classic"
-                },
-                "custom": {
-                  "axisBorderShow": false,
-                  "axisCenteredZero": false,
-                  "axisColorMode": "text",
-                  "axisLabel": "",
-                  "axisPlacement": "auto",
-                  "fillOpacity": 80,
-                  "gradientMode": "none",
-                  "hideFrom": {
-                    "legend": false,
-                    "tooltip": false,
-                    "viz": false
-                  },
-                  "lineWidth": 1,
-                  "scaleDistribution": {
-                    "type": "linear"
-                  },
-                  "thresholdsStyle": {
-                    "mode": "off"
-                  }
-                },
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": 0
-                    },
-                    {
-                      "color": "red",
-                      "value": 80
-                    }
-                  ]
-                }
-              },
-              "overrides": [
-                {
-                  "__systemRef": "hideSeriesFrom",
-                  "matcher": {
-                    "id": "byNames",
-                    "options": {
-                      "mode": "exclude",
-                      "names": [
-                        "google success"
-                      ],
-                      "prefix": "All except:",
-                      "readOnly": true
-                    }
-                  },
-                  "properties": [
-                    {
-                      "id": "custom.hideFrom",
-                      "value": {
-                        "legend": false,
-                        "tooltip": true,
-                        "viz": true
-                      }
-                    }
-                  ]
-                }
-              ]
-            },
-            "options": {
-              "barRadius": 0.05,
-              "barWidth": 0.97,
-              "fullHighlight": false,
-              "groupWidth": 0.7,
-              "legend": {
-                "calcs": [],
-                "displayMode": "table",
-                "placement": "bottom",
-                "showLegend": true
-              },
-              "orientation": "auto",
-              "showValue": "auto",
-              "stacking": "none",
-              "tooltip": {
-                "hideZeros": false,
-                "mode": "single",
-                "sort": "none"
-              },
-              "xTickLabelRotation": 0,
-              "xTickLabelSpacing": 200
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-7": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "${DS_PROMETHEUS}"
-                    },
-                    "group": "prometheus",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "expr": "sum(increase(resumeapp_auth_otp_verifications_total{outcome=\"failure\"}[1d]))",
-                      "legendFormat": "failures"
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "description": "",
-        "id": 7,
-        "links": [],
-        "title": "OTP Verification Failures",
-        "vizConfig": {
-          "group": "timeseries",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "color": {
-                  "mode": "palette-classic"
-                },
-                "custom": {
-                  "axisBorderShow": false,
-                  "axisCenteredZero": false,
-                  "axisColorMode": "text",
-                  "axisLabel": "",
-                  "axisPlacement": "auto",
-                  "barAlignment": 0,
-                  "barWidthFactor": 0.6,
-                  "drawStyle": "line",
-                  "fillOpacity": 0,
-                  "gradientMode": "none",
-                  "hideFrom": {
-                    "legend": false,
-                    "tooltip": false,
-                    "viz": false
-                  },
-                  "insertNulls": false,
-                  "lineInterpolation": "linear",
-                  "lineWidth": 1,
-                  "pointSize": 5,
-                  "scaleDistribution": {
-                    "type": "linear"
-                  },
-                  "showPoints": "auto",
-                  "showValues": false,
-                  "spanNulls": false,
-                  "stacking": {
-                    "group": "A",
-                    "mode": "none"
-                  },
-                  "thresholdsStyle": {
-                    "mode": "off"
-                  }
-                },
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": 0
-                    },
-                    {
-                      "color": "red",
-                      "value": 80
-                    }
-                  ]
-                }
-              },
-              "overrides": []
-            },
-            "options": {
-              "annotations": {
-                "clustering": -1,
-                "multiLane": false
-              },
-              "legend": {
-                "calcs": [],
-                "displayMode": "list",
-                "placement": "bottom",
-                "showLegend": true
-              },
-              "tooltip": {
-                "hideZeros": false,
-                "mode": "single",
-                "sort": "none"
-              }
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-8": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "${DS_PROMETHEUS}"
-                    },
-                    "group": "prometheus",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "expr": "sum(increase(resumeapp_auth_password_reset_requests_total[1d]))",
-                      "legendFormat": "requests"
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "description": "",
-        "id": 8,
-        "links": [],
-        "title": "Password Reset Requests Today",
-        "vizConfig": {
-          "group": "timeseries",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "color": {
-                  "mode": "palette-classic"
-                },
-                "custom": {
-                  "axisBorderShow": false,
-                  "axisCenteredZero": false,
-                  "axisColorMode": "text",
-                  "axisLabel": "",
-                  "axisPlacement": "auto",
-                  "barAlignment": 0,
-                  "barWidthFactor": 0.6,
-                  "drawStyle": "line",
-                  "fillOpacity": 0,
-                  "gradientMode": "none",
-                  "hideFrom": {
-                    "legend": false,
-                    "tooltip": false,
-                    "viz": false
-                  },
-                  "insertNulls": false,
-                  "lineInterpolation": "linear",
-                  "lineWidth": 1,
-                  "pointSize": 5,
-                  "scaleDistribution": {
-                    "type": "linear"
-                  },
-                  "showPoints": "auto",
-                  "showValues": false,
-                  "spanNulls": false,
-                  "stacking": {
-                    "group": "A",
-                    "mode": "none"
-                  },
-                  "thresholdsStyle": {
-                    "mode": "off"
-                  }
-                },
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": 0
-                    },
-                    {
-                      "color": "red",
-                      "value": 80
-                    }
-                  ]
-                }
-              },
-              "overrides": []
-            },
-            "options": {
-              "annotations": {
-                "clustering": -1,
-                "multiLane": false
-              },
-              "legend": {
-                "calcs": [],
-                "displayMode": "list",
-                "placement": "bottom",
-                "showLegend": true
-              },
-              "tooltip": {
-                "hideZeros": false,
-                "mode": "single",
-                "sort": "none"
-              }
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-9": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "${DS_PROMETHEUS}"
-                    },
-                    "group": "prometheus",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "expr": "sum by (section, action) (increase(resumeapp_profile_mutations_total[1d]))",
-                      "legendFormat": "{{section}} {{action}}"
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "description": "",
-        "id": 9,
-        "links": [],
-        "title": "Profile CRUD Activity",
-        "vizConfig": {
-          "group": "timeseries",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "color": {
-                  "mode": "palette-classic"
-                },
-                "custom": {
-                  "axisBorderShow": false,
-                  "axisCenteredZero": false,
-                  "axisColorMode": "text",
-                  "axisLabel": "",
-                  "axisPlacement": "auto",
-                  "barAlignment": 0,
-                  "barWidthFactor": 0.6,
-                  "drawStyle": "line",
-                  "fillOpacity": 0,
-                  "gradientMode": "none",
-                  "hideFrom": {
-                    "legend": false,
-                    "tooltip": false,
-                    "viz": false
-                  },
-                  "insertNulls": false,
-                  "lineInterpolation": "linear",
-                  "lineWidth": 1,
-                  "pointSize": 5,
-                  "scaleDistribution": {
-                    "type": "linear"
-                  },
-                  "showPoints": "auto",
-                  "showValues": false,
-                  "spanNulls": false,
-                  "stacking": {
-                    "group": "A",
-                    "mode": "none"
-                  },
-                  "thresholdsStyle": {
-                    "mode": "off"
-                  }
-                },
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": 0
-                    },
-                    {
-                      "color": "red",
-                      "value": 80
-                    }
-                  ]
-                }
-              },
-              "overrides": []
-            },
-            "options": {
-              "annotations": {
-                "clustering": -1,
-                "multiLane": false
-              },
-              "legend": {
-                "calcs": [],
-                "displayMode": "table",
-                "placement": "bottom",
-                "showLegend": true
-              },
-              "tooltip": {
-                "hideZeros": false,
-                "mode": "single",
-                "sort": "none"
-              }
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    }
-  },
-  "layout": {
-    "kind": "RowsLayout",
-    "spec": {
-      "rows": [
-        {
-          "kind": "RowsLayoutRow",
-          "spec": {
-            "collapse": false,
-            "layout": {
-              "kind": "GridLayout",
-              "spec": {
-                "items": [
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-1"
-                      },
-                      "height": 4,
-                      "width": 6,
-                      "x": 0,
-                      "y": 0
-                    }
-                  },
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-2"
-                      },
-                      "height": 4,
-                      "width": 6,
-                      "x": 6,
-                      "y": 0
-                    }
-                  },
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-3"
-                      },
-                      "height": 4,
-                      "width": 6,
-                      "x": 12,
-                      "y": 0
-                    }
-                  },
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-4"
-                      },
-                      "height": 4,
-                      "width": 6,
-                      "x": 18,
-                      "y": 0
-                    }
-                  }
-                ]
-              }
-            },
-            "title": "Overview"
-          }
-        },
-        {
-          "kind": "RowsLayoutRow",
-          "spec": {
-            "collapse": false,
-            "layout": {
-              "kind": "GridLayout",
-              "spec": {
-                "items": [
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-5"
-                      },
-                      "height": 8,
-                      "width": 12,
-                      "x": 0,
-                      "y": 0
-                    }
-                  },
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-6"
-                      },
-                      "height": 8,
-                      "width": 12,
-                      "x": 12,
-                      "y": 0
-                    }
-                  },
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-7"
-                      },
-                      "height": 8,
-                      "width": 8,
-                      "x": 0,
-                      "y": 8
-                    }
-                  },
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-8"
-                      },
-                      "height": 8,
-                      "width": 8,
-                      "x": 8,
-                      "y": 8
-                    }
-                  },
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-9"
-                      },
-                      "height": 8,
-                      "width": 8,
-                      "x": 16,
-                      "y": 8
-                    }
-                  }
-                ]
-              }
-            },
-            "title": "Auth & User Activity"
-          }
-        },
-        {
-          "kind": "RowsLayoutRow",
-          "spec": {
-            "collapse": false,
-            "layout": {
-              "kind": "GridLayout",
-              "spec": {
-                "items": [
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-10"
-                      },
-                      "height": 10,
-                      "width": 8,
-                      "x": 0,
-                      "y": 0
-                    }
-                  },
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-11"
-                      },
-                      "height": 10,
-                      "width": 8,
-                      "x": 8,
-                      "y": 0
-                    }
-                  },
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-12"
-                      },
-                      "height": 10,
-                      "width": 8,
-                      "x": 16,
-                      "y": 0
-                    }
-                  },
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-13"
-                      },
-                      "height": 4,
-                      "width": 8,
-                      "x": 0,
-                      "y": 10
-                    }
-                  }
-                ]
-              }
-            },
-            "title": "Logs"
-          }
-        },
-        {
-          "kind": "RowsLayoutRow",
-          "spec": {
-            "collapse": false,
-            "layout": {
-              "kind": "GridLayout",
-              "spec": {
-                "items": [
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-14"
-                      },
-                      "height": 8,
-                      "width": 8,
-                      "x": 0,
-                      "y": 0
-                    }
-                  },
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-15"
-                      },
-                      "height": 8,
-                      "width": 8,
-                      "x": 8,
-                      "y": 0
-                    }
-                  },
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-16"
-                      },
-                      "height": 8,
-                      "width": 8,
-                      "x": 16,
-                      "y": 0
-                    }
-                  }
-                ]
-              }
-            },
-            "title": "Performance Metrics"
-          }
-        },
-        {
-          "kind": "RowsLayoutRow",
-          "spec": {
-            "collapse": false,
-            "layout": {
-              "kind": "GridLayout",
-              "spec": {
-                "items": [
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-17"
-                      },
-                      "height": 8,
-                      "width": 8,
-                      "x": 0,
-                      "y": 0
-                    }
-                  },
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-18"
-                      },
-                      "height": 4,
-                      "width": 8,
-                      "x": 8,
-                      "y": 0
-                    }
-                  },
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-19"
-                      },
-                      "height": 4,
-                      "width": 8,
-                      "x": 16,
-                      "y": 0
-                    }
-                  },
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-20"
-                      },
-                      "height": 4,
-                      "width": 8,
-                      "x": 8,
-                      "y": 4
-                    }
-                  },
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-21"
-                      },
-                      "height": 4,
-                      "width": 8,
-                      "x": 16,
-                      "y": 4
-                    }
-                  },
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-22"
-                      },
-                      "height": 4,
-                      "width": 8,
-                      "x": 0,
-                      "y": 8
-                    }
-                  },
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-23"
-                      },
-                      "height": 8,
-                      "width": 16,
-                      "x": 8,
-                      "y": 8
-                    }
-                  }
-                ]
-              }
-            },
-            "title": "Uptime"
-          }
-        },
-        {
-          "kind": "RowsLayoutRow",
-          "spec": {
-            "collapse": false,
-            "layout": {
-              "kind": "GridLayout",
-              "spec": {
-                "items": [
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-24"
-                      },
-                      "height": 4,
-                      "width": 6,
-                      "x": 0,
-                      "y": 0
-                    }
-                  },
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-25"
-                      },
-                      "height": 4,
-                      "width": 6,
-                      "x": 6,
-                      "y": 0
-                    }
-                  },
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-26"
-                      },
-                      "height": 4,
-                      "width": 6,
-                      "x": 12,
-                      "y": 0
-                    }
-                  },
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-27"
-                      },
-                      "height": 4,
-                      "width": 6,
-                      "x": 18,
-                      "y": 0
-                    }
-                  },
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-28"
-                      },
-                      "height": 6,
-                      "width": 12,
-                      "x": 0,
-                      "y": 4
-                    }
-                  },
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-30"
-                      },
-                      "height": 8,
-                      "width": 12,
-                      "x": 12,
-                      "y": 4
-                    }
-                  },
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-29"
-                      },
-                      "height": 8,
-                      "width": 12,
-                      "x": 0,
-                      "y": 10
-                    }
-                  }
-                ]
-              }
-            },
-            "title": "Deployment"
-          }
-        }
-      ]
-    }
-  },
+  "graphTooltip": 1,
+  "id": null,
   "links": [],
   "liveNow": true,
-  "preload": false,
-  "tags": [
-    "resumeapp",
-    "observability",
-    "otel"
-  ],
-  "timeSettings": {
-    "autoRefresh": "5s",
-    "autoRefreshIntervals": [
-      "5s",
-      "10s",
-      "30s",
-      "1m",
-      "5m",
-      "15m",
-      "30m",
-      "1h",
-      "2h",
-      "1d"
-    ],
-    "fiscalYearStartMonth": 0,
-    "from": "now-24h",
-    "hideTimepicker": false,
-    "timezone": "browser",
-    "to": "now"
-  },
-  "title": "ResumeApp Observability",
-  "variables": [
+  "panels": [
     {
-      "kind": "DatasourceVariable",
-      "spec": {
-        "allowCustomValue": true,
-        "current": {
-          "text": "Prometheus",
-          "value": "PBFA97CFB590B2093"
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0},
+      "id": 100,
+      "panels": [],
+      "title": "Overview",
+      "type": "row"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{"color": "green", "value": 0}]
+          },
+          "unit": "short"
         },
-        "hide": "dontHide",
+        "overrides": []
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 1},
+      "id": 1,
+      "links": [],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "expr": "sum(increase(resumeapp_http_requests_total[1d]))",
+          "refId": "A"
+        }
+      ],
+      "title": "Total HTTP Requests Today",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": 0},
+              {"color": "orange", "value": 250},
+              {"color": "red", "value": 1000}
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 1},
+      "id": 2,
+      "links": [],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "expr": "sum(rate(resumeapp_http_request_duration_ms_sum[5m])) / sum(rate(resumeapp_http_request_duration_ms_count[5m]))",
+          "refId": "A"
+        }
+      ],
+      "title": "Avg Response Time",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{"color": "green", "value": 0}]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 1},
+      "id": 3,
+      "links": [],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "expr": "sum(increase(resumeapp_email_sends_total{outcome=\"success\"}[1d]))",
+          "refId": "A"
+        }
+      ],
+      "title": "Emails Sent Today",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": 0},
+              {"color": "orange", "value": 1}
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 1},
+      "id": 4,
+      "links": [],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "expr": "sum(increase(resumeapp_auth_registrations_total{outcome=\"success\"}[1d]))",
+          "refId": "A"
+        }
+      ],
+      "title": "Sign-ups Today",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 5},
+      "id": 101,
+      "panels": [],
+      "title": "Auth & User Activity",
+      "type": "row"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": {"legend": false, "tooltip": false, "viz": false},
+            "lineWidth": 1,
+            "scaleDistribution": {"type": "linear"},
+            "thresholdsStyle": {"mode": "off"}
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": 0},
+              {"color": "red", "value": 80}
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 6},
+      "id": 5,
+      "links": [],
+      "options": {
+        "barRadius": 0.05,
+        "barWidth": 0.97,
+        "fullHighlight": false,
+        "groupWidth": 0.7,
+        "legend": {
+          "calcs": [],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "orientation": "auto",
+        "showValue": "auto",
+        "stacking": "none",
+        "tooltip": {"hideZeros": false, "mode": "single", "sort": "none"},
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 200
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "editorMode": "code",
+          "expr": "sum by (outcome) (increase(resumeapp_auth_login_attempts_total[1d]))",
+          "legendFormat": "{{outcome}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Login Success vs Failure",
+      "type": "barchart"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": {"legend": false, "tooltip": false, "viz": false},
+            "lineWidth": 1,
+            "scaleDistribution": {"type": "linear"},
+            "thresholdsStyle": {"mode": "off"}
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": 0},
+              {"color": "red", "value": 80}
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "__systemRef": "hideSeriesFrom",
+            "matcher": {
+              "id": "byNames",
+              "options": {
+                "mode": "exclude",
+                "names": ["google success"],
+                "prefix": "All except:",
+                "readOnly": true
+              }
+            },
+            "properties": [
+              {
+                "id": "custom.hideFrom",
+                "value": {"legend": false, "tooltip": true, "viz": true}
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 6},
+      "id": 6,
+      "links": [],
+      "options": {
+        "barRadius": 0.05,
+        "barWidth": 0.97,
+        "fullHighlight": false,
+        "groupWidth": 0.7,
+        "legend": {
+          "calcs": [],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "orientation": "auto",
+        "showValue": "auto",
+        "stacking": "none",
+        "tooltip": {"hideZeros": false, "mode": "single", "sort": "none"},
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 200
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "expr": "sum by (provider, outcome) (increase(resumeapp_auth_social_logins_total[7d]))",
+          "legendFormat": "{{provider}} {{outcome}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Social Logins By Provider",
+      "type": "barchart"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {"legend": false, "tooltip": false, "viz": false},
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {"type": "linear"},
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {"group": "A", "mode": "none"},
+            "thresholdsStyle": {"mode": "off"}
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": 0},
+              {"color": "red", "value": 80}
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 8, "w": 8, "x": 0, "y": 14},
+      "id": 7,
+      "links": [],
+      "options": {
+        "legend": {"calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true},
+        "tooltip": {"hideZeros": false, "mode": "single", "sort": "none"}
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "expr": "sum(increase(resumeapp_auth_otp_verifications_total{outcome=\"failure\"}[1d]))",
+          "legendFormat": "failures",
+          "refId": "A"
+        }
+      ],
+      "title": "OTP Verification Failures",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {"legend": false, "tooltip": false, "viz": false},
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {"type": "linear"},
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {"group": "A", "mode": "none"},
+            "thresholdsStyle": {"mode": "off"}
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": 0},
+              {"color": "red", "value": 80}
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 8, "w": 8, "x": 8, "y": 14},
+      "id": 8,
+      "links": [],
+      "options": {
+        "legend": {"calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true},
+        "tooltip": {"hideZeros": false, "mode": "single", "sort": "none"}
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "expr": "sum(increase(resumeapp_auth_password_reset_requests_total[1d]))",
+          "legendFormat": "requests",
+          "refId": "A"
+        }
+      ],
+      "title": "Password Reset Requests Today",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {"legend": false, "tooltip": false, "viz": false},
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {"type": "linear"},
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {"group": "A", "mode": "none"},
+            "thresholdsStyle": {"mode": "off"}
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": 0},
+              {"color": "red", "value": 80}
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 8, "w": 8, "x": 16, "y": 14},
+      "id": 9,
+      "links": [],
+      "options": {
+        "legend": {"calcs": [], "displayMode": "table", "placement": "bottom", "showLegend": true},
+        "tooltip": {"hideZeros": false, "mode": "single", "sort": "none"}
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "expr": "sum by (section, action) (increase(resumeapp_profile_mutations_total[1d]))",
+          "legendFormat": "{{section}} {{action}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Profile CRUD Activity",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 22},
+      "id": 102,
+      "panels": [],
+      "title": "Logs",
+      "type": "row"
+    },
+    {
+      "datasource": {"type": "loki", "uid": "${DS_LOKI}"},
+      "description": "",
+      "fieldConfig": {"defaults": {}, "overrides": []},
+      "gridPos": {"h": 10, "w": 8, "x": 0, "y": 23},
+      "id": 10,
+      "links": [],
+      "options": {
+        "dedupStrategy": "none",
+        "enableInfiniteScrolling": false,
+        "enableLogDetails": true,
+        "prettifyLogMessage": true,
+        "showControls": false,
+        "showFieldSelector": false,
+        "showLabels": false,
+        "showLevel": true,
+        "showTime": false,
+        "sortOrder": "Descending",
+        "timestampResolution": "ms",
+        "unwrappedColumns": false,
+        "wrapLogMessage": true
+      },
+      "targets": [
+        {
+          "datasource": {"type": "loki", "uid": "${DS_LOKI}"},
+          "direction": "backward",
+          "editorMode": "code",
+          "expr": "{service_name=\"ResumeApp.API\"} | detected_level = `Information`",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Info Logs",
+      "type": "logs"
+    },
+    {
+      "datasource": {"type": "loki", "uid": "${DS_LOKI}"},
+      "description": "",
+      "fieldConfig": {"defaults": {}, "overrides": []},
+      "gridPos": {"h": 10, "w": 8, "x": 8, "y": 23},
+      "id": 11,
+      "links": [],
+      "options": {
+        "dedupStrategy": "none",
+        "enableInfiniteScrolling": false,
+        "enableLogDetails": true,
+        "prettifyLogMessage": true,
+        "showControls": false,
+        "showFieldSelector": false,
+        "showLabels": false,
+        "showLevel": true,
+        "showTime": false,
+        "sortOrder": "Descending",
+        "timestampResolution": "ms",
+        "unwrappedColumns": false,
+        "wrapLogMessage": true
+      },
+      "targets": [
+        {
+          "datasource": {"type": "loki", "uid": "${DS_LOKI}"},
+          "expr": "{service_name=\"ResumeApp.API\"} | detected_level = `Warning`",
+          "refId": "A"
+        }
+      ],
+      "title": "Warning Logs",
+      "type": "logs"
+    },
+    {
+      "datasource": {"type": "loki", "uid": "${DS_LOKI}"},
+      "description": "",
+      "fieldConfig": {"defaults": {}, "overrides": []},
+      "gridPos": {"h": 10, "w": 8, "x": 16, "y": 23},
+      "id": 12,
+      "links": [],
+      "options": {
+        "dedupStrategy": "none",
+        "enableInfiniteScrolling": false,
+        "enableLogDetails": true,
+        "prettifyLogMessage": true,
+        "showControls": false,
+        "showFieldSelector": false,
+        "showLabels": false,
+        "showLevel": true,
+        "showTime": false,
+        "sortOrder": "Descending",
+        "timestampResolution": "ms",
+        "unwrappedColumns": false,
+        "wrapLogMessage": true
+      },
+      "targets": [
+        {
+          "datasource": {"type": "loki", "uid": "${DS_LOKI}"},
+          "expr": "{service_name=\"ResumeApp.API\"} | detected_level = `Error`",
+          "refId": "A"
+        }
+      ],
+      "title": "Error Logs",
+      "type": "logs"
+    },
+    {
+      "datasource": {"type": "loki", "uid": "${DS_LOKI}"},
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": 0},
+              {"color": "red", "value": 1}
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 4, "w": 8, "x": 0, "y": 33},
+      "id": 13,
+      "links": [],
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {"type": "loki", "uid": "${DS_LOKI}"},
+          "expr": "sum(count_over_time({service_name=\"ResumeApp.API\"} | detected_level = `Error` [24h]))",
+          "refId": "A"
+        }
+      ],
+      "title": "Total Error Logs Count",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 37},
+      "id": 103,
+      "panels": [],
+      "title": "Performance Metrics",
+      "type": "row"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": 0},
+              {"color": "orange", "value": 0.5},
+              {"color": "red", "value": 0.9}
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 8, "w": 8, "x": 0, "y": 38},
+      "id": 14,
+      "links": [],
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "expr": "sum(rate(process_cpu_time_total[5m]))",
+          "refId": "A"
+        }
+      ],
+      "title": "CPU Utilization",
+      "type": "gauge"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": 0},
+              {"color": "orange", "value": 500000000},
+              {"color": "red", "value": 1000000000}
+            ]
+          },
+          "unit": "decbytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 8, "w": 8, "x": 8, "y": 38},
+      "id": 15,
+      "links": [],
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "expr": "process_memory_usage",
+          "refId": "A"
+        }
+      ],
+      "title": "Memory Use",
+      "type": "gauge"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {"legend": false, "tooltip": false, "viz": false},
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {"type": "linear"},
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {"group": "A", "mode": "none"},
+            "thresholdsStyle": {"mode": "off"}
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": 0},
+              {"color": "red", "value": 80}
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 8, "w": 8, "x": 16, "y": 38},
+      "id": 16,
+      "links": [],
+      "options": {
+        "legend": {"calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true},
+        "tooltip": {"hideZeros": false, "mode": "single", "sort": "none"}
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "expr": "process_runtime_dotnet_thread_pool_threads_count",
+          "legendFormat": "Threads",
+          "refId": "A"
+        }
+      ],
+      "title": "Thread Pool",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 46},
+      "id": 104,
+      "panels": [],
+      "title": "Uptime",
+      "type": "row"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "decimals": 2,
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "red", "value": 0},
+              {"color": "orange", "value": 95},
+              {"color": "green", "value": 99}
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 8, "w": 8, "x": 0, "y": 47},
+      "id": 17,
+      "links": [],
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "expr": "avg_over_time(probe_success{job=\"blackbox-api-uptime\",target=\"resumeapp-api\"}[24h]) * 100",
+          "refId": "A"
+        }
+      ],
+      "title": "Long Term Uptime",
+      "type": "gauge"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": 0},
+              {"color": "orange", "value": 250},
+              {"color": "red", "value": 1000}
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 4, "w": 8, "x": 8, "y": 47},
+      "id": 18,
+      "links": [],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "expr": "probe_http_duration_seconds{job=\"blackbox-api-uptime\",target=\"resumeapp-api\",phase=\"processing\"} * 1000",
+          "refId": "A"
+        }
+      ],
+      "title": "Average Response Time (most recent run)",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": 0},
+              {"color": "orange", "value": 1},
+              {"color": "red", "value": 5}
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 4, "w": 8, "x": 16, "y": 47},
+      "id": 19,
+      "links": [],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "expr": "sum(ceil(increase((1 - probe_success{job=\"blackbox-api-uptime\",target=\"resumeapp-api\"})[24h])))",
+          "refId": "A"
+        }
+      ],
+      "title": "Dropped Packets",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "mappings": [
+            {
+              "options": {
+                "0": {"color": "red", "text": "Down"},
+                "1": {"color": "green", "text": "Up"}
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "red", "value": 0},
+              {"color": "green", "value": 1}
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 4, "w": 8, "x": 8, "y": 51},
+      "id": 20,
+      "links": [],
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "showPercentChange": false,
+        "textMode": "value",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "expr": "probe_success{job=\"blackbox-api-uptime\",target=\"resumeapp-api\"}",
+          "refId": "A"
+        }
+      ],
+      "title": "Current API Status",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "decimals": 0,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": 0},
+              {"color": "orange", "value": 5},
+              {"color": "red", "value": 30}
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 4, "w": 8, "x": 16, "y": 51},
+      "id": 21,
+      "links": [],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "expr": "(1 - avg_over_time(probe_success{job=\"blackbox-api-uptime\",target=\"resumeapp-api\"}[24h])) * 86400",
+          "refId": "A"
+        }
+      ],
+      "title": "API Downtime Last 24h",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": 0},
+              {"color": "orange", "value": 0.5},
+              {"color": "red", "value": 2}
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 4, "w": 8, "x": 0, "y": 55},
+      "id": 22,
+      "links": [],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "expr": "probe_duration_seconds{job=\"blackbox-api-uptime\",target=\"resumeapp-api\"}",
+          "refId": "A"
+        }
+      ],
+      "title": "API Probe Duration",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {"legend": false, "tooltip": false, "viz": false},
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {"type": "linear"},
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {"group": "A", "mode": "none"},
+            "thresholdsStyle": {"mode": "off"}
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "red", "value": 0},
+              {"color": "green", "value": 1}
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 8, "w": 16, "x": 8, "y": 55},
+      "id": 23,
+      "links": [],
+      "options": {
+        "legend": {"calcs": [], "displayMode": "table", "placement": "bottom", "showLegend": true},
+        "tooltip": {"hideZeros": false, "mode": "single", "sort": "none"}
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "expr": "probe_success{job=\"blackbox-api-uptime\",target=\"resumeapp-api\"}",
+          "legendFormat": "{{environment}}-{{instance}}",
+          "refId": "A"
+        }
+      ],
+      "title": "API Uptime Timeline",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 63},
+      "id": 105,
+      "panels": [],
+      "title": "Deployment",
+      "type": "row"
+    },
+    {
+      "datasource": {"type": "loki", "uid": "${DS_LOKI}"},
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": 0},
+              {"color": "orange", "value": 250},
+              {"color": "red", "value": 2000}
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 64},
+      "id": 24,
+      "links": [],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {"type": "loki", "uid": "${DS_LOKI}"},
+          "direction": "backward",
+          "editorMode": "code",
+          "expr": "last_over_time({source=\"deployment-k6\",service=\"resumeapp-api\"} | json | event_type=\"summary\" | unwrap estimated_downtime_ms [15d])",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Last Deployment Downtime",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "loki", "uid": "${DS_LOKI}"},
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": 0},
+              {"color": "orange", "value": 250},
+              {"color": "red", "value": 2000}
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 64},
+      "id": 25,
+      "links": [],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {"type": "loki", "uid": "${DS_LOKI}"},
+          "direction": "backward",
+          "editorMode": "code",
+          "expr": "avg_over_time({source=\"deployment-k6\",service=\"resumeapp-api\"} | json | event_type=\"summary\" | unwrap estimated_downtime_ms [15d])",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Avg Deployment Downtime",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "loki", "uid": "${DS_LOKI}"},
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 3,
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "red", "value": 0},
+              {"color": "orange", "value": 99},
+              {"color": "green", "value": 99.9}
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 64},
+      "id": 26,
+      "links": [],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {"type": "loki", "uid": "${DS_LOKI}"},
+          "direction": "backward",
+          "editorMode": "code",
+          "expr": "last_over_time({source=\"deployment-k6\",service=\"resumeapp-api\"} | json | event_type=\"summary\" | unwrap success_percent [15d])",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Last Deployment Availability",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "loki", "uid": "${DS_LOKI}"},
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": 0},
+              {"color": "orange", "value": 1},
+              {"color": "red", "value": 5}
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 64},
+      "id": 27,
+      "links": [],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {"type": "loki", "uid": "${DS_LOKI}"},
+          "direction": "backward",
+          "editorMode": "code",
+          "expr": "last_over_time({source=\"deployment-k6\",service=\"resumeapp-api\"} | json | event_type=\"summary\" | unwrap failed_probes [15d])",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Last Deployment Failed Probes",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "loki", "uid": "${DS_LOKI}"},
+      "description": "",
+      "fieldConfig": {"defaults": {}, "overrides": []},
+      "gridPos": {"h": 6, "w": 12, "x": 0, "y": 68},
+      "id": 28,
+      "links": [],
+      "options": {
+        "dedupStrategy": "none",
+        "enableInfiniteScrolling": false,
+        "enableLogDetails": true,
+        "prettifyLogMessage": true,
+        "showControls": false,
+        "showFieldSelector": false,
+        "showLabels": false,
+        "showLevel": true,
+        "showTime": false,
+        "sortOrder": "Descending",
+        "timestampResolution": "ms",
+        "unwrappedColumns": false,
+        "wrapLogMessage": true
+      },
+      "targets": [
+        {
+          "datasource": {"type": "loki", "uid": "${DS_LOKI}"},
+          "expr": "{source=\"deployment-k6\",service=\"resumeapp-api\"} | json | event_type=\"summary\"",
+          "refId": "A"
+        }
+      ],
+      "title": "Deployment Window",
+      "type": "logs"
+    },
+    {
+      "datasource": {"type": "loki", "uid": "${DS_LOKI}"},
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {"legend": false, "tooltip": false, "viz": false},
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {"type": "linear"},
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {"group": "A", "mode": "none"},
+            "thresholdsStyle": {"mode": "off"}
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": 0},
+              {"color": "red", "value": 80}
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 68},
+      "id": 30,
+      "links": [],
+      "options": {
+        "legend": {"calcs": [], "displayMode": "table", "placement": "bottom", "showLegend": true},
+        "tooltip": {"hideZeros": false, "mode": "single", "sort": "none"}
+      },
+      "targets": [
+        {
+          "datasource": {"type": "loki", "uid": "${DS_LOKI}"},
+          "expr": "last_over_time({source=\"deployment-k6\",service=\"resumeapp-api\"} | json | event_type=\"probe\" | unwrap duration_ms [200ms])",
+          "legendFormat": "deployment latency",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Deployment Probe Latency",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "loki", "uid": "${DS_LOKI}"},
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "custom": {
+            "axisPlacement": "auto",
+            "fillOpacity": 70,
+            "hideFrom": {"legend": false, "tooltip": false, "viz": false},
+            "insertNulls": false,
+            "lineWidth": 0,
+            "spanNulls": false
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {"color": "red", "text": "Failed"},
+                "1": {"color": "green", "text": "Healthy"}
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "red", "value": 0},
+              {"color": "green", "value": 1}
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 74},
+      "id": 29,
+      "links": [],
+      "options": {
+        "alignValue": "left",
+        "colWidth": 0.9,
+        "legend": {"displayMode": "list", "placement": "bottom", "showLegend": true},
+        "mergeValues": false,
+        "rowHeight": 0.9,
+        "showValue": "never",
+        "tooltip": {"hideZeros": false, "mode": "single", "sort": "none"}
+      },
+      "targets": [
+        {
+          "datasource": {"type": "loki", "uid": "${DS_LOKI}"},
+          "expr": "last_over_time({source=\"deployment-k6\",service=\"resumeapp-api\"} | json | event_type=\"probe\" | unwrap success_value [200ms])",
+          "legendFormat": "deployment probes",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Deployment Probe Timeline",
+      "type": "state-timeline"
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 38,
+  "tags": ["resumeapp", "observability", "otel"],
+  "templating": {
+    "list": [
+      {
+        "current": {"text": "Prometheus", "value": "PBFA97CFB590B2093"},
+        "hide": 0,
         "includeAll": false,
         "multi": false,
         "name": "DS_PROMETHEUS",
         "options": [],
-        "pluginId": "prometheus",
-        "refresh": "onDashboardLoad",
+        "query": "prometheus",
+        "refresh": 1,
         "regex": "",
-        "skipUrlSync": false
-      }
-    },
-    {
-      "kind": "DatasourceVariable",
-      "spec": {
-        "allowCustomValue": true,
-        "current": {
-          "text": "Loki",
-          "value": "P8E80F9AEF21F6940"
-        },
-        "hide": "dontHide",
+        "skipUrlSync": false,
+        "type": "datasource"
+      },
+      {
+        "current": {"text": "Loki", "value": "P8E80F9AEF21F6940"},
+        "hide": 0,
         "includeAll": false,
         "multi": false,
         "name": "DS_LOKI",
         "options": [],
-        "pluginId": "loki",
-        "refresh": "onDashboardLoad",
+        "query": "loki",
+        "refresh": 1,
         "regex": "",
-        "skipUrlSync": false
+        "skipUrlSync": false,
+        "type": "datasource"
       }
-    }
-  ]
+    ]
+  },
+  "time": {"from": "now-24h", "to": "now"},
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "ResumeApp Observability",
+  "uid": "resumeapp-observability",
+  "version": 1
 }

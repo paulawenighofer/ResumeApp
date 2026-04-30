@@ -39,3 +39,10 @@ spec:
           envFrom:
             - secretRef:
                 name: resume-app-secrets
+          volumeMounts:
+            - name: dataprotection-keys
+              mountPath: /app/dataprotection-keys
+      volumes:
+        - name: dataprotection-keys
+          persistentVolumeClaim:
+            claimName: resumeapp-pvc-web-dataprotection
