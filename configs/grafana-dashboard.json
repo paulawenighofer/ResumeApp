@@ -57,7 +57,7 @@
       "targets": [
         {
           "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
-          "expr": "sum(increase(resumeapp_http_requests_total[1d]))",
+          "expr": "ceil(sum(increase(resumeapp_http_requests_total[1d])))",
           "refId": "A"
         }
       ],
