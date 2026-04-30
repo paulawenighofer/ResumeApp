@@ -385,7 +385,7 @@
       "targets": [
         {
           "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
-          "expr": "sum(increase(resumeapp_auth_otp_verifications_total{outcome=\"failure\"}[1d]))",
+          "expr": "sum(increase(resumeapp_auth_otp_verifications_total{outcome=\"failure\"}[1d])) or vector(0)",
           "legendFormat": "failures",
           "refId": "A"
         }
@@ -442,7 +442,7 @@
       "targets": [
         {
           "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
-          "expr": "sum(increase(resumeapp_auth_password_reset_requests_total[1d]))",
+          "expr": "sum(increase(resumeapp_auth_password_reset_requests_total[1d])) or vector(0)",
           "legendFormat": "requests",
           "refId": "A"
         }
@@ -499,7 +499,7 @@
       "targets": [
         {
           "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
-          "expr": "sum by (section, action) (increase(resumeapp_profile_mutations_total[1d]))",
+          "expr": "sum by (section, action) (increase(resumeapp_profile_mutations_total[1d])) or vector(0)",
           "legendFormat": "{{section}} {{action}}",
           "refId": "A"
         }
@@ -696,7 +696,7 @@
       "targets": [
         {
           "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
-          "expr": "sum(rate(process_cpu_time_total[5m]))",
+          "expr": "sum(rate(process_cpu_time_seconds_total[5m]))",
           "refId": "A"
         }
       ],
@@ -736,7 +736,7 @@
       "targets": [
         {
           "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
-          "expr": "process_memory_usage",
+          "expr": "process_memory_usage_bytes",
           "refId": "A"
         }
       ],
